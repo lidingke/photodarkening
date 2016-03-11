@@ -39,49 +39,40 @@ class Model(threading.Thread, QObject):
         self.running    = True
 
         #send command to control device
-        # self.sendmsg = {
-        #     'sendcurrent':b'\xEB\x90\x01\xFF\xFF\x90\xEB',
-        #     'openlaser':b'\xEB\x90\x00\x00\x01\x90\xEB',
-        #     'closelaser':b'\xEB\x90\x00\x00\x00\x90\xEB',
-        #     'pulsewidthajust':b'\xEB\x90\x02\xFF\xFF\x90\xEB',
-        #     'frequencyajust':b'\xEB\x90\x03\xFF\xFF\x90\xEB',
-        #     'hellocom':b'\xEB\x90\x10\x00\x00\x90\xEB'
-        #     }
+        self.msgDict = {
+            'sendcurrent':b'\xEB\x90\x01\xFF\xFF\x90\xEB',
+            'openlaser':b'\xEB\x90\x00\x00\x01\x90\xEB',
+            'closelaser':b'\xEB\x90\x00\x00\x00\x90\xEB',
+            'pulsewidthajust':b'\xEB\x90\x02\xFF\xFF\x90\xEB',
+            'frequencyajust':b'\xEB\x90\x03\xFF\xFF\x90\xEB',
+            'hellocom':b'\xEB\x90\x10\x00\x00\x90\xEB',
+            'openseed':b'\xEB\x90\x01\x00\x00\x01\x90\xEB',
+            'openseedreturn':b'\xEB\x90\x01\x00\x00\x01\x90\xEB',
 
-        #send command to control device
-        self.sendmsg = {
-            'sendcurrent':b'sendcurrent0000',
-            'openlaser':b'openlaser000000',
-            'closelaser':b'closelaser00000',
-            'pulsewidthajust':b'pulsewidthajust',
-            'frequencyajust':b'frequencyajust0',
-            'hellocom':b'hellocom0000000',
-            'openseed':b'openseed0000000',
-            'open1st':b'open1st00000000',
-            'open2sr':b'open2sr00000000',
-            '1stajust':b'1stajust0000000',
-            '2stajust':b'2stajust0000000'
             }
 
-        # TODO
-        # Configuration for line ending
-        #self.config     = {'eol':['','\n','\r','\r\n']}
 
     def run(self):
         '''
         Run thread.
         In every iteration trying to read one line from serial port and put
         it in queue.
+        thread class
+        run(self)
+     |      Method representing the thread's activity.
+     |
+     |      You may override this method in a subclass. The standard run() method
+     |      invokes the callable object passed to the object's constructor as the
+     |      target argument, if any, with sequential and keyword arguments taken
+     |      from the args and kwargs arguments, respectively.
+
         '''
         try:
             while self.running:
                 data = None
                 #sleep(1)
-                try:
-                    data = self.readline()
-                except SerialException:
-                    pass
-
+                #data = self.readline()
+                data = self.analysisbit()
                     #print('Error occured while reading data.')
                 try:
                     if len(data)>0:
@@ -89,7 +80,6 @@ class Model(threading.Thread, QObject):
                         self.queue.put(data.strip())
                 except Exception as e:
                     data=b'-1'
-
 
                 sleep(self.timeout)
 
@@ -128,7 +118,12 @@ class Model(threading.Thread, QObject):
     def get_queue(self):
         return self.queue
 
-    def set_port(self, port):
+    def set_port(self,port):
+        self.port = port
+
+
+
+    def reset_port(self, port):
         self.ser.close()
         sleep(0.1)
         self.port=port
@@ -145,7 +140,8 @@ class Model(threading.Thread, QObject):
         #     self.emit_error('Can\'t open this port: ' + str(port) + '.')
 
 
-
+    def get_msgDict(self):
+        return self.msgDict
 
     def get_port(self):
         return self.port
@@ -156,6 +152,9 @@ class Model(threading.Thread, QObject):
 
     def get_br(self):
         return self.br
+
+    def get_ser(self):
+        return self.ser
 
     # def set_eol(self, value):
     #     self.eol = value
@@ -171,7 +170,7 @@ class Model(threading.Thread, QObject):
         '''
         @data data to send
         '''
-        dataSend=self.sendmsg.get(data)
+        dataSend = self.msgcoup(data)
         #print(dataSend)
         if dataSend:
             print('上位机发送:',dataSend)
@@ -184,9 +183,64 @@ class Model(threading.Thread, QObject):
             data = self.ser.read(15)
         except Exception as e:
             raise e
+        return data
 
-        #print(data)
-        return data#.decode('ASCII')
+    def readbit(self):
+        sleep(0.1)
+        try:
+            data = self.ser.read(1)
+        except Exception as e:
+            raise e
+        return data
+
+    def msgcoup(self,msg):
+        msg = self.msgDict.get(msg)
+        if len(msg) > 0:
+            return msg
+        else:
+            return b'\xEB\x90'+msg+b'\x90\xEB'
+
+    def analysisbit(self):
+
+        readlive = True
+        # xebstatue = False
+        # x90statue = False
+        bitlist = list()
+        while readlive and self.running:
+            databit = self.readbit()
+            if databit == b'\xeb':
+                # print(databit,'1')
+                databit = self.readbit()
+                if databit == b'\x90':
+                    while True:
+                        #print(databit,'2')
+                        databit = self.readbit()
+                        if databit == b'\x90':
+                            databit = self.readbit()
+                            return b''.join(bitlist)
+                        bitlist.append(databit)
+
+
+            # databit = self.readbit()
+            # print(databit)
+            # if databit == b'\xEB':
+            #     xebstatue = not xebstatue
+            # elif databit == b'\x90':
+            #     x90statue = not x90statue
+            # else:
+            #     pass
+            # print(xebstatue,':',x90statue)
+            # if xebstatue and x90statue:
+            #     self.bitlist.put(databit)
+            # elif xebstatue and not x90statue:
+            #     pass
+            # else:
+            #     readlive = False
+            #     #xebstatue = False
+            #     #x90statue = False
+            # if bitlist.qsize() > 0:
+            #     print(bitlist.qsize())
+            #     return b''.join(bitlist)
 
 
 #==============================================================================

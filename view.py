@@ -14,10 +14,15 @@ from PyQt5.QtWidgets    import QComboBox
 from PyQt5.QtWidgets    import QMessageBox
 from PyQt5.QtWidgets    import QLCDNumber
 from PyQt5.QtWidgets    import QSpinBox
+from PyQt5.QtWidgets    import QSpacerItem
+from PyQt5.QtWidgets    import QTabWidget
+from PyQt5.QtWidgets    import QGroupBox
+
 from PyQt5.QtCore       import QTimer
 from PyQt5.QtCore       import QObject
 from PyQt5.QtCore       import pyqtSignal
 from PyQt5.QtCore       import Qt
+from PyQt5.QtCore       import QSize
 from PyQt5.QtGui       import QPainter
 from PyQt5.QtGui       import QPixmap
 from queue              import Queue
@@ -38,8 +43,6 @@ class View(QWidget):
         self.end_cmd    = None
         self.autoscroll = True
         self.msg_sent   = False
-        self.currentbaud = '9600 baud'
-        self.currentport = 'com12'
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_gui)
         self.timer.start(100)
@@ -48,110 +51,146 @@ class View(QWidget):
 
     def __initUI(self):
         #main box
-        mainBox = QVBoxLayout(self)#使用垂直布局类
-        menuBox = QHBoxLayout()
-        setBox = QHBoxLayout()
-        showBox = QHBoxLayout()
+        self.mainBox = QVBoxLayout(self)#使用垂直布局类
+        gbox1 = QGroupBox()
+        gbox2 = QGroupBox()
+        gbox3 = QGroupBox()
+        gbox4 = QGroupBox()
+        gbox5 = QGroupBox()
+        #self.menuBox = QHBoxLayout()
+        self.setBox = QHBoxLayout(gbox2)
+        self.toolBox = QTabWidget()
+        self.toolBox.addTab(gbox1,'用户登录')
+        self.toolBox.addTab(gbox2,'启动设置')
+        self.toolBox.addTab(gbox3,'系统设置')
+        self.toolBox.addTab(gbox4,'数据导出')
+        self.toolBox.addTab(gbox5,'帮助')
+        self.toolBox.setMaximumSize(10000,200)
+        self.toolBox.resize(1200,200)
+        self.showBox = QHBoxLayout()
 
-        #edit box
-        cmdBox = QVBoxLayout()
-        #cmd_hbox = QHBoxLayout()#使用水平布局类
-        #lcdSliderBox = QHBoxLayout()
-        stng_hbox = QHBoxLayout()
-        port_hbox = QHBoxLayout()
+#
+#启动设置tabbox栏目，包含于setBox
+#
+        #
+        # stng_hbox = QHBoxLayout()
+        # portBox = QHBoxLayout()
 
-        portSetBox = QVBoxLayout()
-        cmdButtonBox = QVBoxLayout()
-        valuelabelBox = QVBoxLayout()
-        valueSetBox = QVBoxLayout()
-
+        # portSetBox = QVBoxLayout()
+        # cmdButtonBox = QVBoxLayout()
+        # valuelabelBox = QVBoxLayout()
+        # valueSetBox = QVBoxLayout()
+        portBox = QVBoxLayout()
+        seedBox = QVBoxLayout()
+        firstPumpBox = QVBoxLayout()
+        secondPumpBox = QVBoxLayout()
         # Command box
-        setBox.addLayout(portSetBox)
-        setBox.addLayout(cmdButtonBox)
-        setBox.addLayout(valuelabelBox)
-        setBox.addLayout(valueSetBox)
-        showBox.addLayout(cmdBox)
+        self.setBox.addLayout(portBox)
+        self.setBox.addLayout(seedBox)
+        self.setBox.addLayout(firstPumpBox)
+        self.setBox.addLayout(secondPumpBox)
+        self.setBox.addStretch()
+        #
+        # self.showBox.addLayout(cmdBox)
 
-        mainBox.addLayout(menuBox)
-        mainBox.addLayout(setBox)
-        mainBox.addLayout(showBox)
-        #mainBox.addLayout(port_hbox)
-        #mainBox.addLayout(stng_hbox)
-
-        userLabel = QLabel('用户')
-        sysLabel = QLabel('系统')
-        setbutLabel = QLabel('属性')
-        menuBox.addWidget(userLabel)
-        menuBox.addWidget(sysLabel)
-        menuBox.addWidget(setbutLabel)
-
-        cmd_btn = QPushButton('Send Command')
-        cmd_btn.clicked.connect(self.emit_send_data)
-        cmdButtonBox.addWidget(cmd_btn)
-        cmd_btncr = QPushButton('sendcurrentcmd')
-        cmd_btncr.clicked.connect(partial(self.emit_send_command,'sendcurrent'))
-        cmdButtonBox.addWidget(cmd_btncr)
+        self.openPortButton = QPushButton('openport')
+        self.openPortButton.clicked.connect(partial(self.emit_send_command,'openport'))
+        portBox.addWidget(self.openPortButton)
 
         # - Baudrate select
-        self.br_menu = QComboBox()
+        self.baundrateMenu = QComboBox()
         self.menuItem = ['300 baud','1200 baud',
             '2400 baud','4800 baud','9600 baud',
             '19200 baud','38400 baud','57600 baud',
             '115200 baud','230400 baud','250000 baud']
-        self.br_menu.addItems(self.menuItem)
-        self.br_menu.currentIndexChanged.connect(self.emit_br_changed)
+        self.baundrateMenu.addItems(self.menuItem)
+        self.baundrateMenu.currentIndexChanged.connect(self.emit_br_changed)
         # Set default baudrate 9600
-        self.br_menu.setCurrentIndex(4)
-        stng_hbox.addWidget(self.br_menu)
+        self.baundrateMenu.setCurrentIndex(4)
+        portBox.addWidget(self.baundrateMenu)
+        #port select
+        portLabel = QLabel('Port: ')
+        portLB = QHBoxLayout()
+        portLB.addWidget(portLabel)
+        self.portEdit = QLineEdit()
+        self.portEdit.editingFinished.connect(self.changePort)
+        portLB.addWidget(self.portEdit)
+        portBox.addLayout(portLB)
+        portBox.addStretch()
+        #portSetBox.addLayout(stng_hbox)
+        #self.setBox.addLayout(portBox)
 
-        port_lbl = QLabel('Port: ')
-        port_hbox.addWidget(port_lbl)
-        self.port_edit = QLineEdit()
 
-        self.port_edit.editingFinished.connect(self.changePort)
-        port_hbox.addWidget(self.port_edit)
-        portSetBox.addLayout(stng_hbox)
-        portSetBox.addLayout(port_hbox)
+        # cmd_btncr = QPushButton('sendcurrentcmd')
+        # cmd_btncr.clicked.connect(partial(self.emit_send_command,'sendcurrent'))
+        # cmdButtonBox.addWidget(cmd_btncr)
+        #seedBox项目
+        openSeedButton = QPushButton('openseed')
+        openSeedButton.clicked.connect(partial(self.emit_send_command,'openseed'))
+        seedBox.addWidget(openSeedButton)
 
-        # lcd = QLCDNumber(self)
-        firstLabel=QLabel('1st')
-        secLabel=QLabel('2st')
-        slider1 = QSpinBox(self)
-        slider2 = QSpinBox(self)
-        valuelabelBox.addWidget(firstLabel)
-        valuelabelBox.addWidget(secLabel)
-        valueSetBox.addWidget(slider1)
-        valueSetBox.addWidget(slider2)
-        # lcdSliderBox.addWidget(lcd)
-        # lcdSliderBox.addWidget(slider)
-        # slider.valueChanged.connect(lcd.display)
+        setSeedButton = QPushButton('setseed')
+        setSeedButton.clicked.connect(partial(self.emit_send_command,'setseed'))
+        seedBox.addWidget(setSeedButton)
+        seedBox.addStretch()
+
+        # amp select
+        openFirstPump = QPushButton('openfirstpump')
+        openFirstPump.clicked.connect(partial(self.emit_send_command,'openfirstpump'))
+        firstPumpBox.addWidget(openFirstPump)
+        openSecondPump = QPushButton('opensecondpump')
+        openSecondPump.clicked.connect(partial(self.emit_send_command,'opensecondpump'))
+        secondPumpBox.addWidget(openSecondPump)
+
+        firstPumpLabel=QLabel('一级泵浦调节')
+        secPumpLabel=QLabel('二级泵浦调节')
+        firstpumpSet = QSpinBox(self)
+        secondpumpSet = QSpinBox(self)
+        firstPumpBox.addWidget(firstPumpLabel)
+        secondPumpBox.addWidget(secPumpLabel)
+        firstPumpBox.addWidget(firstpumpSet)
+        secondPumpBox.addWidget(secondpumpSet)
+        firstPumpBox.addStretch()
+        secondPumpBox.addStretch()
         #self.resize(250, 150)
+        #tool init
+        widget1=QWidget()
+        widget2=QWidget()
+
+
+        #vboxMenu.addWidget(painter)
+        #空出部分以供后面补充
+        vboxMenu = QHBoxLayout(gbox1)
+        vboxMenu.addWidget(widget1)
+        vboxShow = QHBoxLayout(gbox3)
+        vboxShow.addWidget(widget2)
 
 
 
-        # Text edit area
+        # show area
         self.cmd_edit = QLineEdit()
+        cmd_btn = QPushButton('Send Command')
+        cmd_btn.clicked.connect(self.emit_send_data)
+
         self.editer = QPlainTextEdit()
+        cmdBox = QVBoxLayout()
         cmdBox.addWidget(self.cmd_edit)
+        cmdBox.addWidget(cmd_btn)
         cmdBox.addWidget(self.editer)
+        #cmdBox.totalMaximumSize(300,400)
+
         #painter
         self.painter= PaintArea()
-        showBox.addWidget(self.painter)
+        self.showBox.addLayout(cmdBox)
+        self.showBox.addWidget(self.painter)
 
 
-        # Settings area
-
-
-        # - Autoscroll
-        # chk_btn = QCheckBox('Autoscroll')
-        # chk_btn.stateChanged.connect(self.set_autoscroll)
-        # stng_hbox.addWidget(chk_btn)
-        # stng_hbox.addStretch(1)
+        self.mainBox.addWidget(self.toolBox)
+        self.mainBox.addLayout(self.showBox)
 
 
 
-
-        self.setLayout(mainBox)
+        self.setLayout(self.mainBox)
 
     def show_error(self, value):
         msg = QMessageBox(
@@ -172,13 +211,11 @@ class View(QWidget):
         self.autoscroll = value
 
     def set_port(self, value):
-        self.port_edit.insert(value)
+        self.portEdit.insert(value)
 
     def get_cmd(self):
         return self.cmd_edit.text()
 
-    # def set_eol(self, value):
-    #     self.eol_menu.setCurrentIndex(value)
 
     def closeEvent(self, event):
         self.end_cmd()
@@ -229,11 +266,9 @@ class View(QWidget):
         self.cmd_edit.clear()
 
     def emit_br_changed(self, value):
-        baudrate = self.br_menu.itemText(value)[:-5]
+        baudrate = self.baundrateMenu.itemText(value)[:-5]
         self.baudrate_changed.emit(baudrate)
 
-    # def emit_eol_changed(self, value):
-    #     self.eol_changed.emit(value)
 
     def emit_port_changed(self):
-        self.port_changed.emit(self.port_edit.text())
+        self.port_changed.emit(self.portEdit.text())

@@ -19,8 +19,7 @@ class Presenter:
         self.__view.send_data.connect(self.__model.write)
         self.__view.baudrate_changed.connect(self.__model.set_br)
         #self.__view.eol_changed.connect(self.__model.set_eol)
-        #self.__view.port_changed.connect(self.__model.closePort)
-        self.__view.port_changed.connect(self.__model.set_port)
+        self.__view.port_changed.connect(self.__model.reset_port)
 
         self.__model.error.connect(self.__view.show_error)
 
