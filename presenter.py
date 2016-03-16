@@ -24,6 +24,7 @@ class Presenter:
         self.__model.error.connect(self.__view.show_error)
 
         self.__view.set_queue(self.__model.get_queue())
+        #self.__view.setCurrentValueList(self.__model.getcurrentValueList())
         self.__view.set_end_cmd(self.end_cmd)
         self.__view.set_port(self.__model.get_port())
         self.__view.update_gui()

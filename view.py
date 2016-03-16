@@ -17,13 +17,14 @@ from PyQt5.QtWidgets    import QSpinBox
 from PyQt5.QtWidgets    import QSpacerItem
 from PyQt5.QtWidgets    import QTabWidget
 from PyQt5.QtWidgets    import QGroupBox
+from PyQt5.QtWidgets    import QAction
 
 from PyQt5.QtCore       import QTimer
 from PyQt5.QtCore       import QObject
 from PyQt5.QtCore       import pyqtSignal
 from PyQt5.QtCore       import Qt
 from PyQt5.QtCore       import QSize
-from PyQt5.QtGui       import QPainter
+#from PyQt5.QtGui       import QPainter
 from PyQt5.QtGui       import QPixmap
 from queue              import Queue
 from functools        import partial
@@ -46,6 +47,7 @@ class View(QWidget):
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_gui)
         self.timer.start(100)
+        self.currentValueList =list()
 
         self.__initUI()
 
@@ -169,16 +171,23 @@ class View(QWidget):
 
         # show area
         self.cmd_edit = QLineEdit()
+
         cmd_btn = QPushButton('Send Command')
         cmd_btn.clicked.connect(self.emit_send_data)
-
+        #import cmd strl+enter
+        cmdEnterAction = QAction(self)
+        cmdEnterAction.setShortcut('ctrl+Q')
+        cmdEnterAction.setStatusTip(' press enter to send command')
+        cmdEnterAction.triggered.connect(self.emit_send_data)
+        self.cmd_edit.addAction(cmdEnterAction)
         self.editer = QPlainTextEdit()
         cmdBox = QVBoxLayout()
         cmdBox.addWidget(self.cmd_edit)
         cmdBox.addWidget(cmd_btn)
         cmdBox.addWidget(self.editer)
-        #cmdBox.totalMaximumSize(300,400)
-
+        self.editer.setMaximumSize(300,400)
+        cmd_btn.setMaximumSize(300,400)
+        self.cmd_edit.setMaximumSize(300,400)
         #painter
         self.painter= PaintArea()
         self.showBox.addLayout(cmdBox)
@@ -204,6 +213,9 @@ class View(QWidget):
     def set_queue(self, queue):
         self.queue = queue
 
+    def setCurrentValueList(self, currentValueList):
+        self.currentValueList = currentValueList
+
     def set_end_cmd(self, end_cmd):
         self.end_cmd = end_cmd
 
@@ -224,6 +236,7 @@ class View(QWidget):
 
     def update_gui(self):
         self.process_incoming()
+        self.processCurrentValue()
         self.update()
 
     def process_incoming(self):
@@ -231,6 +244,21 @@ class View(QWidget):
             try:
                 msg = self.queue.get(0)
                 self.editer.appendPlainText(str(msg))
+                #show to the textplain?
+                #if self.autoscroll:
+                self.editer.ensureCursorVisible()
+                self.scroll_down()
+            except Queue.empty:
+                pass
+
+    def processCurrentValue(self):
+        while len(self.currentValueList) > 0 :
+            try:
+                msg = self.currentValueList[0]
+                self.painter.getpList(self.currentValueList)
+                msg = int().from_bytes(msg[-2:],'big')
+                self.editer.appendPlainText(str(msg))
+                #show to the textplain?
                 #if self.autoscroll:
                 self.editer.ensureCursorVisible()
                 self.scroll_down()

@@ -25,7 +25,7 @@ class Model(threading.Thread, QObject):
         QObject.__init__(self)
         # Queue with data (lines) received from serial port
         self.queue      = queue.Queue()
-
+        self.currentValueList      = list()
         # Communications settings
         self.port       = 'com12'
         self.br         = 9600
@@ -39,17 +39,47 @@ class Model(threading.Thread, QObject):
         self.running    = True
 
         #send command to control device
-        self.msgDict = {
-            'sendcurrent':b'\xEB\x90\x01\xFF\xFF\x90\xEB',
-            'openlaser':b'\xEB\x90\x00\x00\x01\x90\xEB',
-            'closelaser':b'\xEB\x90\x00\x00\x00\x90\xEB',
-            'pulsewidthajust':b'\xEB\x90\x02\xFF\xFF\x90\xEB',
-            'frequencyajust':b'\xEB\x90\x03\xFF\xFF\x90\xEB',
-            'hellocom':b'\xEB\x90\x10\x00\x00\x90\xEB',
-            'openseed':b'\xEB\x90\x01\x00\x00\x01\x90\xEB',
-            'openseedreturn':b'\xEB\x90\x01\x00\x00\x01\x90\xEB',
+        # self.msgDict = {
+        #     'sendcurrent':b'\xEB\x90\x01\xFF\xFF\x90\xEB',
+        #     'openlaser':b'\xEB\x90\x00\x00\x01\x90\xEB',
+        #     'closelaser':b'\xEB\x90\x00\x00\x00\x90\xEB',
+        #     'pulsewidthajust':b'\xEB\x90\x02\xFF\xFF\x90\xEB',
+        #     'frequencyajust':b'\xEB\x90\x03\xFF\xFF\x90\xEB',
+        #     'hellocom':b'\xEB\x90\x10\x00\x00\x90\xEB',
+        #     'openseed':b'\xEB\x90\x01\x00\x00\x01\x90\xEB',
+        #     'openseedreturn':b'\xEB\x90\x01\x00\x00\x01\x90\xEB',
+        #     'openseedreturnerror':b'\xEB\x90\x01\x00\x00\x01\x90\xEB',
+        #     'closeseed':b'\xEB\x90\x01\x00\x00\x01\x90\xEB',
+        #     'closeseedreturn':b'\xEB\x90\x01\x00\x00\x00\x90\xEB',
+        #     'closeseedreturnerror':b'\xEB\x90\x01\x00\x00\x00\x90\xEB',
+        #     }
 
-            }
+        self.msgDict={
+        'seedcurrentvalueset': b'\xEB\x90\x01\x01\xFF\xFF\x90\xEB',
+        'seedfresetreturn': b'\xEB\x90\x01\x03\xFF\xFF\x90\xEB',
+        'seedplusereadreturn': b'\xEB\x90\x01\x05\xFF\xFF\x90\xEB',
+        'seedfreseterror': b'\xEB\x90\x01\x03\x10\x00\x90\xEB',
+        'seedpluseead': b'\xEB\x90\x01\x05\x90\xEB',
+        'seedfrereaderror': b'\xEB\x90\x01\x06\x10\x00\x90\xEB',
+        'seedpulseset': b'\xEB\x90\x01\x02\xFF\xFF\x90\xEB',
+        'seedpulseseterror': b'\xEB\x90\x01\x02\x10\x00\x90\xEB',
+        'seedfrereadreturn': b'\xEB\x90\x01\x06\xFF\xFF\x90\xEB',
+        'closeseedreturn': b'\xEB\x90\x01\x00\x01\x00\x90\xEB',
+        'seedpulsesetreturn': b'\xEB\x90\x01\x02\xFF\xFF\x90\xEB',
+        'seedplusereaderror': b'\xEB\x90\x01\x05\x10\x00\x90\xEB',
+        'seedcurrentvaluesetreturn': b'\xEB\x90\x01\x01\xFF\xFF\x90\xEB',
+        'seedcurrentvalueseterror': b'\xEB\x90\x01\x01\x10\x00\x90\xEB',
+        'seedcurrentvalueget': b'\xEB\x90\x01\x04\x90\xEB',
+        'seedcurrentvaluegeterror': b'\xEB\x90\x01\x04\x10\x00\x90\xEB',
+        'openseederror': b'\xEB\x90\x01\x00\x10\x00\x90\xEB',
+        'seedfreread': b'\xEB\x90\x01\x06\x90\xEB',
+        'openseed': b'\xEB\x90\x01\x00\x00\x01\x90\xEB',
+        'openseedreturn': b'\xEB\x90\x01\x00\x00\x01\x90\xEB',
+        'closeseed': b'\xEB\x90\x01\x00\x00\x00\x90\xEB',
+        'seedcurrentvaluegetreturn': b'\xEB\x90\x01\x04\xFF\xFF\x90\xEB',
+        'seedfreset': b'\xEB\x90\x01\x03\xFF\xFF\x90\xEB',
+        'sendcurrent':b'\xEB\x90\x01\x11\xFF\xFF\x90\xEB'
+        }
 
 
     def run(self):
@@ -69,17 +99,20 @@ class Model(threading.Thread, QObject):
         '''
         try:
             while self.running:
+                #print('Model start')
                 data = None
                 #sleep(1)
                 #data = self.readline()
                 data = self.analysisbit()
                     #print('Error occured while reading data.')
-                try:
-                    if len(data)>0:
-                        print('上位机接收：',data)
-                        self.queue.put(data.strip())
-                except Exception as e:
-                    data=b'-1'
+                #try:
+                if len(data)>0:
+                    #print('lendata',len(data))
+                    self.coreMsgProcess(data)
+                    print('上位机接收：',data)
+                    self.queue.put(data.strip())
+                # except Exception as e:
+                #     data=b'-1'
 
                 sleep(self.timeout)
 
@@ -118,6 +151,10 @@ class Model(threading.Thread, QObject):
     def get_queue(self):
         return self.queue
 
+
+    def getcurrentValueList(self):
+        return self.currentValueList
+
     def set_port(self,port):
         self.port = port
 
@@ -126,10 +163,9 @@ class Model(threading.Thread, QObject):
     def reset_port(self, port):
         self.ser.close()
         sleep(0.1)
-        self.port=port
+        self.port = port
         self.begin()
         #self.ser = serial.Serial( port, self.br, timeout=120)
-
         # try:
         #     if not self.ser._port_handle:
         #         print(self.ser._port_handle)
@@ -178,12 +214,12 @@ class Model(threading.Thread, QObject):
 
         sleep(0.1)
 
-    def readline(self):
-        try:
-            data = self.ser.read(15)
-        except Exception as e:
-            raise e
-        return data
+    # def readline(self):
+    #     try:
+    #         data = self.ser.read(15)
+    #     except Exception as e:
+    #         raise e
+    #     return data
 
     def readbit(self):
         sleep(0.1)
@@ -191,17 +227,21 @@ class Model(threading.Thread, QObject):
             data = self.ser.read(1)
         except Exception as e:
             raise e
+        except portNotOpenError :
+            sleep(1)
         return data
 
     def msgcoup(self,msg):
-        msg = self.msgDict.get(msg)
-        if len(msg) > 0:
+        msg = self.msgDict.get(msg, b'-1')
+        if msg is b'-1':
             return msg
         else:
             return b'\xEB\x90'+msg+b'\x90\xEB'
 
     def analysisbit(self):
-
+        '''
+                return without package
+        '''
         readlive = True
         # xebstatue = False
         # x90statue = False
@@ -217,9 +257,28 @@ class Model(threading.Thread, QObject):
                         databit = self.readbit()
                         if databit == b'\x90':
                             databit = self.readbit()
-                            return b''.join(bitlist)
+                            data = b''.join(bitlist)
+                            #print(data)
+                            return data
                         bitlist.append(databit)
 
+    def coreMsgProcess(self,data):
+
+        if data == None:
+            return '-1'
+        elif len(data) > 5:
+            data = data[2:6]
+        print(data[0:1],':',data[1:2],type(data[0]),type(data))
+        if data[0:1] == b'\x01':
+            if data[1:2] == b'\x11':
+                print(data,'12:',data[-2:])
+                currentValue = data[-2:]
+                print(currentValue)
+                self.currentValueList.append(currentValue.strip())
+                print(currentValue)
+                return currentValue
+            else:
+                return b'-1'
 
             # databit = self.readbit()
             # print(databit)
