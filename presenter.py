@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-
+from time import sleep
 from model import Model
 
 class Presenter:
@@ -10,8 +10,20 @@ class Presenter:
 
         self.__model = Model()
         self.__view = view
+        self.__view.show()
+        self.__view.openPortButton.clicked.connect(self.modelBegin)
+        #sleep(30)
+        #self.modelBegin()
 
         # Run communication and start thread
+
+        self.__view.update_gui()
+
+    def end_cmd(self):
+        self.__model.stop()
+
+    def modelBegin(self):
+        print('===openPort===')
         self.__model.begin()
         self.__model.start()
 
@@ -24,10 +36,6 @@ class Presenter:
         self.__model.error.connect(self.__view.show_error)
 
         self.__view.set_queue(self.__model.get_queue())
-        #self.__view.setCurrentValueList(self.__model.getcurrentValueList())
+        self.__view.setCurrentValueList(self.__model.getcurrentValueList())
         self.__view.set_end_cmd(self.end_cmd)
         self.__view.set_port(self.__model.get_port())
-        self.__view.update_gui()
-
-    def end_cmd(self):
-        self.__model.stop()

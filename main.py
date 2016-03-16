@@ -18,7 +18,8 @@ if __name__ == '__main__':
     font.setFamily('微软雅黑')
     app.setFont(font)
     gui         = View()
-    presenter   = Presenter(gui)
 
+    presenter   = Presenter(gui)
     gui.show()
+
     sys.exit(app.exec_())

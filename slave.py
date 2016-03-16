@@ -14,11 +14,12 @@ class Slave(object):
 		super(Slave, self).__init__()
 		#self.arg = arg
 		self.currentSendLive = True
+		self.running = True
 
 	def currentSend(self,ser):
 		while self.currentSendLive is True:
 
-			currentmsg = self.sendmsg['sendcurrent']
+			currentmsg = self.sendmsg['seedcurrentvaluegetreturn']
 			cb = int(random.uniform(2,10)*100)
 			cb = cb.to_bytes(2,'big')
 			#print(currentmsg,':',cb)
@@ -30,6 +31,16 @@ class Slave(object):
 			ser.write(currentmsg)
 
 			sleep(10)
+			#return currentmsg
+
+	def randomSend(self,ser):
+		while self.currentSendLive is True:
+			self.sendmsglist = [v for k,v in self.sendmsg.items()]
+			rd = int(random.uniform(2,len(self.sendmsglist)))
+
+			print('发送：',self.sendmsglist[rd])
+			ser.write(self.sendmsglist[rd])
+			sleep(60)
 			#return currentmsg
 
 
@@ -59,22 +70,65 @@ class Slave(object):
 
 		self.sendmsg = model.get_msgDict()
 		self.sendmsgrec = dict([(v,k) for k,v in self.sendmsg.items()])
+
 		ser = model.get_ser()
+
 		print('上位机信号包大小为：',len(self.sendmsgrec))
 		#ser = serial.Serial(port_serial,9600,timeout = 120)
 		print('下位机模拟器启动')
 		print("check which port was really used >",ser.name)
 		#threading.Thread()
 		#ser.write(b'\xEB\x90\x04\x05\x09\x07\x08\x09\x90\xEB')
-		threading.Thread(target=Slave.currentSend,args=(self,ser,)).start()
+		#开个线程定时发送电流
+		#threading.Thread(target=Slave.currentSend,args=(self,ser,)).start()
+		#开个线程随机发送信号
+		threading.Thread(target=Slave.randomSend,args=(self,ser,)).start()
+
 		while True:
+			sertext = model.analysisbit(ser)
 			#sertext=ser.read(7)
-			sertext = b'\xEB\x90'+model.analysisbit()+b'\x90\xEB'
-			print(sertext)
-			print(self.sendmsgrec.get(sertext))
+			if len(sertext) > 0:
+				sertext = b'\xEB\x90'+sertext+b'\x90\xEB'
+				print('下位机接收：',sertext)
+				#print(self.sendmsgrec.get(sertext))
 
 
 		ser.close()
+
+	# def analysisbit(self,ser):
+	#         '''
+	#                 return without package
+	#         '''
+	#         readlive = True
+	#         # xebstatue = False
+	#         # x90statue = False
+	#         bitlist = list()
+	#         while readlive and self.running:
+	#             databit = self.readbit(ser)
+	#             if databit == b'\xeb':
+	#                 print(databit,'1')
+	#                 databit = self.readbit(ser)
+	#                 if databit == b'\x90':
+	#                     while True:
+	#                         print(databit,'2')
+	#                         databit = self.readbit(ser)
+	#                         if databit == b'\x90':
+	#                             databit = self.readbit(ser)
+	#                             data = b''.join(bitlist)
+	#                             print(data)
+	#                             return data
+	#                         bitlist.append(databit)
+
+
+	# def readbit(self,ser):
+	#     sleep(0.1)
+	#     try:
+	#         data = ser.read(1)
+	#     except Exception as e:
+	#         raise e
+	#     except portNotOpenError :
+	#         sleep(1)
+	#     return data
 
 
 

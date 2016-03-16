@@ -40,16 +40,17 @@ class View(QWidget):
     def __init__(self):
         QWidget.__init__(self)
 
-        self.queue      = None
+        self.queue      = Queue()
         self.end_cmd    = None
         self.autoscroll = True
         self.msg_sent   = False
+        self.__initUI()
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_gui)
         self.timer.start(100)
         self.currentValueList =list()
 
-        self.__initUI()
+
 
     def __initUI(self):
         #main box
@@ -96,7 +97,7 @@ class View(QWidget):
         # self.showBox.addLayout(cmdBox)
 
         self.openPortButton = QPushButton('openport')
-        self.openPortButton.clicked.connect(partial(self.emit_send_command,'openport'))
+        #self.openPortButton.clicked.connect(partial(self.emit_send_command,'openport'))
         portBox.addWidget(self.openPortButton)
 
         # - Baudrate select
@@ -172,12 +173,12 @@ class View(QWidget):
         # show area
         self.cmd_edit = QLineEdit()
 
-        cmd_btn = QPushButton('Send Command')
+        cmd_btn = QPushButton('Send Command (ctrl+Q)')
         cmd_btn.clicked.connect(self.emit_send_data)
         #import cmd strl+enter
         cmdEnterAction = QAction(self)
         cmdEnterAction.setShortcut('ctrl+Q')
-        cmdEnterAction.setStatusTip(' press enter to send command')
+        cmdEnterAction.setStatusTip(' press ctrl+Q to send command')
         cmdEnterAction.triggered.connect(self.emit_send_data)
         self.cmd_edit.addAction(cmdEnterAction)
         self.editer = QPlainTextEdit()
@@ -233,6 +234,9 @@ class View(QWidget):
         self.end_cmd()
         QWidget.closeEvent(self, event)
         print('exit')
+
+    def beginGui(self):
+        self.update()
 
     def update_gui(self):
         self.process_incoming()

@@ -38,64 +38,55 @@ class Model(threading.Thread, QObject):
         # Flag for main cycle
         self.running    = True
 
-        #send command to control device
-        # self.msgDict = {
-        #     'sendcurrent':b'\xEB\x90\x01\xFF\xFF\x90\xEB',
-        #     'openlaser':b'\xEB\x90\x00\x00\x01\x90\xEB',
-        #     'closelaser':b'\xEB\x90\x00\x00\x00\x90\xEB',
-        #     'pulsewidthajust':b'\xEB\x90\x02\xFF\xFF\x90\xEB',
-        #     'frequencyajust':b'\xEB\x90\x03\xFF\xFF\x90\xEB',
-        #     'hellocom':b'\xEB\x90\x10\x00\x00\x90\xEB',
-        #     'openseed':b'\xEB\x90\x01\x00\x00\x01\x90\xEB',
-        #     'openseedreturn':b'\xEB\x90\x01\x00\x00\x01\x90\xEB',
-        #     'openseedreturnerror':b'\xEB\x90\x01\x00\x00\x01\x90\xEB',
-        #     'closeseed':b'\xEB\x90\x01\x00\x00\x01\x90\xEB',
-        #     'closeseedreturn':b'\xEB\x90\x01\x00\x00\x00\x90\xEB',
-        #     'closeseedreturnerror':b'\xEB\x90\x01\x00\x00\x00\x90\xEB',
-        #     }
-
-        self.msgDict={
-        'seedcurrentvalueset': b'\xEB\x90\x01\x01\xFF\xFF\x90\xEB',
-        'seedfresetreturn': b'\xEB\x90\x01\x03\xFF\xFF\x90\xEB',
-        'seedplusereadreturn': b'\xEB\x90\x01\x05\xFF\xFF\x90\xEB',
-        'seedfreseterror': b'\xEB\x90\x01\x03\x10\x00\x90\xEB',
-        'seedpluseead': b'\xEB\x90\x01\x05\x90\xEB',
-        'seedfrereaderror': b'\xEB\x90\x01\x06\x10\x00\x90\xEB',
-        'seedpulseset': b'\xEB\x90\x01\x02\xFF\xFF\x90\xEB',
-        'seedpulseseterror': b'\xEB\x90\x01\x02\x10\x00\x90\xEB',
-        'seedfrereadreturn': b'\xEB\x90\x01\x06\xFF\xFF\x90\xEB',
-        'closeseedreturn': b'\xEB\x90\x01\x00\x01\x00\x90\xEB',
-        'seedpulsesetreturn': b'\xEB\x90\x01\x02\xFF\xFF\x90\xEB',
-        'seedplusereaderror': b'\xEB\x90\x01\x05\x10\x00\x90\xEB',
-        'seedcurrentvaluesetreturn': b'\xEB\x90\x01\x01\xFF\xFF\x90\xEB',
-        'seedcurrentvalueseterror': b'\xEB\x90\x01\x01\x10\x00\x90\xEB',
-        'seedcurrentvalueget': b'\xEB\x90\x01\x04\x90\xEB',
-        'seedcurrentvaluegeterror': b'\xEB\x90\x01\x04\x10\x00\x90\xEB',
-        'openseederror': b'\xEB\x90\x01\x00\x10\x00\x90\xEB',
-        'seedfreread': b'\xEB\x90\x01\x06\x90\xEB',
-        'openseed': b'\xEB\x90\x01\x00\x00\x01\x90\xEB',
-        'openseedreturn': b'\xEB\x90\x01\x00\x00\x01\x90\xEB',
-        'closeseed': b'\xEB\x90\x01\x00\x00\x00\x90\xEB',
-        'seedcurrentvaluegetreturn': b'\xEB\x90\x01\x04\xFF\xFF\x90\xEB',
-        'seedfreset': b'\xEB\x90\x01\x03\xFF\xFF\x90\xEB',
-        'sendcurrent':b'\xEB\x90\x01\x11\xFF\xFF\x90\xEB'
+        self.msgDictStr={
+        #open seed \x00
+        'openseed':' EB 90 01 00 00 01 90 EB',
+        'openseedreturn':' EB 90 01 00 00 01 90 EB',
+        'openseederror':' EB 90 01 00 10 00 90 EB',
+        #close seed \x00
+        'closeseed':' EB 90 01 00 00 00 90 EB',
+        'closeseedreturn':' EB 90 01 00 00 00 90 EB',
+        'closeseederror':' EB 90 01 00 01 00 90 EB',
+        # seed current \x01
+        'seedcurrentvalueset':' EB 90 01 01 FF FF 90 EB',
+        'seedcurrentvaluesetreturn':' EB 90 01 01 FF FF 90 EB',
+        'seedcurrentvalueseterror':' EB 90 01 01 10 00 90 EB',
+        # seed pulse \x02
+        'seedpulseset':' EB 90 01 02 FF FF 90 EB',
+        'seedpulsesetreturn':' EB 90 01 02 FF FF 90 EB',
+        'seedpulseseterror':' EB 90 01 02 10 00 90 EB',
+        # seed fre \x03
+        'seedfreset':' EB 90 01 03 FF FF 90 EB',
+        'seedfresetreturn':' EB 90 01 03 FF FF 90 EB',
+        'seedfreseterror':' EB 90 01 03 1000 90 EB',
+        #seed current \x04
+        'seedcurrentvalueget':' EB 90 01 04 90 EB',
+        'seedcurrentvaluegetreturn':' EB 90 01 04 FF FF 90 EB',
+        'seedcurrentvaluegeterror':' EB 90 01 04 10 00 90 EB',
+        #seed pluse \x05
+        'seedpluseread':' EB 90 01 05 90 EB',
+        'seedplusereadreturn':' EB 90 01 05 FF FF 90 EB',
+        'seedplusereaderror':' EB 90 01 05 10 00 90 EB',
+        #seed frequance \x06
+        'seedfreread':' EB 90 01 06 90 EB',
+        'seedfrereadreturn':' EB 90 01 06 FF FF 90 EB',
+        'seedfrereaderror':' EB 90 01 06 10 00 90 EB'
         }
+        self.msgDictHex = dict()
 
+        for k,v in self.msgDictStr.items():
+            self.msgDictHex[k] = b''.fromhex(v) #v.replace(b" ",b"\x")
+        #self.msgDict = self.msgDictHex
+        self.sendmsgrec = dict([(v,k) for k,v in self.msgDictHex.items()])
 
     def run(self):
         '''
         Run thread.
-        In every iteration trying to read one line from serial port and put
-        it in queue.
-        thread class
-        run(self)
-     |      Method representing the thread's activity.
-     |
-     |      You may override this method in a subclass. The standard run() method
-     |      invokes the callable object passed to the object's constructor as the
-     |      target argument, if any, with sequential and keyword arguments taken
-     |      from the args and kwargs arguments, respectively.
-
+            Method representing the thread's activity.
+            You may override this method in a subclass. The standard run() method
+            invokes the callable object passed to the object's constructor as the
+            target argument, if any, with sequential and keyword arguments taken
+            from the args and kwargs arguments, respectively.
         '''
         try:
             while self.running:
@@ -103,13 +94,13 @@ class Model(threading.Thread, QObject):
                 data = None
                 #sleep(1)
                 #data = self.readline()
-                data = self.analysisbit()
+                data = self.analysisbit(self.ser)
                     #print('Error occured while reading data.')
                 #try:
                 if len(data)>0:
                     #print('lendata',len(data))
                     self.coreMsgProcess(data)
-                    print('上位机接收：',data)
+                    #print('上位机接收：',data)
                     self.queue.put(data.strip())
                 # except Exception as e:
                 #     data=b'-1'
@@ -177,7 +168,7 @@ class Model(threading.Thread, QObject):
 
 
     def get_msgDict(self):
-        return self.msgDict
+        return self.msgDictHex
 
     def get_port(self):
         return self.port
@@ -221,10 +212,10 @@ class Model(threading.Thread, QObject):
     #         raise e
     #     return data
 
-    def readbit(self):
+    def readbit(self,ser):
         sleep(0.1)
         try:
-            data = self.ser.read(1)
+            data = ser.read(1)
         except Exception as e:
             raise e
         except portNotOpenError :
@@ -232,13 +223,16 @@ class Model(threading.Thread, QObject):
         return data
 
     def msgcoup(self,msg):
-        msg = self.msgDict.get(msg, b'-1')
+        msg = self.msgDictHex.get(msg, b'-1')
         if msg is b'-1':
             return msg
         else:
-            return b'\xEB\x90'+msg+b'\x90\xEB'
+            if len(msg) > 6:
+                return msg
+            else:
+                return b'\xEB\x90'+msg+b'\x90\xEB'
 
-    def analysisbit(self):
+    def analysisbit(self,ser):
         '''
                 return without package
         '''
@@ -247,16 +241,16 @@ class Model(threading.Thread, QObject):
         # x90statue = False
         bitlist = list()
         while readlive and self.running:
-            databit = self.readbit()
+            databit = self.readbit(ser)
             if databit == b'\xeb':
                 # print(databit,'1')
-                databit = self.readbit()
+                databit = self.readbit(ser)
                 if databit == b'\x90':
                     while True:
                         #print(databit,'2')
-                        databit = self.readbit()
+                        databit = self.readbit(ser)
                         if databit == b'\x90':
-                            databit = self.readbit()
+                            databit = self.readbit(ser)
                             data = b''.join(bitlist)
                             #print(data)
                             return data
@@ -271,35 +265,43 @@ class Model(threading.Thread, QObject):
         print(data[0:1],':',data[1:2],type(data[0]),type(data))
         if data[0:1] == b'\x01':
             if data[1:2] == b'\x11':
+                #current plot msg
                 print(data,'12:',data[-2:])
                 currentValue = data[-2:]
                 print(currentValue)
                 self.currentValueList.append(currentValue.strip())
-                print(currentValue)
-                return currentValue
+            elif data[1:2] == b'\x00':
+                #if data[2:3] == b'\x00\x00':
+                print('seed received',data)
+                #open and close seed
+                pass
+            elif data[1:2] == b'\x01':
+                #seed current value set \x01
+                print('seed received',data)
+                pass
+            elif data[1:2] == b'\x02':
+                #seed pulse width
+                print('seed received',data)
+                pass
+            elif data[1:2] == b'\x03':
+                #seed frequece set
+                print('seed received',data)
+                pass
+            elif data[1:2] == b'\x04':
+                #seed current value get
+                print('seed received',data)
+                pass
+            elif data[1:2] == b'\x05':
+                #seed pluse width read
+                print('seed received',data)
+                pass
+            elif data[1:2] == b'\x06':
+                #seed frequece read
+                print('seed received',data)
+                pass
             else:
                 return b'-1'
 
-            # databit = self.readbit()
-            # print(databit)
-            # if databit == b'\xEB':
-            #     xebstatue = not xebstatue
-            # elif databit == b'\x90':
-            #     x90statue = not x90statue
-            # else:
-            #     pass
-            # print(xebstatue,':',x90statue)
-            # if xebstatue and x90statue:
-            #     self.bitlist.put(databit)
-            # elif xebstatue and not x90statue:
-            #     pass
-            # else:
-            #     readlive = False
-            #     #xebstatue = False
-            #     #x90statue = False
-            # if bitlist.qsize() > 0:
-            #     print(bitlist.qsize())
-            #     return b''.join(bitlist)
 
 
 #==============================================================================
