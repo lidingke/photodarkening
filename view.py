@@ -24,11 +24,24 @@ from PyQt5.QtCore       import QObject
 from PyQt5.QtCore       import pyqtSignal
 from PyQt5.QtCore       import Qt
 from PyQt5.QtCore       import QSize
-#from PyQt5.QtGui       import QPainter
+from PyQt5.QtCore       import QEvent
+
 from PyQt5.QtGui       import QPixmap
+
 from queue              import Queue
 from functools        import partial
-from paintArea import PaintArea
+import time
+
+#plot PaintArea class
+from PyQt5.QtCore import QPoint
+from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QFont
+from PyQt5.QtCore import QPointF
+from PyQt5.QtCore import QLineF
+from PyQt5.QtGui import QPainter
+from PyQt5.QtGui import QPalette
+from PyQt5.QtGui import QPen
+from PyQt5.QtGui import QBrush
 
 class View(QWidget):
 
@@ -36,6 +49,7 @@ class View(QWidget):
     baudrate_changed    = pyqtSignal(object)
     #eol_changed         = pyqtSignal(object)
     port_changed        = pyqtSignal(object)
+    #cValueSingal = pyqtSignal(object)
 
     def __init__(self):
         QWidget.__init__(self)
@@ -44,11 +58,12 @@ class View(QWidget):
         self.end_cmd    = None
         self.autoscroll = True
         self.msg_sent   = False
-        self.__initUI()
+
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_gui)
         self.timer.start(100)
         self.currentValueList =list()
+        self.__initUI()
 
 
 
@@ -75,14 +90,7 @@ class View(QWidget):
 #
 #启动设置tabbox栏目，包含于setBox
 #
-        #
-        # stng_hbox = QHBoxLayout()
-        # portBox = QHBoxLayout()
 
-        # portSetBox = QVBoxLayout()
-        # cmdButtonBox = QVBoxLayout()
-        # valuelabelBox = QVBoxLayout()
-        # valueSetBox = QVBoxLayout()
         portBox = QVBoxLayout()
         seedBox = QVBoxLayout()
         firstPumpBox = QVBoxLayout()
@@ -135,7 +143,8 @@ class View(QWidget):
         setSeedButton = QPushButton('setseed')
         setSeedButton.clicked.connect(partial(self.emit_send_command,'setseed'))
         seedBox.addWidget(setSeedButton)
-        seedBox.addStretch()
+
+        #seedBox.addStretch()
 
         # amp select
         openFirstPump = QPushButton('openfirstpump')
@@ -189,11 +198,14 @@ class View(QWidget):
         self.editer.setMaximumSize(300,400)
         cmd_btn.setMaximumSize(300,400)
         self.cmd_edit.setMaximumSize(300,400)
-        #painter
-        self.painter= PaintArea()
+        #painter plot
+        self.painter = PaintArea()
         self.showBox.addLayout(cmdBox)
         self.showBox.addWidget(self.painter)
 
+        setSeedPlot = QPushButton('plot')
+        setSeedPlot.clicked.connect(self.Button2Plot)
+        seedBox.addWidget(setSeedPlot)
 
         self.mainBox.addWidget(self.toolBox)
         self.mainBox.addLayout(self.showBox)
@@ -214,9 +226,6 @@ class View(QWidget):
     def set_queue(self, queue):
         self.queue = queue
 
-    def setCurrentValueList(self, currentValueList):
-        self.currentValueList = currentValueList
-
     def set_end_cmd(self, end_cmd):
         self.end_cmd = end_cmd
 
@@ -229,6 +238,17 @@ class View(QWidget):
     def get_cmd(self):
         return self.cmd_edit.text()
 
+    # def plotListGet(self):
+    #     return self.currentValueList
+
+    def setCurrentValue(self, currentValue):
+        if currentValue is not None:
+            self.currentValueList.append(currentValue)
+            self.painter.getpList(self.currentValueList)
+            self.painter.plotupdate()
+
+    def Button2Plot(self):
+        self.painter.plotupdate()
 
     def closeEvent(self, event):
         self.end_cmd()
@@ -240,7 +260,6 @@ class View(QWidget):
 
     def update_gui(self):
         self.process_incoming()
-        self.processCurrentValue()
         self.update()
 
     def process_incoming(self):
@@ -253,21 +272,7 @@ class View(QWidget):
                 self.editer.ensureCursorVisible()
                 self.scroll_down()
             except Queue.empty:
-                pass
-
-    def processCurrentValue(self):
-        while len(self.currentValueList) > 0 :
-            try:
-                msg = self.currentValueList[0]
-                self.painter.getpList(self.currentValueList)
-                msg = int().from_bytes(msg[-2:],'big')
-                self.editer.appendPlainText(str(msg))
-                #show to the textplain?
-                #if self.autoscroll:
-                self.editer.ensureCursorVisible()
-                self.scroll_down()
-            except Queue.empty:
-                pass
+                print('=== empty queue ===')
 
     def scroll_down(self):
         sb = self.editer.verticalScrollBar()
@@ -290,9 +295,6 @@ class View(QWidget):
         self.send_data.emit(self.get_cmd())
         self.cmd_edit.clear()
 
-    # def emit_send_current(self):
-    #     self.send_data.emit('sendcurrent')
-
     def emit_send_command(self,command):
         self.send_data.emit(command)
         self.cmd_edit.clear()
@@ -301,6 +303,60 @@ class View(QWidget):
         baudrate = self.baundrateMenu.itemText(value)[:-5]
         self.baudrate_changed.emit(baudrate)
 
-
     def emit_port_changed(self):
         self.port_changed.emit(self.portEdit.text())
+
+
+
+class PaintArea(QWidget):
+    """docstring for PaintArea"""
+    def __init__(self):
+        super(PaintArea, self).__init__()
+        self.setPalette(QPalette(Qt.white))
+        self.setAutoFillBackground(True)
+        self.setMinimumSize(500,400)
+        self.text = u'这个地方是绘图区域'
+        self.pen = QPen(Qt.black,1)
+        self.brush = QBrush()
+        self.font = QFont('arial', 15)
+        self.pList = list()
+        self.initTime = time.time()
+        print('self.pList:',self.pList)
+
+    def paintEvent(self,event):
+
+        #pList = [int().from_bytes(x,'big') for x in self.pList]
+        pList =self.pList
+        print('调用paintEvent:',len(pList),',event:',event)
+        p = QPainter(self)
+        #print('p=',p)
+        if len(pList) > 1:
+            p.translate(180,180)
+            p.setWindow(-10,-10,50,10)
+
+            qPointList = [QPointF(c[0] - self.initTime,c[1]) for c in pList]
+            #需要判断一下绘图范围
+            print(qPointList)
+            p.setPen(self.pen)
+            p.setBrush(self.brush)
+            qPointlast = QPointF(0,0)
+            for qpPoint in qPointList:
+                #print('point:',qpPoint,qPointlast)
+                p.drawLine(qpPoint,qPointlast)
+                qPointlast = qpPoint
+
+        else:
+            self.drawText(event,p)
+
+    def plotupdate(self):
+        self.update()
+
+    def drawText(self,event,qp):
+        qp.setPen(QColor(168, 34, 3))
+        qp.setFont(QFont('微软雅黑', 20))
+        qp.drawText(event.rect(), Qt.AlignCenter, self.text)
+
+    def getpList(self, pList):
+        self.pList = pList
+        self.text = u'开始缓存电流数据'
+        #return self.pList

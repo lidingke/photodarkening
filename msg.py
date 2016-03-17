@@ -1,7 +1,6 @@
-from collections import OrderedDict
-msg = OrderedDict()
-
-msg = {
+import pickle
+msg = {}
+msgDictStr = {
         #open seed \x00
         'openseed':' EB 90 01 00 00 01 90 EB',
         'openseedreturn':' EB 90 01 00 00 01 90 EB',
@@ -32,7 +31,9 @@ msg = {
         #seed frequance \x06
         'seedfreread':' EB 90 01 06 90 EB',
         'seedfrereadreturn':' EB 90 01 06 FF FF 90 EB',
-        'seedfrereaderror':' EB 90 01 06 10 00 90 EB'
+        'seedfrereaderror':' EB 90 01 06 10 00 90 EB',
+        #test send plot
+        'sendplot':' EB 90 01 11 FF FF 90 EB'
 }
 
 # msg={'seedcurrentvalueset': '\xEB\x90\x01\x01\xFF\xFF\x90\xEB',
@@ -60,6 +61,18 @@ msg = {
 # 'seedfreset': '\xEB\x90\x01\x03\xFF\xFF\x90\xEB'
 # }
 
-for k,v in msg.items():
-    msg[k] = b''.fromhex(v) #v.replace(b" ",b"\x")
-print(msg)
+# for k,v in msg.items():
+#     msg[k] = b''.fromhex(v) #v.replace(b" ",b"\x")
+# print(msg)
+msg['msgDictStr'] = msgDictStr
+msgDictHex = dict()
+
+for k,v in msgDictStr.items():
+    msgDictHex[k] = b''.fromhex(v) #v.replace(b" ",b"\x")
+#self.msgDict = self.msgDictHex
+sendmsgrec = dict([(v,k) for k,v in msgDictHex.items()])
+msg['msgDictHex'] = msgDictHex
+msg['sendmsgrec'] = sendmsgrec
+
+with open('msg.pickle', 'wb') as f1:
+    pickle.dump(msg, f1)

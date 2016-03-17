@@ -30,12 +30,13 @@ class Presenter:
         # Signal connection
         self.__view.send_data.connect(self.__model.write)
         self.__view.baudrate_changed.connect(self.__model.set_br)
-        #self.__view.eol_changed.connect(self.__model.set_eol)
         self.__view.port_changed.connect(self.__model.reset_port)
 
         self.__model.error.connect(self.__view.show_error)
 
         self.__view.set_queue(self.__model.get_queue())
-        self.__view.setCurrentValueList(self.__model.getcurrentValueList())
+        self.__model.cValue.connect(self.__view.setCurrentValue)
+        #!!!!!!
+
         self.__view.set_end_cmd(self.end_cmd)
         self.__view.set_port(self.__model.get_port())

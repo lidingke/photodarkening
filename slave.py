@@ -1,4 +1,3 @@
-
 import serial
 from serial.tools import list_ports
 import re
@@ -19,7 +18,7 @@ class Slave(object):
 	def currentSend(self,ser):
 		while self.currentSendLive is True:
 
-			currentmsg = self.sendmsg['seedcurrentvaluegetreturn']
+			currentmsg = self.sendmsg['sendplot']
 			cb = int(random.uniform(2,10)*100)
 			cb = cb.to_bytes(2,'big')
 			#print(currentmsg,':',cb)
@@ -80,7 +79,7 @@ class Slave(object):
 		#threading.Thread()
 		#ser.write(b'\xEB\x90\x04\x05\x09\x07\x08\x09\x90\xEB')
 		#开个线程定时发送电流
-		#threading.Thread(target=Slave.currentSend,args=(self,ser,)).start()
+		threading.Thread(target=Slave.currentSend,args=(self,ser,)).start()
 		#开个线程随机发送信号
 		threading.Thread(target=Slave.randomSend,args=(self,ser,)).start()
 

@@ -4,8 +4,10 @@
 # System imports
 import  threading
 import  queue
-from    time                import sleep
+#from    time                import sleep
+import time
 from    sys                 import exit
+import pickle
 
 # PyQt5 imports
 from    PyQt5.QtCore        import pyqtSignal
@@ -19,7 +21,7 @@ class Model(threading.Thread, QObject):
 
     # This signal emitted when program fail to read serial port (self.port)
     error = pyqtSignal(object)
-
+    cValue = pyqtSignal(object)
     def __init__(self):
         threading.Thread.__init__(self)
         QObject.__init__(self)
@@ -27,7 +29,7 @@ class Model(threading.Thread, QObject):
         self.queue      = queue.Queue()
         self.currentValueList      = list()
         # Communications settings
-        self.port       = 'com12'
+        self.port       = 'com6'
         self.br         = 9600
         self.timeout    = 0.01
         # Line ending id
@@ -38,46 +40,11 @@ class Model(threading.Thread, QObject):
         # Flag for main cycle
         self.running    = True
 
-        self.msgDictStr={
-        #open seed \x00
-        'openseed':' EB 90 01 00 00 01 90 EB',
-        'openseedreturn':' EB 90 01 00 00 01 90 EB',
-        'openseederror':' EB 90 01 00 10 00 90 EB',
-        #close seed \x00
-        'closeseed':' EB 90 01 00 00 00 90 EB',
-        'closeseedreturn':' EB 90 01 00 00 00 90 EB',
-        'closeseederror':' EB 90 01 00 01 00 90 EB',
-        # seed current \x01
-        'seedcurrentvalueset':' EB 90 01 01 FF FF 90 EB',
-        'seedcurrentvaluesetreturn':' EB 90 01 01 FF FF 90 EB',
-        'seedcurrentvalueseterror':' EB 90 01 01 10 00 90 EB',
-        # seed pulse \x02
-        'seedpulseset':' EB 90 01 02 FF FF 90 EB',
-        'seedpulsesetreturn':' EB 90 01 02 FF FF 90 EB',
-        'seedpulseseterror':' EB 90 01 02 10 00 90 EB',
-        # seed fre \x03
-        'seedfreset':' EB 90 01 03 FF FF 90 EB',
-        'seedfresetreturn':' EB 90 01 03 FF FF 90 EB',
-        'seedfreseterror':' EB 90 01 03 1000 90 EB',
-        #seed current \x04
-        'seedcurrentvalueget':' EB 90 01 04 90 EB',
-        'seedcurrentvaluegetreturn':' EB 90 01 04 FF FF 90 EB',
-        'seedcurrentvaluegeterror':' EB 90 01 04 10 00 90 EB',
-        #seed pluse \x05
-        'seedpluseread':' EB 90 01 05 90 EB',
-        'seedplusereadreturn':' EB 90 01 05 FF FF 90 EB',
-        'seedplusereaderror':' EB 90 01 05 10 00 90 EB',
-        #seed frequance \x06
-        'seedfreread':' EB 90 01 06 90 EB',
-        'seedfrereadreturn':' EB 90 01 06 FF FF 90 EB',
-        'seedfrereaderror':' EB 90 01 06 10 00 90 EB'
-        }
-        self.msgDictHex = dict()
-
-        for k,v in self.msgDictStr.items():
-            self.msgDictHex[k] = b''.fromhex(v) #v.replace(b" ",b"\x")
-        #self.msgDict = self.msgDictHex
-        self.sendmsgrec = dict([(v,k) for k,v in self.msgDictHex.items()])
+        with open('msg.pickle', 'rb') as f:
+            entry = pickle.load(f)
+        self.msgDictHex = entry['msgDictHex']
+        self.msgDictStr = entry['msgDictStr']
+        self.sendmsgrec = entry['sendmsgrec']
 
     def run(self):
         '''
@@ -105,7 +72,7 @@ class Model(threading.Thread, QObject):
                 # except Exception as e:
                 #     data=b'-1'
 
-                sleep(self.timeout)
+                time.sleep(self.timeout)
 
         except KeyboardInterrupt:
             exit()
@@ -131,12 +98,12 @@ class Model(threading.Thread, QObject):
         except SerialException:
             print('Fail to open default port.')
             self.ser = serial.Serial(baudrate=self.br, timeout=120)
-            sleep(20)
+            time.sleep(20)
 
         print(self.ser)
 
 #==============================================================================
-# Get, Set
+# Get, Set from view
 #==============================================================================
 
     def get_queue(self):
@@ -144,7 +111,10 @@ class Model(threading.Thread, QObject):
 
 
     def getcurrentValueList(self):
-        return self.currentValueList
+        if len(self.currentValueList) >0:
+            return self.currentValueList.pop()
+        else:
+            return None
 
     def set_port(self,port):
         self.port = port
@@ -153,9 +123,10 @@ class Model(threading.Thread, QObject):
 
     def reset_port(self, port):
         self.ser.close()
-        sleep(0.1)
+        time.sleep(0.1)
         self.port = port
         self.begin()
+        #!!!
         #self.ser = serial.Serial( port, self.br, timeout=120)
         # try:
         #     if not self.ser._port_handle:
@@ -203,7 +174,7 @@ class Model(threading.Thread, QObject):
             print('上位机发送:',dataSend)
             self.ser.write(dataSend)
 
-        sleep(0.1)
+        time.sleep(0.1)
 
     # def readline(self):
     #     try:
@@ -213,16 +184,20 @@ class Model(threading.Thread, QObject):
     #     return data
 
     def readbit(self,ser):
-        sleep(0.1)
+        time.sleep(0.1)
         try:
             data = ser.read(1)
         except Exception as e:
             raise e
         except portNotOpenError :
-            sleep(1)
+            time.sleep(1)
         return data
 
     def msgcoup(self,msg):
+        '''
+        package a message if msg length > 6
+        '''
+
         msg = self.msgDictHex.get(msg, b'-1')
         if msg is b'-1':
             return msg
@@ -257,7 +232,9 @@ class Model(threading.Thread, QObject):
                         bitlist.append(databit)
 
     def coreMsgProcess(self,data):
-
+        '''
+        message analysis and manage
+        '''
         if data == None:
             return '-1'
         elif len(data) > 5:
@@ -266,10 +243,12 @@ class Model(threading.Thread, QObject):
         if data[0:1] == b'\x01':
             if data[1:2] == b'\x11':
                 #current plot msg
-                print(data,'12:',data[-2:])
-                currentValue = data[-2:]
-                print(currentValue)
-                self.currentValueList.append(currentValue.strip())
+                #print(data,'12:',data[-2:])
+                currentValue = data[-2:].strip()
+                currentValue = int().from_bytes(currentValue,'big')/100
+                print('currentValue=',currentValue)
+                self.currentValueList.append(currentValue)
+                self.emitCurrentValue(currentValue)
             elif data[1:2] == b'\x00':
                 #if data[2:3] == b'\x00\x00':
                 print('seed received',data)
@@ -305,8 +284,12 @@ class Model(threading.Thread, QObject):
 
 
 #==============================================================================
-# Signals
+# Signals for view
 #==============================================================================
 
     def emit_error(self, value):
         self.error.emit(value)
+
+    def emitCurrentValue(self, value):
+        gotTime = time.time()
+        self.cValue.emit([gotTime,value])
