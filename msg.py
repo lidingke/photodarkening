@@ -17,7 +17,7 @@ msgDictStr = {
         'seedpulsesetreturn':' EB 90 01 02 FF FF 90 EB',
         'seedpulseseterror':' EB 90 01 02 10 00 90 EB',
         # seed fre \x03
-        'seedfreset':' EB 90 01 03 FF FF 90 EB',
+        'seedfreset':' EB 90 01 03 00 64 90 EB',
         'seedfresetreturn':' EB 90 01 03 FF FF 90 EB',
         'seedfreseterror':' EB 90 01 03 1000 90 EB',
         #seed current \x04
@@ -25,9 +25,9 @@ msgDictStr = {
         'seedcurrentvaluegetreturn':' EB 90 01 04 FF FF 90 EB',
         'seedcurrentvaluegeterror':' EB 90 01 04 10 00 90 EB',
         #seed pluse \x05
-        'seedpluseread':' EB 90 01 05 90 EB',
-        'seedplusereadreturn':' EB 90 01 05 FF FF 90 EB',
-        'seedplusereaderror':' EB 90 01 05 10 00 90 EB',
+        'seedpulseread':' EB 90 01 05 90 EB',
+        'seedpulsereadreturn':' EB 90 01 05 FF FF 90 EB',
+        'seedpulsereaderror':' EB 90 01 05 10 00 90 EB',
         #seed frequance \x06
         'seedfreread':' EB 90 01 06 90 EB',
         'seedfrereadreturn':' EB 90 01 06 FF FF 90 EB',
@@ -73,6 +73,7 @@ for k,v in msgDictStr.items():
 sendmsgrec = dict([(v,k) for k,v in msgDictHex.items()])
 msg['msgDictHex'] = msgDictHex
 msg['sendmsgrec'] = sendmsgrec
+print(msgDictHex)
 
 with open('msg.pickle', 'wb') as f1:
     pickle.dump(msg, f1)

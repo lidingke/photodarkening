@@ -12,12 +12,12 @@ from PyQt5.QtWidgets    import QVBoxLayout
 from PyQt5.QtWidgets    import QHBoxLayout
 from PyQt5.QtWidgets    import QComboBox
 from PyQt5.QtWidgets    import QMessageBox
-from PyQt5.QtWidgets    import QLCDNumber
 from PyQt5.QtWidgets    import QSpinBox
 from PyQt5.QtWidgets    import QSpacerItem
 from PyQt5.QtWidgets    import QTabWidget
 from PyQt5.QtWidgets    import QGroupBox
 from PyQt5.QtWidgets    import QAction
+
 
 from PyQt5.QtCore       import QTimer
 from PyQt5.QtCore       import QObject
@@ -49,7 +49,8 @@ class View(QWidget):
     baudrate_changed    = pyqtSignal(object)
     #eol_changed         = pyqtSignal(object)
     port_changed        = pyqtSignal(object)
-    #cValueSingal = pyqtSignal(object)
+    seedPulseChanged = pyqtSignal(object)
+    seedFreValueChanged = pyqtSignal(object)
 
     def __init__(self):
         QWidget.__init__(self)
@@ -72,7 +73,7 @@ class View(QWidget):
         self.mainBox = QVBoxLayout(self)#使用垂直布局类
         gbox1 = QGroupBox()
         gbox2 = QGroupBox()
-        gbox3 = QGroupBox()
+        gbox3 = QGroupBox('启动')
         gbox4 = QGroupBox()
         gbox5 = QGroupBox()
         #self.menuBox = QHBoxLayout()
@@ -105,6 +106,7 @@ class View(QWidget):
         # self.showBox.addLayout(cmdBox)
 
         self.openPortButton = QPushButton('openport')
+        #self.openPortButton.setCheckable(True)
         #self.openPortButton.clicked.connect(partial(self.emit_send_command,'openport'))
         portBox.addWidget(self.openPortButton)
 
@@ -136,21 +138,42 @@ class View(QWidget):
         # cmd_btncr.clicked.connect(partial(self.emit_send_command,'sendcurrent'))
         # cmdButtonBox.addWidget(cmd_btncr)
         #seedBox项目
-        openSeedButton = QPushButton('openseed')
-        openSeedButton.clicked.connect(partial(self.emit_send_command,'openseed'))
-        seedBox.addWidget(openSeedButton)
 
-        setSeedButton = QPushButton('setseed')
-        setSeedButton.clicked.connect(partial(self.emit_send_command,'setseed'))
-        seedBox.addWidget(setSeedButton)
+        self.openSeedButton = QPushButton('openseed')
+        #self.openSeedButton.setDisabled(True)
+        self.openSeedButton.clicked.connect(partial(self.emit_send_command,'openseed'))
+        seedBox.addWidget(self.openSeedButton)
+        seedPluseBox = QHBoxLayout()
+        self.seedPluseLabel = QLabel('setSeedPulse:')
+        #self.etSeedPulseButton.clicked.connect(partial(self.emit_send_command,'setseed'))
+        seedPluseBox.addWidget(self.seedPluseLabel)
 
+        self.setSeedPulse = QSpinBox(self)
+        #self.setSeedPulse.setReadOnly(True)
+        self.setSeedPulse.valueChanged.connect(self.emitWriteSeedPulse)
+        #seedBox.addWidget(self.setSeedPulse)
+        seedPluseBox.addWidget(self.setSeedPulse)
+
+        seedFreBox = QHBoxLayout()
+        self.seedFreLabel = QLabel('setSeedFre:    ')
+        #self.setSeedButton.clicked.connect(partial(self.emit_send_command,'setSeedFre'))
+        seedFreBox.addWidget(self.seedFreLabel)
+
+        self.setSeedFreValue = QSpinBox(self)
+        self.setSeedFreValue.valueChanged.connect(self.emitWriteSeedFre)
+        seedFreBox.addWidget(self.setSeedFreValue)
+        seedBox.addLayout(seedPluseBox)
+        seedBox.addLayout(seedFreBox)
         #seedBox.addStretch()
 
         # amp select
         openFirstPump = QPushButton('openfirstpump')
+        openFirstPump.setDisabled(True)
+        #.setEnabled(True)
         openFirstPump.clicked.connect(partial(self.emit_send_command,'openfirstpump'))
         firstPumpBox.addWidget(openFirstPump)
         openSecondPump = QPushButton('opensecondpump')
+        openSecondPump.setDisabled(True)
         openSecondPump.clicked.connect(partial(self.emit_send_command,'opensecondpump'))
         secondPumpBox.addWidget(openSecondPump)
 
@@ -158,6 +181,8 @@ class View(QWidget):
         secPumpLabel=QLabel('二级泵浦调节')
         firstpumpSet = QSpinBox(self)
         secondpumpSet = QSpinBox(self)
+        firstpumpSet.setReadOnly(True)
+        secondpumpSet.setReadOnly(True)
         firstPumpBox.addWidget(firstPumpLabel)
         secondPumpBox.addWidget(secPumpLabel)
         firstPumpBox.addWidget(firstpumpSet)
@@ -191,6 +216,7 @@ class View(QWidget):
         cmdEnterAction.triggered.connect(self.emit_send_data)
         self.cmd_edit.addAction(cmdEnterAction)
         self.editer = QPlainTextEdit()
+        self.editer.setReadOnly(True)
         cmdBox = QVBoxLayout()
         cmdBox.addWidget(self.cmd_edit)
         cmdBox.addWidget(cmd_btn)
@@ -203,9 +229,9 @@ class View(QWidget):
         self.showBox.addLayout(cmdBox)
         self.showBox.addWidget(self.painter)
 
-        setSeedPlot = QPushButton('plot')
-        setSeedPlot.clicked.connect(self.Button2Plot)
-        seedBox.addWidget(setSeedPlot)
+        # setSeedPlot = QPushButton('plot')
+        # setSeedPlot.clicked.connect(self.Button2Plot)
+        # seedBox.addWidget(setSeedPlot)
 
         self.mainBox.addWidget(self.toolBox)
         self.mainBox.addLayout(self.showBox)
@@ -213,6 +239,7 @@ class View(QWidget):
 
 
         self.setLayout(self.mainBox)
+        self.setWindowTitle("光子暗化平台软件")
 
     def show_error(self, value):
         msg = QMessageBox(
@@ -237,6 +264,8 @@ class View(QWidget):
 
     def get_cmd(self):
         return self.cmd_edit.text()
+
+
 
     # def plotListGet(self):
     #     return self.currentValueList
@@ -306,6 +335,11 @@ class View(QWidget):
     def emit_port_changed(self):
         self.port_changed.emit(self.portEdit.text())
 
+    def emitWriteSeedPulse(self):
+        self.seedPulseChanged.emit(self.setSeedPulse.text())
+
+    def emitWriteSeedFre(self):
+        self.seedFreValueChanged.emit(self.setSeedFreValue.text())
 
 
 class PaintArea(QWidget):

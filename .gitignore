@@ -3,3 +3,7 @@
 *.bat
 *.exe
 *.txt
+/Fonts
+/Image
+*.pickle
+*.pdf

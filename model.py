@@ -29,7 +29,7 @@ class Model(threading.Thread, QObject):
         self.queue      = queue.Queue()
         self.currentValueList      = list()
         # Communications settings
-        self.port       = 'com6'
+        self.port       = 'com1'
         self.br         = 9600
         self.timeout    = 0.01
         # Line ending id
@@ -63,8 +63,8 @@ class Model(threading.Thread, QObject):
                 #data = self.readline()
                 data = self.analysisbit(self.ser)
                     #print('Error occured while reading data.')
-                #try:
-                if len(data)>0:
+                #try:runrun
+                if data is not b'-1' and None:
                     #print('lendata',len(data))
                     self.coreMsgProcess(data)
                     #print('上位机接收：',data)
@@ -82,7 +82,8 @@ class Model(threading.Thread, QObject):
         Stop thread.
         '''
         print('stop thread Model and close serial')
-        self.ser.close()
+        if self.ser:
+            self.ser.close()
         self.running = False
 
     def begin(self):
@@ -90,17 +91,37 @@ class Model(threading.Thread, QObject):
         Initializate PySerial object
         '''
         try:
-            print(self.port,self.br)
-            self.ser = serial.Serial(
-                    self.port, self.br, timeout=120
-            )
-            print(self.ser)
-        except SerialException:
-            print('Fail to open default port.')
-            self.ser = serial.Serial(baudrate=self.br, timeout=120)
-            time.sleep(20)
+            if self.ser is None:
+                self.ser = serial.Serial(self.port, self.br, timeout=120)
+            elif self.ser.isOpen() is True:
+                self.ser.close()
+                self.ser = serial.Serial(self.port, self.br, timeout=120)
+        except serial.serialutil.SerialException:
+            print('=== can not open the port ===')
+            self.stop()
 
-        print(self.ser)
+
+
+
+
+        # try:
+        #     print(self.port,self.br)
+        #     self.ser = serial.Serial(
+        #             self.port, self.br, timeout=120
+        #     )
+        #     print(self.ser)
+        #     return True
+        # except SerialException:
+        #     print('Fail to open default port.')
+        #     #self.ser = serial.Serial(baudrate=self.br, timeout=120)
+        #     time.sleep(1)
+        #     # self.ser = serial.Serial(
+        #     #         self.port, self.br, timeout=120
+        #     # )
+        #     self.stop()
+        #     return False
+
+        #print(self.ser)
 
 #==============================================================================
 # Get, Set from view
@@ -108,7 +129,6 @@ class Model(threading.Thread, QObject):
 
     def get_queue(self):
         return self.queue
-
 
     def getcurrentValueList(self):
         if len(self.currentValueList) >0:
@@ -122,10 +142,12 @@ class Model(threading.Thread, QObject):
 
 
     def reset_port(self, port):
-        self.ser.close()
+        #self.ser.close()
         time.sleep(0.1)
-        self.port = port
-        self.begin()
+        if self.port is not port:
+            self.port = port
+            #self.stop()
+        #self.begin()
         #!!!
         #self.ser = serial.Serial( port, self.br, timeout=120)
         # try:
@@ -186,7 +208,10 @@ class Model(threading.Thread, QObject):
     def readbit(self,ser):
         time.sleep(0.1)
         try:
-            data = ser.read(1)
+            if ser.isOpen() is True:
+                data = ser.read(1)
+            else:
+                data = b'-1'
         except Exception as e:
             raise e
         except portNotOpenError :
@@ -218,6 +243,7 @@ class Model(threading.Thread, QObject):
         while readlive and self.running:
             databit = self.readbit(ser)
             if databit == b'\xeb':
+
                 # print(databit,'1')
                 databit = self.readbit(ser)
                 if databit == b'\x90':
@@ -230,6 +256,8 @@ class Model(threading.Thread, QObject):
                             #print(data)
                             return data
                         bitlist.append(databit)
+
+        return b'-1'
 
     def coreMsgProcess(self,data):
         '''
@@ -280,6 +308,28 @@ class Model(threading.Thread, QObject):
                 pass
             else:
                 return b'-1'
+
+
+
+#==============================================================================
+# Signals from view
+#==============================================================================
+    def writeSeedPulse(self,value):
+        print('pulevalue:',value,type(value),int(value))
+        value = int(value).to_bytes(2,'big')
+        valuemsg = self.msgDictHex['seedpulseset']
+        valuemsg = valuemsg[:4] + value + valuemsg[6:]
+        print('pulevaluemsg',valuemsg)
+        #self.write()
+    def writeSeedFre(self,value):
+        print('frevalue:',value)
+        print('frevalue:',value,type(value),int(value))
+        value = int(value).to_bytes(2,'big')
+        valuemsg = self.msgDictHex['seedfreset']
+        valuemsg = valuemsg[:4] + value + valuemsg[6:]
+        print('frevaluemsg',valuemsg)
+        #self.write()
+
 
 
 

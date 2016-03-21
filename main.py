@@ -17,6 +17,7 @@ if __name__ == '__main__':
     font.setPointSize(16)
     font.setFamily('微软雅黑')
     app.setFont(font)
+
     gui         = View()
 
     presenter   = Presenter(gui)
