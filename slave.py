@@ -23,7 +23,7 @@ class Slave(object):
         self.seedpulsere = False
         self.seedfrequecere = False
         self.seedcurrent = '-1'
-        self.seedpluse = '-1'
+        self.seedpulse = '-1'
         self.seedfrequece = '-1'
         self.seedfirstcurrent = '-1'
         self.seedsecondcurrent = '-1'
@@ -81,7 +81,7 @@ class Slave(object):
         self.ser = serial.Serial(self.port, self.br, timeout=120)
         #model.begin()
         #model.start()
-        model.serSer(self.ser)
+        model.setSer(self.ser)
 
         self.sendmsg = model.get_msgDict()
         self.entry = model.getEntry()
@@ -91,7 +91,7 @@ class Slave(object):
         #self.sendmsgrec = dict([(v,k) for k,v in self.sendmsg.items()])
 
         # ser = model.get_ser()
-        # self.ser = ser
+        ser = self.ser
         print(ser)
 
         print('上位机信号包大小为：',len(self.sendmsgrec))
@@ -103,7 +103,7 @@ class Slave(object):
         #开个线程定时发送电流
         #threading.Thread(target=Slave.currentSend,args=(self,ser,)).start()
         #开个线程随机发送信号
-        threading.Thread(target=Slave.randomSend,args=(self,ser,)).start()
+        #threading.Thread(target=Slave.randomSend,args=(self,ser,)).start()
 
         while True:
             sertext = model.analysisbit()
@@ -129,42 +129,69 @@ class Slave(object):
         # self.msgDictStr = entry['msgDictStr']
         # self.sendmsgrec = entry['sendmsgrec']
         if sertext:
-            serstr = sendmsgrec.get(sertext)
+            serstr = self.sendmsgrec.get(sertext)
             if serstr:
                 if serstr == 'openseed':
                     self.isSeedOpen = True
+                    print(serstr)
                 elif serstr == 'closeseed':
                     self.isSeedOpen = False
-                elif serstr == 'seedcurrentvalueset':
-                    self.seedcurrent = sertext[4:6]
-                elif serstr == 'seedpulseset':
-                    self.seedpluse = sertext[4:6]
-                elif serstr == 'seedfreset':
-                    self.seedfrequece = sertext[4:6]
-                elif serstr == 'seedcurrentvalueget':
-                    writehex = sertext[:4] + self.seedcurrent + sertext[-2:]
-                    self.ser.write(writehex)
-                elif serstr == 'seedpulseread':
-                    writehex = sertext[:4] + self.seedpluse + sertext[-2:]
-                elif serstr == 'seedfreread':
-                    writehex = sertext[:4] + self.seedfrequece + sertext[-2:]
+                    print(serstr)
                 elif serstr == 'openseedLED':
+                    print(serstr)
                     self.isLEDOpen = True
                 elif serstr == 'closeseedLED':
+                    print(serstr)
                     self.isLEDOpen = False
                 elif serstr == 'openfirstpump':
+                    print(serstr)
                     self.isFirstPumpOpen = True
                 elif serstr == 'opensecondpump':
                     self.isSecondPumpOpen = True
+                    print(serstr)
                 elif serstr == 'closefirstpump':
+                    print(serstr)
                     self.isFirstPumpOpen = False
                 elif serstr == 'closesecondpump':
+                    print(serstr)
                     self.isSecondPumpOpen = False
-                elif serstr == 'setfirstcurrent':
-                    self.seedfirstcurrent = sertext[4:6]
-                elif serstr == 'setsecondcurrent':
-                    self.seedsecondcurrent = sertext[4:6]
-
+                elif serstr == 'seedcurrentvalueget':
+                    writehex = sertext[:4] + self.seedcurrent + sertext[-2:]
+                    print(serstr,writehex)
+                    self.ser.write(writehex)
+                elif serstr == 'seedpulseread':
+                    writehex = sertext[:4] + self.seedpulse + sertext[-2:]
+                    print(serstr,writehex)
+                    self.ser.write(writehex)
+                elif serstr == 'seedfreread':
+                    writehex = sertext[:4] + self.seedfrequece + sertext[-2:]
+                    print(serstr,writehex)
+                    self.ser.write(writehex)
+                else:
+                    print('in dict error:',serstr,sertext)
+# key changed canot find in dict
+            else:
+                value = sertext[4:6]
+                sertext = sertext[0:4] + b'\xFF\xFF' + sertext[-2:]
+                serstr = self.sendmsgrec.get(sertext)
+                if serstr:
+                    if serstr == 'seedcurrentvalueset':
+                        self.seedcurrent = value
+                        print(serstr,value)
+                    elif serstr == 'seedpulseset':
+                        self.seedpulse = value
+                        print(serstr,value)
+                    elif serstr == 'seedfreset':
+                        self.seedfrequece = value
+                        print(serstr,value)
+                    elif serstr == 'setfirstcurrent':
+                        print(serstr,value)
+                        self.seedfirstcurrent = value
+                    elif serstr == 'setsecondcurrent':
+                        print(serstr,value)
+                        self.seedsecondcurrent = value
+                    else:
+                        print('out dict error:',serstr,sertext)
 
 
 

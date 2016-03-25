@@ -1,4 +1,5 @@
 import pickle
+from re import findall
 msg = {}
 msgDictStr = {
 #===========seed===========
@@ -66,10 +67,17 @@ msgDictHex = dict()
 for k,v in msgDictStr.items():
     msgDictHex[k] = b''.fromhex(v) #v.replace(b" ",b"\x")
 #self.msgDict = self.msgDictHex
-sendmsgrec = dict([(v,k) for k,v in msgDictHex.items()])
+msgDictHexNoRe = {}
+print(msgDictHex)
+for k,v in msgDictHex.items():
+    if k[-6:] != 'return':
+        msgDictHexNoRe[k] = v
+
+sendmsgrec = dict([(v,k) for k,v in msgDictHexNoRe.items()])
 msg['msgDictHex'] = msgDictHex
 msg['sendmsgrec'] = sendmsgrec
-print(msgDictHex)
+print(sendmsgrec)
+print('len,msgDictHex,sendmsgrec',len(msgDictHex),len(sendmsgrec))
 
 with open('msg.pickle', 'wb') as f1:
     pickle.dump(msg, f1)

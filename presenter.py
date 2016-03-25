@@ -54,17 +54,27 @@ class Presenter:
         self.__view.send_data.connect(self.__model.write)
         self.__model.error.connect(self.__view.show_error)
         self.__model.cValue.connect(self.__view.setCurrentValue)
-        self.__view.seedPulseChanged.connect(self.__model.writeSeedPulse)
-        self.__view.seedFreValueChanged.connect(self.__model.writeSeedFre)
+        # self.__view.seedPulseChanged.connect(self.__model.writeSeedPulse)
+        # self.__view.seedFreValueChanged.connect(self.__model.writeSeedFre)
         self.__view.seedPulseFreChanged.connect(self.__model.writeSeedPulseAndFre)
-        self.__view.openFirstPump.clicked.connect(self.__model.openpaltform)
+        self.__view.openAll.clicked.connect(self.__model.openpaltform)
+        self.__view.firstPumpChanged.connect(self.__model.writeFirstPumpCurrent)
+        self.__view.secondPumpChanged.connect(self.__model.writesecondPumpCurrent)
+
     def closeModel(self):
         pass
 
     def setPort(self):
-        self.__model.set_port(self.__view.getPort())
-        self.__model.set_br(self.__view.getBaudrate())
-        self.__model.reSetPort()
+        newPort = self.__view.getPort()
+        newBaud = self.__view.getBaudrate()
+        oldPort = self.__model.get_port()
+        oldBaud = self.__model.get_br()
+        if newPort != oldPort:
+            print('portnewold:',newPort,oldPort)
+            self.__model.set_port(newPort)
+        # if newBaud is not oldBaud:
+            self.__model.set_br(newBaud)
+            self.__model.reSetPort()
         if self.__model.isPortOpen():
             self.__view.afterOpenPort()
 

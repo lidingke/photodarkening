@@ -53,6 +53,8 @@ class View(QWidget):
     seedPulseChanged = pyqtSignal(object)
     seedFreValueChanged = pyqtSignal(object)
     seedPulseFreChanged = pyqtSignal(object)
+    firstPumpChanged = pyqtSignal(object)
+    secondPumpChanged = pyqtSignal(object)
 
     def __init__(self):
         QWidget.__init__(self)
@@ -178,6 +180,9 @@ class View(QWidget):
         self.setSeedPulse = QSpinBox(self)
         self.setSeedPulse.setMaximum(500)
         self.setSeedPulse.setEnabled(False)
+        self.setSeedPulse.setSingleStep(50)
+        self.setSeedPulse.setValue(100)
+        self.setSeedPulse.setSuffix('ms')
         #self.setSeedPulse.setReadOnly(True)
         #self.setSeedPulse.valueChanged.connect(self.emitWriteSeedPulse)
         #seedBox.addWidget(self.setSeedPulse)
@@ -191,6 +196,9 @@ class View(QWidget):
         self.setSeedFreValue = QSpinBox(self)
         self.setSeedFreValue.setMaximum(500)
         self.setSeedFreValue.setEnabled(False)
+        self.setSeedFreValue.setSingleStep(50)
+        self.setSeedFreValue.setValue(100)
+        self.setSeedFreValue.setSuffix('kHz')
         #self.setSeedFreValue.valueChanged.connect(self.emitWriteSeedFre)
         seedFreBox.addWidget(self.setSeedFreValue)
         seedBox.addLayout(seedPluseBox)
@@ -198,24 +206,47 @@ class View(QWidget):
         #seedBox.addStretch()
 
         # amp select
-        self.openFirstPump = QPushButton('openall')
-        self.openFirstPump.setMinimumWidth(self.buttonMinimumWidth)
-        self.openFirstPump.setEnabled(False)
+        self.openAll = QPushButton('openall')
+        self.openAll.setMinimumWidth(self.buttonMinimumWidth)
+        self.openAll.setEnabled(False)
         #.setEnabled(True)
-        #self.openFirstPump.clicked.connect(partial(self.emit_send_command,'openfirstpump'))
-        firstPumpBox.addWidget(self.openFirstPump)
+        #self.openAll.clicked.connect(partial(self.emit_send_command,'openAll'))
+        firstPumpBox.addWidget(self.openAll)
         self.openSecondPump = QPushButton('opensecondpump')
         self.openSecondPump.setMinimumWidth(self.buttonMinimumWidth)
         self.openSecondPump.setEnabled(False)
         self.openSecondPump.clicked.connect(partial(self.emit_send_command,'opensecondpump'))
-        secondPumpBox.addWidget(self.openSecondPump)
+        # secondPumpBox.addWidget(self.openSecondPump)
+        tempstr = '这里将右上角opensecondpump\
+        换成spin，后面排版的时候记得换回来！！！'
+        self.setSeedCurrent = QSpinBox()
+        self.setSeedCurrent.setMaximum(500)
+        self.setSeedCurrent.setEnabled(False)
+        self.setSeedCurrent.setSingleStep(50)
+        self.setSeedCurrent.setValue(100)
+        self.setSeedFreValue.setSuffix('mA')
+        secondPumpBox.addWidget(self.setSeedCurrent)
 
         firstPumpLabel=QLabel('一级泵浦调节')
         secPumpLabel=QLabel('二级泵浦调节')
         self.firstpumpSet = QSpinBox(self)
+        self.firstpumpSet.setMaximum(500)
+        self.firstpumpSet.setEnabled(False)
+        self.firstpumpSet.setSingleStep(50)
+        self.firstpumpSet.setValue(100)
+        self.firstpumpSet.setSuffix('mA')
         self.secondpumpSet = QSpinBox(self)
+        self.secondpumpSet.setMaximum(500)
+        self.secondpumpSet.setEnabled(False)
+        self.secondpumpSet.setSingleStep(50)
+        self.secondpumpSet.setValue(100)
+        self.secondpumpSet.setSuffix('mA')
+        self.firstpumpSet.valueChanged.connect(self.emitFirstPumpCurrent)
+        self.secondpumpSet.valueChanged.connect(self.emitSecondPumpCurrent)
+
         self.firstpumpSet.setEnabled(False)
         self.secondpumpSet.setEnabled(False)
+
         firstPumpBox.addWidget(firstPumpLabel)
         secondPumpBox.addWidget(secPumpLabel)
         firstPumpBox.addWidget(self.firstpumpSet)
@@ -294,8 +325,9 @@ class View(QWidget):
         self.setSeedFreValue.setEnabled(True)
         self.firstpumpSet.setEnabled(True)
         self.secondpumpSet.setEnabled(True)
-        self.openFirstPump.setEnabled(True)
+        self.openAll.setEnabled(True)
         self.openSecondPump.setEnabled(True)
+        self.setSeedCurrent.setEnabled(True)
 
 
 #==============================================================================
@@ -402,8 +434,16 @@ class View(QWidget):
     def emitWriteSeedFre(self):
         self.seedFreValueChanged.emit(self.setSeedFreValue.text())
 
+    def emitFirstPumpCurrent(self):
+        self.firstPumpChanged.emit(self.firstpumpSet.text())
+
+    def emitSecondPumpCurrent(self):
+        self.secondPumpChanged.emit(self.secondpumpSet.text())
+
+
     def emitSeedPulseAndFre(self):
-        seedPulseAndFre = [self.setSeedPulse.text(),self.setSeedFreValue.text()]
+        seedPulseAndFre = [self.setSeedPulse.text(),
+            self.setSeedFreValue.text(),self.setSeedCurrent.text()]
         self.seedPulseFreChanged.emit(seedPulseAndFre)
 
 

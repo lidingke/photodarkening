@@ -55,7 +55,7 @@ class Model(threading.Thread, QObject):
         self.seedpulsere = False
         self.seedfrequecere = False
         self.seedcurrent = '-1'
-        self.seedpluse = '-1'
+        self.seedpulse = '-1'
         self.seedfrequece = '-1'
         self.seedfirstcurrent = '-1'
         self.seedsecondcurrent = '-1'
@@ -87,7 +87,7 @@ class Model(threading.Thread, QObject):
                     #try:runrun
                     if data :
                         #print('lendata',len(data))
-                        print('data:',data)
+                        #print('data:',data)
                         self.coreMsgProcess(data)
                         #print('上位机接收：',data)
                         self.queue.put(data.strip())
@@ -326,7 +326,7 @@ class Model(threading.Thread, QObject):
         elif len(data) > 5:
             data = data[2:]
             data = data[:-2]
-        print(data[0:1],':',data[1:2],type(data[0]),type(data))
+        # print(data[0:1],':',data[1:2],type(data[0]),type(data))
         if data[0:1] == b'\x01':
             if data[1:2] == b'\x11':
                 #current plot msg
@@ -396,9 +396,9 @@ class Model(threading.Thread, QObject):
                 print('seed received',data)
                 if data[2:3] == b'\x10':
                     print('seederror')
-                    self.seedpluse = '-1'
+                    self.seedpulse = '-1'
                 else:
-                    self.seedpluse = data[2:4]
+                    self.seedpulse = data[2:4]
 
             elif data[1:2] == b'\x06':
                 #seed frequece read
@@ -450,57 +450,104 @@ class Model(threading.Thread, QObject):
             if self.isFirstPumpOpen:
                 self.write(self.msgDictHex['opensecondpump'])
                 time.sleep(0.3)
+        self.isSeedOpened()
 
         # print('seed:',self.isSeedOpen,
         #     'isFirstPumpOpen:',self.isFirstPumpOpen,
         #     'isSecondPumpOpen:',self.isSecondPumpOpen)
+    def isSeedOpened(self):
         if self.isSeedOpen\
             and self.isFirstPumpOpen\
             and self.isSecondPumpOpen:
-            print('openall')
+            print('openpaltform,seed,1st,2st')
+
+    def isSeedSet(self):
+        print(self.seedcurrentre ,'and', self.seedpulsere,'and', self.seedfrequecere)
+
+        if self.seedcurrentre and self.seedpulsere\
+        and self.seedfrequecere:
+            time.sleep(0.1)
+            self.write(self.msgDictHex['seedpulseread'])
+            time.sleep(0.1)
+            self.write(self.msgDictHex['seedfreread'])
+            time.sleep(0.1)
+            self.write(self.msgDictHex['seedcurrentvalueget'])
+            if self.seedcurrent != '-1':
+                print('seedcurrent is set to ',self.seedcurrent)
+            if self.seedpulse != '-1':
+                print('seedpulse is set to ',self.seedpulse)
+            if self.seedfrequece != '-1':
+                print('seedfrequece is set to ',self.seedfrequece)
+
 
 
 
 #==============================================================================
 # Signals from view
 #==============================================================================
-    def writeSeedPulse(self,value):
-        print('pulevalue:',value,type(value),int(value))
-        value = int(value).to_bytes(2,'big')
-        valuemsg = self.msgDictHex['seedpulseset']
-        valuemsg = valuemsg[:4] + value + valuemsg[6:]
-        print('pulevaluemsg',valuemsg)
-        #self.write()
-    def writeSeedFre(self,value):
-        print('frevalue:',value)
-        print('frevalue:',value,type(value),int(value))
-        value = int(value).to_bytes(2,'big')
-        valuemsg = self.msgDictHex['seedfreset']
-        valuemsg = valuemsg[:4] + value + valuemsg[6:]
-        print('frevaluemsg',valuemsg)
-        #self.write()
+    # def writeSeedPulse(self,value):
+    #     # print('pulevalue:',value,type(value),int(value))
+    #     value = int(value).to_bytes(2,'big')
+    #     valuemsg = self.msgDictHex['seedpulseset']
+    #     valuemsg = valuemsg[:4] + value + valuemsg[6:]
+    #     print('pulevaluemsg',valuemsg)
+    #     #self.write()
+    # def writeSeedFre(self,value):
+    #     # print('frevalue:',value)
+    #     # print('frevalue:',value,type(value),int(value))
+    #     value = int(value).to_bytes(2,'big')
+    #     valuemsg = self.msgDictHex['seedfreset']
+    #     valuemsg = valuemsg[:4] + value + valuemsg[6:]
+    #     print('frevaluemsg',valuemsg)
+    #     #self.write()
 
     def writeSeedPulseAndFre(self,seedPulseAndFre):
+        print('seedPulseAndFre:',seedPulseAndFre)
         if seedPulseAndFre:
-
             value = seedPulseAndFre[0]
-            print('frevalue:',value)
-            print('frevalue:',value,type(value),int(value))
+            # print('frevalue:',value            # print('frevalue:',value,type(value),int(value))
             value = int(value).to_bytes(2,'big')
             valuemsg = self.msgDictHex['seedfreset']
-            valuemsg = valuemsg[:4] + value + valuemsg[6:]
+            valuemsg = valuemsg[:4] + value + valuemsg[-2:]
             print('frevaluemsg',valuemsg)
             self.write(valuemsg)
             time.sleep(0.3)
             value = seedPulseAndFre[1]
-            print('pulevalue:',value,type(value),int(value))
+            # print('pulevalue:',value,type(value),int(value))
             value = int(value).to_bytes(2,'big')
             valuemsg = self.msgDictHex['seedpulseset']
-            valuemsg = valuemsg[:4] + value + valuemsg[6:]
-            print('pulevaluemsg',valuemsg)
+            valuemsg = valuemsg[:4] + value + valuemsg[-2:]
+            print('pulsevaluemsg',valuemsg)
+            self.write(valuemsg)
+            time.sleep(0.3)
+            value = seedPulseAndFre[2]
+            # print('pulevalue:',value,type(value),int(value))
+            value = int(value).to_bytes(2,'big')
+            valuemsg = self.msgDictHex['seedcurrentvalueset']
+            valuemsg = valuemsg[:4] + value + valuemsg[-2:]
+            print('currentvaluemsg',valuemsg)
             self.write(valuemsg)
             time.sleep(0.3)
             self.write(self.msgDictHex['openseedLED'])
+            self.isSeedSet()
+
+    def writeFirstPumpCurrent(self,value):
+        # print('frevalue:',value)
+        print('setfirstcurrent:',value,type(value),int(value))
+        value = int(value).to_bytes(2,'big')
+        valuemsg = self.msgDictHex['setfirstcurrent']
+        valuemsg = valuemsg[:5] + value + valuemsg[-2:]
+        print('setfirstcurrent',valuemsg)
+        self.write(valuemsg)
+
+    def writesecondPumpCurrent(self,value):
+        # print('frevalue:',value)
+        print('setsecondcurrent:',value,type(value),int(value))
+        value = int(value).to_bytes(2,'big')
+        valuemsg = self.msgDictHex['setsecondcurrent']
+        valuemsg = valuemsg[:5] + value + valuemsg[-2:]
+        print('setsecondcurrent',valuemsg)
+        self.write(valuemsg)
 
 
 
