@@ -10,6 +10,7 @@ from PyQt5.QtWidgets    import QPlainTextEdit
 from PyQt5.QtWidgets    import QCheckBox
 from PyQt5.QtWidgets    import QVBoxLayout
 from PyQt5.QtWidgets    import QHBoxLayout
+from PyQt5.QtWidgets    import QGridLayout
 from PyQt5.QtWidgets    import QComboBox
 from PyQt5.QtWidgets    import QMessageBox
 from PyQt5.QtWidgets    import QSpinBox
@@ -51,6 +52,7 @@ class View(QWidget):
     port_changed        = pyqtSignal(object)
     seedPulseChanged = pyqtSignal(object)
     seedFreValueChanged = pyqtSignal(object)
+    seedPulseFreChanged = pyqtSignal(object)
 
     def __init__(self):
         QWidget.__init__(self)
@@ -64,7 +66,9 @@ class View(QWidget):
         self.timer.timeout.connect(self.update_gui)
         self.timer.start(100)
         self.currentValueList =list()
+        self.buttonMinimumWidth = 100
         self.__initUI()
+
 
 
 
@@ -72,8 +76,9 @@ class View(QWidget):
         #main box
         self.mainBox = QVBoxLayout(self)#使用垂直布局类
         gbox1 = QGroupBox()
-        gbox2 = QGroupBox()
-        gbox3 = QGroupBox('启动')
+        gbox2 = QGroupBox('启动顺序：\
+            （串口）——（激光器）——（一级泵浦）——（二级泵浦）')
+        gbox3 = QGroupBox()
         gbox4 = QGroupBox()
         gbox5 = QGroupBox()
         #self.menuBox = QHBoxLayout()
@@ -92,7 +97,12 @@ class View(QWidget):
 #启动设置tabbox栏目，包含于setBox
 #
 
-        portBox = QVBoxLayout()
+# 按下初始化按钮，启动串口线程，该线程开始循环直至程序结束
+# 设置串口，设置成功后，串口线程可以开始读取数据
+# 开始后续设置
+# 关闭串口，并将ser设为none
+
+        portBox = QGridLayout()
         seedBox = QVBoxLayout()
         firstPumpBox = QVBoxLayout()
         secondPumpBox = QVBoxLayout()
@@ -105,10 +115,22 @@ class View(QWidget):
         #
         # self.showBox.addLayout(cmdBox)
 
-        self.openPortButton = QPushButton('openport')
+        self.openPortButton = QPushButton('openPortButton')
+        self.openPortButton.setEnabled(True)
+        self.openPortButton.setMinimumWidth(self.buttonMinimumWidth)
+        self.setPortButton = QPushButton('setPortButton')
+        self.setPortButton.setMinimumWidth(self.buttonMinimumWidth)
+        self.setPortButton.setEnabled(False)
+
+        self.closePortButton = QPushButton('closePortButton')
+        self.closePortButton.setMinimumWidth(self.buttonMinimumWidth)
+        self.closePortButton.setEnabled(False)
+
         #self.openPortButton.setCheckable(True)
         #self.openPortButton.clicked.connect(partial(self.emit_send_command,'openport'))
-        portBox.addWidget(self.openPortButton)
+        portBox.addWidget(self.openPortButton, 0, 0)
+        portBox.addWidget(self.setPortButton, 1, 0)
+        portBox.addWidget(self.closePortButton, 0, 1)
 
         # - Baudrate select
         self.baundrateMenu = QComboBox()
@@ -118,18 +140,20 @@ class View(QWidget):
             '115200 baud','230400 baud','250000 baud']
         self.baundrateMenu.addItems(self.menuItem)
         self.baundrateMenu.currentIndexChanged.connect(self.emit_br_changed)
+        self.baundrateMenu.setEnabled(False)
         # Set default baudrate 9600
         self.baundrateMenu.setCurrentIndex(4)
-        portBox.addWidget(self.baundrateMenu)
+        portBox.addWidget(self.baundrateMenu, 1, 1)
         #port select
         portLabel = QLabel('Port: ')
         portLB = QHBoxLayout()
-        portLB.addWidget(portLabel)
+        portBox.addWidget(portLabel, 2, 0)
         self.portEdit = QLineEdit()
-        self.portEdit.editingFinished.connect(self.changePort)
-        portLB.addWidget(self.portEdit)
-        portBox.addLayout(portLB)
-        portBox.addStretch()
+        self.portEdit.setEnabled(False)
+        #self.portEdit.editingFinished.connect(self.changePort)
+        portBox.addWidget(self.portEdit, 2, 1)
+        #portBox.addLayout(portLB, 2, 1)
+        #portBox.addStretch()
         #portSetBox.addLayout(stng_hbox)
         #self.setBox.addLayout(portBox)
 
@@ -139,9 +163,12 @@ class View(QWidget):
         # cmdButtonBox.addWidget(cmd_btncr)
         #seedBox项目
 
-        self.openSeedButton = QPushButton('openseed')
+        self.openSeedButton = QPushButton('setSeedButton')
+        self.openSeedButton.setMinimumWidth(self.buttonMinimumWidth)
+
         #self.openSeedButton.setDisabled(True)
-        self.openSeedButton.clicked.connect(partial(self.emit_send_command,'openseed'))
+        self.openSeedButton.setEnabled(False)
+        self.openSeedButton.clicked.connect(self.emitSeedPulseAndFre)
         seedBox.addWidget(self.openSeedButton)
         seedPluseBox = QHBoxLayout()
         self.seedPluseLabel = QLabel('setSeedPulse:')
@@ -149,8 +176,10 @@ class View(QWidget):
         seedPluseBox.addWidget(self.seedPluseLabel)
 
         self.setSeedPulse = QSpinBox(self)
+        self.setSeedPulse.setMaximum(500)
+        self.setSeedPulse.setEnabled(False)
         #self.setSeedPulse.setReadOnly(True)
-        self.setSeedPulse.valueChanged.connect(self.emitWriteSeedPulse)
+        #self.setSeedPulse.valueChanged.connect(self.emitWriteSeedPulse)
         #seedBox.addWidget(self.setSeedPulse)
         seedPluseBox.addWidget(self.setSeedPulse)
 
@@ -160,33 +189,37 @@ class View(QWidget):
         seedFreBox.addWidget(self.seedFreLabel)
 
         self.setSeedFreValue = QSpinBox(self)
-        self.setSeedFreValue.valueChanged.connect(self.emitWriteSeedFre)
+        self.setSeedFreValue.setMaximum(500)
+        self.setSeedFreValue.setEnabled(False)
+        #self.setSeedFreValue.valueChanged.connect(self.emitWriteSeedFre)
         seedFreBox.addWidget(self.setSeedFreValue)
         seedBox.addLayout(seedPluseBox)
         seedBox.addLayout(seedFreBox)
         #seedBox.addStretch()
 
         # amp select
-        openFirstPump = QPushButton('openfirstpump')
-        openFirstPump.setDisabled(True)
+        self.openFirstPump = QPushButton('openall')
+        self.openFirstPump.setMinimumWidth(self.buttonMinimumWidth)
+        self.openFirstPump.setEnabled(False)
         #.setEnabled(True)
-        openFirstPump.clicked.connect(partial(self.emit_send_command,'openfirstpump'))
-        firstPumpBox.addWidget(openFirstPump)
-        openSecondPump = QPushButton('opensecondpump')
-        openSecondPump.setDisabled(True)
-        openSecondPump.clicked.connect(partial(self.emit_send_command,'opensecondpump'))
-        secondPumpBox.addWidget(openSecondPump)
+        #self.openFirstPump.clicked.connect(partial(self.emit_send_command,'openfirstpump'))
+        firstPumpBox.addWidget(self.openFirstPump)
+        self.openSecondPump = QPushButton('opensecondpump')
+        self.openSecondPump.setMinimumWidth(self.buttonMinimumWidth)
+        self.openSecondPump.setEnabled(False)
+        self.openSecondPump.clicked.connect(partial(self.emit_send_command,'opensecondpump'))
+        secondPumpBox.addWidget(self.openSecondPump)
 
         firstPumpLabel=QLabel('一级泵浦调节')
         secPumpLabel=QLabel('二级泵浦调节')
-        firstpumpSet = QSpinBox(self)
-        secondpumpSet = QSpinBox(self)
-        firstpumpSet.setReadOnly(True)
-        secondpumpSet.setReadOnly(True)
+        self.firstpumpSet = QSpinBox(self)
+        self.secondpumpSet = QSpinBox(self)
+        self.firstpumpSet.setEnabled(False)
+        self.secondpumpSet.setEnabled(False)
         firstPumpBox.addWidget(firstPumpLabel)
         secondPumpBox.addWidget(secPumpLabel)
-        firstPumpBox.addWidget(firstpumpSet)
-        secondPumpBox.addWidget(secondpumpSet)
+        firstPumpBox.addWidget(self.firstpumpSet)
+        secondPumpBox.addWidget(self.secondpumpSet)
         firstPumpBox.addStretch()
         secondPumpBox.addStretch()
         #self.resize(250, 150)
@@ -208,6 +241,7 @@ class View(QWidget):
         self.cmd_edit = QLineEdit()
 
         cmd_btn = QPushButton('Send Command (ctrl+Q)')
+        cmd_btn.setMinimumWidth(self.buttonMinimumWidth)
         cmd_btn.clicked.connect(self.emit_send_data)
         #import cmd strl+enter
         cmdEnterAction = QAction(self)
@@ -246,6 +280,24 @@ class View(QWidget):
                 QMessageBox.NoIcon, 'Error occured.', value, QMessageBox.Ok)
         msg.exec()
 
+    def afterOpenModel(self):
+        self.openPortButton.setEnabled(False)
+        self.setPortButton.setEnabled(True)
+        self.closePortButton.setEnabled(True)
+        self.baundrateMenu.setEnabled(True)
+        self.portEdit.setEnabled(True)
+
+    def afterOpenPort(self):
+
+        self.openSeedButton.setEnabled(True)
+        self.setSeedPulse.setEnabled(True)
+        self.setSeedFreValue.setEnabled(True)
+        self.firstpumpSet.setEnabled(True)
+        self.secondpumpSet.setEnabled(True)
+        self.openFirstPump.setEnabled(True)
+        self.openSecondPump.setEnabled(True)
+
+
 #==============================================================================
 # Get, set
 #==============================================================================
@@ -260,7 +312,14 @@ class View(QWidget):
         self.autoscroll = value
 
     def set_port(self, value):
+        self.portEdit.clear()
         self.portEdit.insert(value)
+
+    def getPort(self):
+        return self.portEdit.text()
+
+    def getBaudrate(self):
+        return self.baundrateMenu.currentText()[:-5]
 
     def get_cmd(self):
         return self.cmd_edit.text()
@@ -328,18 +387,25 @@ class View(QWidget):
         self.send_data.emit(command)
         self.cmd_edit.clear()
 
+
     def emit_br_changed(self, value):
         baudrate = self.baundrateMenu.itemText(value)[:-5]
         self.baudrate_changed.emit(baudrate)
 
     def emit_port_changed(self):
         self.port_changed.emit(self.portEdit.text())
+        self.portEdit.clear()
 
     def emitWriteSeedPulse(self):
         self.seedPulseChanged.emit(self.setSeedPulse.text())
 
     def emitWriteSeedFre(self):
         self.seedFreValueChanged.emit(self.setSeedFreValue.text())
+
+    def emitSeedPulseAndFre(self):
+        seedPulseAndFre = [self.setSeedPulse.text(),self.setSeedFreValue.text()]
+        self.seedPulseFreChanged.emit(seedPulseAndFre)
+
 
 
 class PaintArea(QWidget):
@@ -355,13 +421,13 @@ class PaintArea(QWidget):
         self.font = QFont('arial', 15)
         self.pList = list()
         self.initTime = time.time()
-        print('self.pList:',self.pList)
+        #print('self.pList:',self.pList)
 
     def paintEvent(self,event):
 
         #pList = [int().from_bytes(x,'big') for x in self.pList]
         pList =self.pList
-        print('调用paintEvent:',len(pList),',event:',event)
+        #print('调用paintEvent:',len(pList),',event:',event)
         p = QPainter(self)
         #print('p=',p)
         if len(pList) > 1:
