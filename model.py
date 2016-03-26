@@ -108,6 +108,9 @@ class Model(threading.Thread, QObject):
         self.ser = None
         self.running = False
 
+    def closePort(self):
+        self.ser.close()
+
     def begin(self):
         '''
         Initializate PySerial object
@@ -122,6 +125,7 @@ class Model(threading.Thread, QObject):
 
 
     def reSetPort(self):
+
         try:
             self.ser = serial.Serial(self.port, self.br, timeout=120)
             print(self.ser)
@@ -258,8 +262,9 @@ class Model(threading.Thread, QObject):
 
     def readbit(self,ser):
         try:
+            if ser:
             # if ser and ser.isOpen is True:
-            data = ser.read(1)
+                data = ser.read(1)
         # except Exception as e:
         #     raise e
         except serial.serialutil.SerialException :
@@ -314,6 +319,15 @@ class Model(threading.Thread, QObject):
                             print(data)
                             return data
                         bitlist.append(databit)
+            elif databit == b'\x9A':
+                while True:
+                    databit = self.readbit(ser)
+                    if databit == b'\xA9':
+                        databit = self.readbit(ser)
+                        data = b''.join(bitlist)
+                        print(data)
+                        return b'\x9A' + data
+                    bitlist.append(databit)
 
         return b'-1'
 
@@ -321,11 +335,11 @@ class Model(threading.Thread, QObject):
         '''
         message analysis and manage
         '''
-        if data == None:
-            return '-1'
-        elif len(data) > 5:
-            data = data[2:]
-            data = data[:-2]
+        # if data == None:
+        #     return '-1'
+        # elif len(data) > 5:
+        #     data = data[2:]
+        #     data = data[:-2]
         # print(data[0:1],':',data[1:2],type(data[0]),type(data))
         if data[0:1] == b'\x01':
             if data[1:2] == b'\x11':
@@ -352,8 +366,6 @@ class Model(threading.Thread, QObject):
                 elif data[2:3] == b'\x10':
                         print('openseederror')
                         self.isSeedOpen = False
-
-
             elif data[1:2] == b'\x01':
                 # ========
                 #seed current value set \x01
@@ -390,7 +402,6 @@ class Model(threading.Thread, QObject):
                     self.seedcurrent = data[2:4]
                 #seed current value get
                 print('seed received',data)
-
             elif data[1:2] == b'\x05':
                 #seed pluse width read
                 print('seed received',data)
@@ -399,7 +410,6 @@ class Model(threading.Thread, QObject):
                     self.seedpulse = '-1'
                 else:
                     self.seedpulse = data[2:4]
-
             elif data[1:2] == b'\x06':
                 #seed frequece read
                 print('seed received',data)
@@ -427,7 +437,6 @@ class Model(threading.Thread, QObject):
                     elif data[3:5] == b'\x00\x00':
                         print('closesecondpump')
                         self.isSecondPumpOpen = False
-
             elif data[1:2] == b'\x01':
                 if data[2:3] == b'\x0A':
                     firstcurrent = data[3:5]
@@ -435,6 +444,13 @@ class Model(threading.Thread, QObject):
                 elif data[2:3] == b'\x0B':
                     secondcurrent = data[3:5]
                     print('getsecondcurrent:',secondcurrent)
+        elif data[0:1] == b'\x9A':
+            self.heat = data[1:3]
+            self.firstPower = data[3:5]
+            self.firstCurrent = data[5:7]
+            self.getPower = data[7:9]
+            print('temperature and power is :',self.heat,
+                'and',self.getPower)
 
 
 # ==================
@@ -546,7 +562,7 @@ class Model(threading.Thread, QObject):
         value = int(value).to_bytes(2,'big')
         valuemsg = self.msgDictHex['setsecondcurrent']
         valuemsg = valuemsg[:5] + value + valuemsg[-2:]
-        print('setsecondcurrent',valuemsg)
+        print('setfirstcurrent',valuemsg)
         self.write(valuemsg)
 
 

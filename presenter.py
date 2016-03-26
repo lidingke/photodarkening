@@ -13,9 +13,10 @@ class Presenter:
         self.__view = view
         self.__view.show()
 
-        self.__view.openPortButton.clicked.connect(self.modelBegin)
-        self.__view.closePortButton.clicked.connect(self.closeModel)
+        self.__view.startButton.clicked.connect(self.modelBegin)
+        # self.__view.closePortButton.clicked.connect(self.closeModel)
         self.__view.setPortButton.clicked.connect(self.setPort)
+        self.__view.closePortButton.clicked.connect(self.closePort)
         #sleep(30)
         #self.modelBegin()
         # Run communication and start thread
@@ -36,16 +37,12 @@ class Presenter:
 
         self.__model.start()
         self.setSignals()
-        self.__view.setPortButton.setEnabled(True)
-        self.__view.closePortButton.setEnabled(True)
-        self.__view.baundrateMenu.setEnabled(True)
-        self.__view.portEdit.setEnabled(True)
-        self.__view.openPortButton.setEnabled(False)
+        self.__view.enablePortSet()
 
 
     def setSignals(self):
         #signals between view and model
-        # openPortButton\setPortButton\closePortButton\openSeedButton
+        # startButton\setPortButton\closePortButton\openSeedButton
         #self.__view.setPortButton.
 
         # Signal connection
@@ -61,14 +58,17 @@ class Presenter:
         self.__view.firstPumpChanged.connect(self.__model.writeFirstPumpCurrent)
         self.__view.secondPumpChanged.connect(self.__model.writesecondPumpCurrent)
 
-    def closeModel(self):
-        pass
+
+
+    # def closeModel(self):
+    #     self.end_cmd()
 
     def setPort(self):
         newPort = self.__view.getPort()
         newBaud = self.__view.getBaudrate()
         oldPort = self.__model.get_port()
         oldBaud = self.__model.get_br()
+        #isPortOpen = self.__model.isPortOpen()
         if newPort != oldPort:
             print('portnewold:',newPort,oldPort)
             self.__model.set_port(newPort)
@@ -77,6 +77,24 @@ class Presenter:
             self.__model.reSetPort()
         if self.__model.isPortOpen():
             self.__view.afterOpenPort()
+        else:
+            print('reopenport')
+            self.__model.set_port(newPort)
+        # if newBaud is not oldBaud:
+            self.__model.set_br(newBaud)
+            self.__model.reSetPort()
+            if self.__model.isPortOpen():
+                self.__view.afterOpenPort()
+
+    def closePort(self):
+        # canState = self.__view.enableClosePort()
+        canState = True
+        if canState:
+            self.__model.closePort()
+            self.__view.afterClosePort()
+        else:
+            print('未成功关闭')
+
 
 
 

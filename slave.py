@@ -57,6 +57,17 @@ class Slave(object):
             sleep(60)
             #return currentmsg
 
+    def powerSend(self,ser):
+        #currentmsg = self.sendmsg['sendplot']
+        while True:
+            #print(currentmsg)
+            cp1,cp2,cp3,cp4 = self.rdcreate(),self.rdcreate(),self.rdcreate(),self.rdcreate()
+            currentmsg = b'\x9A'+ cp1 + cp2 + cp3 + cp4 +b'\xA9'
+            print('发功：',currentmsg)
+            # print('发送电流：',currentmsg,': ',int().from_bytes(cb1,'big'),int().from_bytes(cb2,'big'),int().from_bytes(cb3,'big'),int().from_bytes(cb4,'big')
+            ser.write(currentmsg)
+            sleep(3)
+
 
 
 
@@ -88,6 +99,8 @@ class Slave(object):
         self.msgDictHex = self.entry['msgDictHex']
         self.msgDictStr = self.entry['msgDictStr']
         self.sendmsgrec = self.entry['sendmsgrec']
+
+
         #self.sendmsgrec = dict([(v,k) for k,v in self.sendmsg.items()])
 
         # ser = model.get_ser()
@@ -100,11 +113,12 @@ class Slave(object):
         print("check which port was really used >",ser.name)
         #threading.Thread()
         #ser.write(b'\xEB\x90\x04\x05\x09\x07\x08\x09\x90\xEB')
-        #开个线程定时发送电流
-        #threading.Thread(target=Slave.currentSend,args=(self,ser,)).start()
+        # 开个线程定时发送电流
+        # threading.Thread(target=Slave.currentSend,args=(self,ser,)).start()
         #开个线程随机发送信号
         #threading.Thread(target=Slave.randomSend,args=(self,ser,)).start()
-
+        # 开个线程发功
+        threading.Thread(target=Slave.powerSend,args=(self,ser,)).start()
         while True:
             sertext = model.analysisbit()
             #sertext=ser.read(7)
@@ -119,10 +133,10 @@ class Slave(object):
 
         ser.close()
 
-        def rdcreate(self):
-            cb = int(random.uniform(2,10)*100)
-            cb = cb.to_bytes(2,'big')
-            return cb
+    def rdcreate(self):
+        cb = int(random.uniform(2,10)*100)
+        cb = cb.to_bytes(2,'big')
+        return cb
 
     def msganalysis(self,sertext):
         # self.msgDictHex = entry['msgDictHex']
@@ -167,6 +181,7 @@ class Slave(object):
                     writehex = sertext[:4] + self.seedfrequece + sertext[-2:]
                     print(serstr,writehex)
                     self.ser.write(writehex)
+
                 else:
                     print('in dict error:',serstr,sertext)
 # key changed canot find in dict

@@ -69,7 +69,17 @@ class View(QWidget):
         self.timer.start(100)
         self.currentValueList =list()
         self.buttonMinimumWidth = 100
+        self.topSeedCurrent = 700
+        self.topPumpCurrent = 1000
+        self.canClosePort = True
+
+        self.initSeedPulse = 100
+        self.initSeedFre = 100
+        self.init1stCurrent = 100
+        self.init2stCurrent = 100
+        self.initSeedCurrent =100
         self.__initUI()
+
 
 
 
@@ -117,9 +127,9 @@ class View(QWidget):
         #
         # self.showBox.addLayout(cmdBox)
 
-        self.openPortButton = QPushButton('openPortButton')
-        self.openPortButton.setEnabled(True)
-        self.openPortButton.setMinimumWidth(self.buttonMinimumWidth)
+        self.startButton = QPushButton('Start')
+        self.startButton.setEnabled(True)
+        self.startButton.setMinimumWidth(self.buttonMinimumWidth)
         self.setPortButton = QPushButton('setPortButton')
         self.setPortButton.setMinimumWidth(self.buttonMinimumWidth)
         self.setPortButton.setEnabled(False)
@@ -128,9 +138,10 @@ class View(QWidget):
         self.closePortButton.setMinimumWidth(self.buttonMinimumWidth)
         self.closePortButton.setEnabled(False)
 
-        #self.openPortButton.setCheckable(True)
-        #self.openPortButton.clicked.connect(partial(self.emit_send_command,'openport'))
-        portBox.addWidget(self.openPortButton, 0, 0)
+
+        #self.startButton.setCheckable(True)
+        #self.startButton.clicked.connect(partial(self.emit_send_command,'openport'))
+        portBox.addWidget(self.startButton, 0, 0)
         portBox.addWidget(self.setPortButton, 1, 0)
         portBox.addWidget(self.closePortButton, 0, 1)
 
@@ -181,7 +192,7 @@ class View(QWidget):
         self.setSeedPulse.setMaximum(500)
         self.setSeedPulse.setEnabled(False)
         self.setSeedPulse.setSingleStep(50)
-        self.setSeedPulse.setValue(100)
+        self.setSeedPulse.setValue(self.initSeedPulse)
         self.setSeedPulse.setSuffix('ms')
         #self.setSeedPulse.setReadOnly(True)
         #self.setSeedPulse.valueChanged.connect(self.emitWriteSeedPulse)
@@ -197,7 +208,7 @@ class View(QWidget):
         self.setSeedFreValue.setMaximum(500)
         self.setSeedFreValue.setEnabled(False)
         self.setSeedFreValue.setSingleStep(50)
-        self.setSeedFreValue.setValue(100)
+        self.setSeedFreValue.setValue(self.initSeedFre)
         self.setSeedFreValue.setSuffix('kHz')
         #self.setSeedFreValue.valueChanged.connect(self.emitWriteSeedFre)
         seedFreBox.addWidget(self.setSeedFreValue)
@@ -217,29 +228,32 @@ class View(QWidget):
         self.openSecondPump.setEnabled(False)
         self.openSecondPump.clicked.connect(partial(self.emit_send_command,'opensecondpump'))
         # secondPumpBox.addWidget(self.openSecondPump)
-        tempstr = '这里将右上角opensecondpump\
+        """
+        '这里将右上角opensecondpump\
         换成spin，后面排版的时候记得换回来！！！'
+        """
+
         self.setSeedCurrent = QSpinBox()
-        self.setSeedCurrent.setMaximum(500)
+        self.setSeedCurrent.setMaximum(self.topSeedCurrent)
         self.setSeedCurrent.setEnabled(False)
         self.setSeedCurrent.setSingleStep(50)
-        self.setSeedCurrent.setValue(100)
-        self.setSeedFreValue.setSuffix('mA')
+        self.setSeedCurrent.setValue(self.initSeedCurrent)
+        self.setSeedCurrent.setSuffix('mA')
         secondPumpBox.addWidget(self.setSeedCurrent)
 
         firstPumpLabel=QLabel('一级泵浦调节')
         secPumpLabel=QLabel('二级泵浦调节')
         self.firstpumpSet = QSpinBox(self)
-        self.firstpumpSet.setMaximum(500)
+        self.firstpumpSet.setMaximum(self.topPumpCurrent)
         self.firstpumpSet.setEnabled(False)
         self.firstpumpSet.setSingleStep(50)
-        self.firstpumpSet.setValue(100)
+        self.firstpumpSet.setValue(self.init1stCurrent)
         self.firstpumpSet.setSuffix('mA')
         self.secondpumpSet = QSpinBox(self)
-        self.secondpumpSet.setMaximum(500)
+        self.secondpumpSet.setMaximum(self.topPumpCurrent)
         self.secondpumpSet.setEnabled(False)
         self.secondpumpSet.setSingleStep(50)
-        self.secondpumpSet.setValue(100)
+        self.secondpumpSet.setValue(self.init2stCurrent)
         self.secondpumpSet.setSuffix('mA')
         self.firstpumpSet.valueChanged.connect(self.emitFirstPumpCurrent)
         self.secondpumpSet.valueChanged.connect(self.emitSecondPumpCurrent)
@@ -312,14 +326,18 @@ class View(QWidget):
         msg.exec()
 
     def afterOpenModel(self):
-        self.openPortButton.setEnabled(False)
+        self.startButton.setEnabled(False)
         self.setPortButton.setEnabled(True)
         self.closePortButton.setEnabled(True)
         self.baundrateMenu.setEnabled(True)
         self.portEdit.setEnabled(True)
 
     def afterOpenPort(self):
-
+        self.startButton.setEnabled(False)
+        self.setPortButton.setEnabled(False)
+        self.closePortButton.setEnabled(True)
+        self.baundrateMenu.setEnabled(False)
+        self.portEdit.setEnabled(False)
         self.openSeedButton.setEnabled(True)
         self.setSeedPulse.setEnabled(True)
         self.setSeedFreValue.setEnabled(True)
@@ -328,6 +346,46 @@ class View(QWidget):
         self.openAll.setEnabled(True)
         self.openSecondPump.setEnabled(True)
         self.setSeedCurrent.setEnabled(True)
+
+    def afterClosePort(self):
+        self.startButton.setEnabled(False)
+        self.setPortButton.setEnabled(True)
+        self.closePortButton.setEnabled(False)
+        self.baundrateMenu.setEnabled(True)
+        self.portEdit.setEnabled(True)
+        self.openSeedButton.setEnabled(False)
+        self.setSeedPulse.setEnabled(False)
+        self.setSeedFreValue.setEnabled(False)
+        self.firstpumpSet.setEnabled(False)
+        self.secondpumpSet.setEnabled(False)
+        self.openAll.setEnabled(False)
+        self.openSecondPump.setEnabled(False)
+        self.setSeedCurrent.setEnabled(False)
+
+    def enablePortSet(self):
+        self.setPortButton.setEnabled(True)
+        self.closePortButton.setEnabled(False)
+        self.baundrateMenu.setEnabled(True)
+        self.portEdit.setEnabled(True)
+        self.startButton.setEnabled(False)
+
+
+    def enableClosePort(self):
+        if self.setSeedPulse.text()[:-2] > self.initSeedPulse :
+            self.canClosePort = False
+        print(self.canClosePort)
+        if self.setSeedFreValue.texttext()[:-3] > self.initSeedFre :
+            self.canClosePort = False
+        print(self.canClosePort)
+        if self.setSeedCurrent.text()[:-2] > self.initSeedCurrent:
+            self.canClosePort = False
+        print(self.canClosePort)
+        if self.firstpumpSet.text()[:-2] > self.init1stCurrent :
+            self.canClosePort = False
+        print(self.canClosePort)
+        if self.secondpumpSet.text()[:-2] > self.init2stCurrent :
+            self.canClosePort = False
+        print(self.canClosePort)
 
 
 #==============================================================================
@@ -429,21 +487,23 @@ class View(QWidget):
         self.portEdit.clear()
 
     def emitWriteSeedPulse(self):
-        self.seedPulseChanged.emit(self.setSeedPulse.text())
+        self.seedPulseChanged.emit(self.setSeedPulse.text()[:-2])
 
     def emitWriteSeedFre(self):
-        self.seedFreValueChanged.emit(self.setSeedFreValue.text())
+        self.seedFreValueChanged.emit(self.setSeedFreValue.text()[:-3])
 
     def emitFirstPumpCurrent(self):
-        self.firstPumpChanged.emit(self.firstpumpSet.text())
+        self.firstPumpChanged.emit(self.firstpumpSet.text()[:-2])
 
     def emitSecondPumpCurrent(self):
-        self.secondPumpChanged.emit(self.secondpumpSet.text())
+        self.secondPumpChanged.emit(self.secondpumpSet.text()[:-2])
 
 
     def emitSeedPulseAndFre(self):
-        seedPulseAndFre = [self.setSeedPulse.text(),
-            self.setSeedFreValue.text(),self.setSeedCurrent.text()]
+        seedPulseAndFre = [self.setSeedPulse.text()[:-2],
+            self.setSeedFreValue.text()[:-3],self.setSeedCurrent.text()[:-2]]
+        # print(self.setSeedPulse.text()[:-2],
+        #     self.setSeedFreValue.text()[:-2],self.setSeedCurrent.text()[:-2])
         self.seedPulseFreChanged.emit(seedPulseAndFre)
 
 
