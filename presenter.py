@@ -50,7 +50,13 @@ class Presenter:
         # self.__view.port_changed.connect(self.__model.set_port)
         self.__view.send_data.connect(self.__model.write)
         self.__model.error.connect(self.__view.show_error)
-        self.__model.cValue.connect(self.__view.setCurrentValue)
+
+        self.__model.seedCurrentSignal.connect(self.__view.seedCurrentSet)
+        self.__model.seedPulseSignal.connect(self.__view.seedPulseSet)
+        self.__model.seedFrequeceSignal.connect(self.__view.seedFrequeceSet)
+        self.__model.firstCurrentSignal.connect(self.__view.firstCurrentSet)
+        self.__model.secondCurrentSignal.connect(self.__view.secondCurrentSet)
+
         # self.__view.seedPulseChanged.connect(self.__model.writeSeedPulse)
         # self.__view.seedFreValueChanged.connect(self.__model.writeSeedFre)
         self.__view.seedPulseFreChanged.connect(self.__model.writeSeedPulseAndFre)

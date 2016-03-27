@@ -1,10 +1,11 @@
 import serial
-from serial.tools import list_ports
+# from serial.tools import list_ports
 import re
 from model import Model
 import threading
 import random
 from time import sleep
+import pdb
 
 
 class Slave(object):
@@ -22,11 +23,11 @@ class Slave(object):
         self.seedcurrentre = False
         self.seedpulsere = False
         self.seedfrequecere = False
-        self.seedcurrent = '-1'
-        self.seedpulse = '-1'
-        self.seedfrequece = '-1'
-        self.seedfirstcurrent = '-1'
-        self.seedsecondcurrent = '-1'
+        self.seedcurrent = -1
+        self.seedpulse = -1
+        self.seedfrequece = -1
+        self.firstcurrent = -1
+        self.seedsecondcurrent = -1
         self.isFirstPumpOpen = False
         self.isSecondPumpOpen = False
 
@@ -64,9 +65,10 @@ class Slave(object):
             cp1,cp2,cp3,cp4 = self.rdcreate(),self.rdcreate(),self.rdcreate(),self.rdcreate()
             currentmsg = b'\x9A'+ cp1 + cp2 + cp3 + cp4 +b'\xA9'
             print('发功：',currentmsg)
+            # pdb.set_trace()
             # print('发送电流：',currentmsg,': ',int().from_bytes(cb1,'big'),int().from_bytes(cb2,'big'),int().from_bytes(cb3,'big'),int().from_bytes(cb4,'big')
             ser.write(currentmsg)
-            sleep(3)
+            sleep(30)
 
 
 
@@ -83,6 +85,12 @@ class Slave(object):
             '2stValue':'0'
             }
 
+
+        self.seedcurrent = -1
+        self.seedpulse = -1
+        self.seedfrequece = -1
+        self.firstcurrent = -1
+        self.seedsecondcurrent = -1
 
 
         # port_list = list(list_ports.comports())
@@ -129,7 +137,6 @@ class Slave(object):
                 self.msganalysis(sertext)
 
                 #print(self.sendmsgrec.get(sertext))
-
 
         ser.close()
 
@@ -201,7 +208,7 @@ class Slave(object):
                         print(serstr,value)
                     elif serstr == 'setfirstcurrent':
                         print(serstr,value)
-                        self.seedfirstcurrent = value
+                        self.firstcurrent = value
                     elif serstr == 'setsecondcurrent':
                         print(serstr,value)
                         self.seedsecondcurrent = value

@@ -8,6 +8,7 @@ import  queue
 import time
 from    sys                 import exit
 import pickle
+import pdb
 
 # PyQt5 imports
 from    PyQt5.QtCore        import pyqtSignal
@@ -23,6 +24,12 @@ class Model(threading.Thread, QObject):
     # This signal emitted when program fail to read serial port (self.port)
     error = pyqtSignal(object)
     cValue = pyqtSignal(object)
+    seedCurrentSignal = pyqtSignal(object)
+    seedPulseSignal = pyqtSignal(object)
+    seedFrequeceSignal = pyqtSignal(object)
+    firstCurrentSignal = pyqtSignal(object)
+    secondCurrentSignal = pyqtSignal(object)
+
     def __init__(self):
         threading.Thread.__init__(self)
         QObject.__init__(self)
@@ -54,11 +61,11 @@ class Model(threading.Thread, QObject):
         self.seedcurrentre = False
         self.seedpulsere = False
         self.seedfrequecere = False
-        self.seedcurrent = '-1'
-        self.seedpulse = '-1'
-        self.seedfrequece = '-1'
-        self.seedfirstcurrent = '-1'
-        self.seedsecondcurrent = '-1'
+        self.seedcurrent = -1
+        self.seedpulse = -1
+        self.seedfrequece = -1
+        self.firstcurrent = -1
+        self.secondcurrent = -1
         self.isFirstPumpOpen = False
         self.isSecondPumpOpen = False
         self.isLEDOpen = False
@@ -92,7 +99,7 @@ class Model(threading.Thread, QObject):
                         #print('上位机接收：',data)
                         self.queue.put(data.strip())
                     # except Exception as e:
-                    #     data=b'-1'
+                    #     data=b-1
                     time.sleep(self.timeout)
 
         except KeyboardInterrupt:
@@ -103,9 +110,12 @@ class Model(threading.Thread, QObject):
         Stop thread.
         '''
         print('stop thread Model and close serial')
+
         if self.ser:
+            self.ser.timeout = 0
+            # change to non blocking mode and then close
             self.ser.close()
-        self.ser = None
+        # self.ser = None
         self.running = False
 
     def closePort(self):
@@ -305,25 +315,25 @@ class Model(threading.Thread, QObject):
         while self.running:
             #print('keepbit')
             ser = self.ser
-            databit = self.readbit(ser)
+            databit = self.readbit(self.ser)
             if databit == b'\xeb':
                 # print(databit,'1')
-                databit = self.readbit(ser)
+                databit = self.readbit(self.ser)
                 if databit == b'\x90':
                     while True:
                         # print(databit,'2')
-                        databit = self.readbit(ser)
+                        databit = self.readbit(self.ser)
                         if databit == b'\x90':
-                            databit = self.readbit(ser)
+                            databit = self.readbit(self.ser)
                             data = b''.join(bitlist)
                             print(data)
                             return data
                         bitlist.append(databit)
             elif databit == b'\x9A':
                 while True:
-                    databit = self.readbit(ser)
+                    databit = self.readbit(self.ser)
                     if databit == b'\xA9':
-                        databit = self.readbit(ser)
+                        databit = self.readbit(self.ser)
                         data = b''.join(bitlist)
                         print(data)
                         return b'\x9A' + data
@@ -397,9 +407,10 @@ class Model(threading.Thread, QObject):
             elif data[1:2] == b'\x04':
                 if data[2:3] == b'\x10':
                     print('seederror')
-                    self.seedcurrent = '-1'
+                    self.seedcurrent = -1
                 else:
-                    self.seedcurrent = data[2:4]
+                    self.seedcurrent = int().from_bytes(data[2:4],'big')
+
                 #seed current value get
                 print('seed received',data)
             elif data[1:2] == b'\x05':
@@ -407,19 +418,19 @@ class Model(threading.Thread, QObject):
                 print('seed received',data)
                 if data[2:3] == b'\x10':
                     print('seederror')
-                    self.seedpulse = '-1'
+                    self.seedpulse = -1
                 else:
-                    self.seedpulse = data[2:4]
+                    self.seedpulse = int().from_bytes(data[2:4],'big')
             elif data[1:2] == b'\x06':
                 #seed frequece read
                 print('seed received',data)
                 if data[2:3] == b'\x10':
                     print('seederror')
-                    self.seedfrequece = '-1'
+                    self.seedfrequece = -1
                 else:
-                    self.seedfrequece = data[2:4]
+                    self.seedfrequece = int().from_bytes(data[2:4],'big')
             else:
-                return b'-1'
+                return b-1
         elif data[0:1] == b'\x02':
             if data[1:2] == b'\x00':
                 if data[2:3] == b'\x0A':
@@ -439,16 +450,16 @@ class Model(threading.Thread, QObject):
                         self.isSecondPumpOpen = False
             elif data[1:2] == b'\x01':
                 if data[2:3] == b'\x0A':
-                    firstcurrent = data[3:5]
+                    firstcurrent = int().from_bytes(data[3:5],'big')
                     print('getfirstcurrent:',firstcurrent)
                 elif data[2:3] == b'\x0B':
-                    secondcurrent = data[3:5]
+                    secondcurrent = int().from_bytes(data[3:5],'big')
                     print('getsecondcurrent:',secondcurrent)
         elif data[0:1] == b'\x9A':
-            self.heat = data[1:3]
-            self.firstPower = data[3:5]
-            self.firstCurrent = data[5:7]
-            self.getPower = data[7:9]
+            self.heat = int().from_bytes(data[1:3],'big')
+            self.firstPower = int().from_bytes(data[3:5],'big')
+            self.firstCurrent = int().from_bytes(data[5:7],'big')
+            self.getPower = int().from_bytes(data[7:9],'big')
             print('temperature and power is :',self.heat,
                 'and',self.getPower)
 
@@ -466,7 +477,27 @@ class Model(threading.Thread, QObject):
             if self.isFirstPumpOpen:
                 self.write(self.msgDictHex['opensecondpump'])
                 time.sleep(0.3)
-        self.isSeedOpened()
+        isopen = self.isSeedOpened()
+        if isopen:
+            self.write(self.msgDictHex['seedcurrentvalueget'])
+            time.sleep(0.1)
+            self.write(self.msgDictHex['seedpulseread'])
+            time.sleep(0.1)
+            self.write(self.msgDictHex['seedfreread'])
+            time.sleep(0.1)
+            # pdb.set_trace()
+            # value = self.firstcurrent if self.firstcurrent > 0 else 0
+            # value = int(self.firstcurrent).to_bytes(2,'big')
+            valuemsg = self.msgDictHex['setfirstcurrent']
+            valuemsg = valuemsg[:5] + valuemsg[-2:]
+            time.sleep(0.1)
+            # value = self.secondcurrent if self.secondcurrent > 0 else 0
+            # value = int(self.secondcurrent).to_bytes(2,'big')
+            valuemsg = self.msgDictHex['setsecondcurrent']
+            valuemsg = valuemsg[:5] + valuemsg[-2:]
+            time.sleep(0.1)
+        self.emitStatus()
+
 
         # print('seed:',self.isSeedOpen,
         #     'isFirstPumpOpen:',self.isFirstPumpOpen,
@@ -476,6 +507,8 @@ class Model(threading.Thread, QObject):
             and self.isFirstPumpOpen\
             and self.isSecondPumpOpen:
             print('openpaltform,seed,1st,2st')
+            return True
+        return False
 
     def isSeedSet(self):
         print(self.seedcurrentre ,'and', self.seedpulsere,'and', self.seedfrequecere)
@@ -488,11 +521,11 @@ class Model(threading.Thread, QObject):
             self.write(self.msgDictHex['seedfreread'])
             time.sleep(0.1)
             self.write(self.msgDictHex['seedcurrentvalueget'])
-            if self.seedcurrent != '-1':
+            if self.seedcurrent != -1:
                 print('seedcurrent is set to ',self.seedcurrent)
-            if self.seedpulse != '-1':
+            if self.seedpulse != -1:
                 print('seedpulse is set to ',self.seedpulse)
-            if self.seedfrequece != '-1':
+            if self.seedfrequece != -1:
                 print('seedfrequece is set to ',self.seedfrequece)
 
 
@@ -566,7 +599,8 @@ class Model(threading.Thread, QObject):
         self.write(valuemsg)
 
 
-
+    def function():
+        pass
 
 
 #==============================================================================
@@ -579,3 +613,28 @@ class Model(threading.Thread, QObject):
     def emitCurrentValue(self, value):
         gotTime = time.time()
         self.cValue.emit([gotTime,value])
+
+    def emitSeedCurrent(self):
+        self.seedCurrentSignal.emit(self.seedcurrent)
+
+    def emitSeedPulse(self):
+        self.seedPulseSignal.emit(self.seedpulse)
+
+    def emitSeedFrequece(self):
+        self.seedFrequeceSignal.emit(self.seedfrequece)
+
+    def emitFirstCurrent(self):
+        self.firstCurrentSignal.emit(self.firstcurrent)
+
+    def emitSencondCurrent(self):
+        self.secondCurrentSignal.emit(self.secondcurrent)
+
+    def emitStatus(self):
+        # pdb.set_trace()
+        self.emitSeedCurrent()
+        self.emitSeedPulse()
+        self.emitSeedFrequece()
+        self.emitFirstCurrent()
+        self.emitSencondCurrent()
+        # pdb.set_trace()
+

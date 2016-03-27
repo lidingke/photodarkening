@@ -32,6 +32,7 @@ from PyQt5.QtGui       import QPixmap
 from queue              import Queue
 from functools        import partial
 import time
+import pdb
 
 #plot PaintArea class
 from PyQt5.QtCore import QPoint
@@ -78,10 +79,23 @@ class View(QWidget):
         self.init1stCurrent = 100
         self.init2stCurrent = 100
         self.initSeedCurrent =100
+        self.__init__slaveStatus()
         self.__initUI()
 
 
-
+    def __init__slaveStatus(self):
+        self.isSeedOpen = False
+        self.seedcurrentre = False
+        self.seedpulsere = False
+        self.seedfrequecere = False
+        self.seedcurrent = -1
+        self.seedpulse = -1
+        self.seedfrequece = -1
+        self.firstcurrent = -1
+        self.secondcurrent = -1
+        self.isFirstPumpOpen = False
+        self.isSecondPumpOpen = False
+        self.isLEDOpen = False
 
 
     def __initUI(self):
@@ -243,28 +257,28 @@ class View(QWidget):
 
         firstPumpLabel=QLabel('一级泵浦调节')
         secPumpLabel=QLabel('二级泵浦调节')
-        self.firstpumpSet = QSpinBox(self)
-        self.firstpumpSet.setMaximum(self.topPumpCurrent)
-        self.firstpumpSet.setEnabled(False)
-        self.firstpumpSet.setSingleStep(50)
-        self.firstpumpSet.setValue(self.init1stCurrent)
-        self.firstpumpSet.setSuffix('mA')
-        self.secondpumpSet = QSpinBox(self)
-        self.secondpumpSet.setMaximum(self.topPumpCurrent)
-        self.secondpumpSet.setEnabled(False)
-        self.secondpumpSet.setSingleStep(50)
-        self.secondpumpSet.setValue(self.init2stCurrent)
-        self.secondpumpSet.setSuffix('mA')
-        self.firstpumpSet.valueChanged.connect(self.emitFirstPumpCurrent)
-        self.secondpumpSet.valueChanged.connect(self.emitSecondPumpCurrent)
+        self.setFirstpump = QSpinBox(self)
+        self.setFirstpump.setMaximum(self.topPumpCurrent)
+        self.setFirstpump.setEnabled(False)
+        self.setFirstpump.setSingleStep(50)
+        self.setFirstpump.setValue(self.init1stCurrent)
+        self.setFirstpump.setSuffix('mA')
+        self.setSecondpump = QSpinBox(self)
+        self.setSecondpump.setMaximum(self.topPumpCurrent)
+        self.setSecondpump.setEnabled(False)
+        self.setSecondpump.setSingleStep(50)
+        self.setSecondpump.setValue(self.init2stCurrent)
+        self.setSecondpump.setSuffix('mA')
+        self.setFirstpump.valueChanged.connect(self.emitFirstPumpCurrent)
+        self.setSecondpump.valueChanged.connect(self.emitSecondPumpCurrent)
 
-        self.firstpumpSet.setEnabled(False)
-        self.secondpumpSet.setEnabled(False)
+        self.setFirstpump.setEnabled(False)
+        self.setSecondpump.setEnabled(False)
 
         firstPumpBox.addWidget(firstPumpLabel)
         secondPumpBox.addWidget(secPumpLabel)
-        firstPumpBox.addWidget(self.firstpumpSet)
-        secondPumpBox.addWidget(self.secondpumpSet)
+        firstPumpBox.addWidget(self.setFirstpump)
+        secondPumpBox.addWidget(self.setSecondpump)
         firstPumpBox.addStretch()
         secondPumpBox.addStretch()
         #self.resize(250, 150)
@@ -341,8 +355,8 @@ class View(QWidget):
         self.openSeedButton.setEnabled(True)
         self.setSeedPulse.setEnabled(True)
         self.setSeedFreValue.setEnabled(True)
-        self.firstpumpSet.setEnabled(True)
-        self.secondpumpSet.setEnabled(True)
+        self.setFirstpump.setEnabled(True)
+        self.setSecondpump.setEnabled(True)
         self.openAll.setEnabled(True)
         self.openSecondPump.setEnabled(True)
         self.setSeedCurrent.setEnabled(True)
@@ -356,8 +370,8 @@ class View(QWidget):
         self.openSeedButton.setEnabled(False)
         self.setSeedPulse.setEnabled(False)
         self.setSeedFreValue.setEnabled(False)
-        self.firstpumpSet.setEnabled(False)
-        self.secondpumpSet.setEnabled(False)
+        self.setFirstpump.setEnabled(False)
+        self.setSecondpump.setEnabled(False)
         self.openAll.setEnabled(False)
         self.openSecondPump.setEnabled(False)
         self.setSeedCurrent.setEnabled(False)
@@ -380,13 +394,33 @@ class View(QWidget):
         if self.setSeedCurrent.text()[:-2] > self.initSeedCurrent:
             self.canClosePort = False
         print(self.canClosePort)
-        if self.firstpumpSet.text()[:-2] > self.init1stCurrent :
+        if self.setFirstpump.text()[:-2] > self.init1stCurrent :
             self.canClosePort = False
         print(self.canClosePort)
-        if self.secondpumpSet.text()[:-2] > self.init2stCurrent :
+        if self.setSecondpump.text()[:-2] > self.init2stCurrent :
             self.canClosePort = False
         print(self.canClosePort)
 
+    def seedCurrentSet(self,value):
+        self.seedcurrent = value
+        # pdb.set_trace()
+        self.setSeedCurrent.setValue(self.seedcurrent)
+
+    def seedPulseSet(self,value):
+        self.seedpulse = value
+        self.setSeedPulse.setValue(self.seedpulse)
+
+    def seedFrequeceSet(self,value):
+        self.seedfrequece = value
+        self.setSeedFreValue.setValue(self.seedfrequece)
+
+    def firstCurrentSet(self,value):
+        self.firstcurrent = value
+        self.setFirstpump.setValue(self.firstcurrent)
+
+    def secondCurrentSet(self,value):
+        self.secondcurrent = value
+        self.setSecondpump.setValue(self.secondcurrent)
 
 #==============================================================================
 # Get, set
@@ -418,6 +452,8 @@ class View(QWidget):
 
     # def plotListGet(self):
     #     return self.currentValueList
+
+
 
     def setCurrentValue(self, currentValue):
         if currentValue is not None:
@@ -493,10 +529,10 @@ class View(QWidget):
         self.seedFreValueChanged.emit(self.setSeedFreValue.text()[:-3])
 
     def emitFirstPumpCurrent(self):
-        self.firstPumpChanged.emit(self.firstpumpSet.text()[:-2])
+        self.firstPumpChanged.emit(self.setFirstpump.text()[:-2])
 
     def emitSecondPumpCurrent(self):
-        self.secondPumpChanged.emit(self.secondpumpSet.text()[:-2])
+        self.secondPumpChanged.emit(self.setSecondpump.text()[:-2])
 
 
     def emitSeedPulseAndFre(self):
