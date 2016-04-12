@@ -32,6 +32,7 @@ class Presenter:
         self.__model.begin()
 
         self.__view.set_queue(self.__model.get_queue())
+        # self.__view.setCurrentValue(self.__model.getcurrentValueList(),self.__model.getcurrentTimeList())
         self.__view.set_end_cmd(self.end_cmd)
         self.__view.set_port(self.__model.get_port())
 
@@ -51,6 +52,8 @@ class Presenter:
         self.__view.send_data.connect(self.__model.write)
         self.__model.error.connect(self.__view.show_error)
 
+        self.__model.plotPower.connect(self.__view.updataFigure)
+
         self.__model.seedCurrentSignal.connect(self.__view.seedCurrentSet)
         self.__model.seedPulseSignal.connect(self.__view.seedPulseSet)
         self.__model.seedFrequeceSignal.connect(self.__view.seedFrequeceSet)
@@ -60,10 +63,10 @@ class Presenter:
         # self.__view.seedPulseChanged.connect(self.__model.writeSeedPulse)
         # self.__view.seedFreValueChanged.connect(self.__model.writeSeedFre)
         self.__view.seedPulseFreChanged.connect(self.__model.writeSeedPulseAndFre)
-        self.__view.openAll.clicked.connect(self.__model.openpaltform)
+        self.__view.openAll.clicked.connect(self.__model.openAllThread)
         self.__view.firstPumpChanged.connect(self.__model.writeFirstPumpCurrent)
         self.__view.secondPumpChanged.connect(self.__model.writesecondPumpCurrent)
-
+        self.__view.closeAll.clicked.connect(self.__model.closeAll)
 
 
     # def closeModel(self):

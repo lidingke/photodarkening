@@ -19,15 +19,15 @@ class Slave(object):
         self.br = 9600
 
     def __init__slaveStatus(self):
-        self.isSeedOpen = False
+        self.isSeedOpen = True
         self.seedcurrentre = False
         self.seedpulsere = False
         self.seedfrequecere = False
-        self.seedcurrent = -1
-        self.seedpulse = -1
-        self.seedfrequece = -1
-        self.firstcurrent = -1
-        self.seedsecondcurrent = -1
+        self.seedcurrent = 1
+        self.seedpulse = 1
+        self.seedfrequece = 1
+        self.firstcurrent = 1
+        self.seedsecondcurrent = 1
         self.isFirstPumpOpen = False
         self.isSecondPumpOpen = False
 
@@ -86,11 +86,11 @@ class Slave(object):
             }
 
 
-        self.seedcurrent = -1
-        self.seedpulse = -1
-        self.seedfrequece = -1
-        self.firstcurrent = -1
-        self.seedsecondcurrent = -1
+        # self.seedcurrent = 1
+        # self.seedpulse = 1
+        # self.seedfrequece = 1
+        # self.firstcurrent = 1
+        # self.seedsecondcurrent = 1
 
 
         # port_list = list(list_ports.comports())
@@ -122,11 +122,11 @@ class Slave(object):
         #threading.Thread()
         #ser.write(b'\xEB\x90\x04\x05\x09\x07\x08\x09\x90\xEB')
         # 开个线程定时发送电流
-        # threading.Thread(target=Slave.currentSend,args=(self,ser,)).start()
+        threading.Thread(target=Slave.currentSend,args=(self,ser,)).start()
         #开个线程随机发送信号
         #threading.Thread(target=Slave.randomSend,args=(self,ser,)).start()
         # 开个线程发功
-        threading.Thread(target=Slave.powerSend,args=(self,ser,)).start()
+        # threading.Thread(target=Slave.powerSend,args=(self,ser,)).start()
         while True:
             sertext = model.analysisbit()
             #sertext=ser.read(7)
@@ -177,15 +177,16 @@ class Slave(object):
                     print(serstr)
                     self.isSecondPumpOpen = False
                 elif serstr == 'seedcurrentvalueget':
-                    writehex = sertext[:4] + self.seedcurrent + sertext[-2:]
+                    # pdb.set_trace()
+                    writehex = sertext[:4] + self.seedcurrent.to_bytes(2, 'big') + sertext[-2:]
                     print(serstr,writehex)
                     self.ser.write(writehex)
                 elif serstr == 'seedpulseread':
-                    writehex = sertext[:4] + self.seedpulse + sertext[-2:]
+                    writehex = sertext[:4] + self.seedpulse.to_bytes(2, 'big') + sertext[-2:]
                     print(serstr,writehex)
                     self.ser.write(writehex)
                 elif serstr == 'seedfreread':
-                    writehex = sertext[:4] + self.seedfrequece + sertext[-2:]
+                    writehex = sertext[:4] + self.seedfrequece.to_bytes(2, 'big') + sertext[-2:]
                     print(serstr,writehex)
                     self.ser.write(writehex)
 
@@ -194,6 +195,7 @@ class Slave(object):
 # key changed canot find in dict
             else:
                 value = sertext[4:6]
+                value = int().from_bytes(value,'big')
                 sertext = sertext[0:4] + b'\xFF\xFF' + sertext[-2:]
                 serstr = self.sendmsgrec.get(sertext)
                 if serstr:

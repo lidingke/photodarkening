@@ -45,6 +45,10 @@ from PyQt5.QtGui import QPalette
 from PyQt5.QtGui import QPen
 from PyQt5.QtGui import QBrush
 
+from matplotlibPyQt5 import MyDynamicMplCanvas
+
+from viewpart import AddressBook
+
 class View(QWidget):
 
     send_data           = pyqtSignal(object)
@@ -69,16 +73,17 @@ class View(QWidget):
         self.timer.timeout.connect(self.update_gui)
         self.timer.start(100)
         self.currentValueList =list()
+        self.currentTimeList = list()
         self.buttonMinimumWidth = 100
         self.topSeedCurrent = 700
         self.topPumpCurrent = 1000
         self.canClosePort = True
 
-        self.initSeedPulse = 100
-        self.initSeedFre = 100
-        self.init1stCurrent = 100
-        self.init2stCurrent = 100
-        self.initSeedCurrent =100
+        self.initSeedPulse = 0
+        self.initSeedFre = 0
+        self.init1stCurrent = 0
+        self.init2stCurrent = 0
+        self.initSeedCurrent =0
         self.__init__slaveStatus()
         self.__initUI()
 
@@ -88,11 +93,11 @@ class View(QWidget):
         self.seedcurrentre = False
         self.seedpulsere = False
         self.seedfrequecere = False
-        self.seedcurrent = -1
-        self.seedpulse = -1
-        self.seedfrequece = -1
-        self.firstcurrent = -1
-        self.secondcurrent = -1
+        self.seedcurrent = 0
+        self.seedpulse = 0
+        self.seedfrequece = 0
+        self.firstcurrent = 0
+        self.secondcurrent = 0
         self.isFirstPumpOpen = False
         self.isSecondPumpOpen = False
         self.isLEDOpen = False
@@ -101,24 +106,66 @@ class View(QWidget):
     def __initUI(self):
         #main box
         self.mainBox = QVBoxLayout(self)#使用垂直布局类
+
+        self.showBox = QHBoxLayout()
+        # show area
+        self.cmd_edit = QLineEdit()
+
+        cmd_btn = QPushButton('Send Command (ctrl+Q)')
+        cmd_btn.setMinimumWidth(self.buttonMinimumWidth)
+        cmd_btn.clicked.connect(self.emit_send_data)
+        #import cmd strl+enter
+        cmdEnterAction = QAction(self)
+        cmdEnterAction.setShortcut('ctrl+Q')
+        cmdEnterAction.setStatusTip(' press ctrl+Q to send command')
+        cmdEnterAction.triggered.connect(self.emit_send_data)
+        self.cmd_edit.addAction(cmdEnterAction)
+        self.editer = QPlainTextEdit()
+        self.editer.setReadOnly(True)
+        cmdBox = QVBoxLayout()
+        cmdBox.addWidget(self.cmd_edit)
+        cmdBox.addWidget(cmd_btn)
+        cmdBox.addWidget(self.editer)
+        self.editer.setMaximumSize(300,1000)
+        cmd_btn.setMaximumSize(300,400)
+        self.cmd_edit.setMaximumSize(300,100)
+        #painter plot
+        # self.painter = PaintArea()
+        self.paintwidget = QWidget(self)
+        self.painter = MyDynamicMplCanvas(self.paintwidget, width=5, height=4, dpi=100)
+        self.showBox.addLayout(cmdBox)
+        self.showBox.addWidget(self.painter)
+
+        # setSeedPlot = QPushButton('plot')
+        # setSeedPlot.clicked.connect(self.Button2Plot)
+        # seedBox.addWidget(setSeedPlot)
+        self.toolBoxUI()
+        self.mainBox.addWidget(self.toolBox)
+        self.mainBox.addLayout(self.showBox)
+
+        self.setLayout(self.mainBox)
+        self.setWindowTitle("光子暗化平台软件")
+
+    def toolBoxUI(self):
         gbox1 = QGroupBox()
-        gbox2 = QGroupBox('启动顺序：\
-            （串口）——（激光器）——（一级泵浦）——（二级泵浦）')
+        gbox2 = QGroupBox()
         gbox3 = QGroupBox()
         gbox4 = QGroupBox()
         gbox5 = QGroupBox()
         #self.menuBox = QHBoxLayout()
         self.setBox = QHBoxLayout(gbox2)
+        self.pumpBox = QHBoxLayout(gbox3)
+        self.powerRecordBox = QHBoxLayout(gbox4)
         self.toolBox = QTabWidget()
         self.toolBox.addTab(gbox1,'用户登录')
-        self.toolBox.addTab(gbox2,'启动设置')
-        self.toolBox.addTab(gbox3,'系统设置')
-        self.toolBox.addTab(gbox4,'数据导出')
+        self.toolBox.addTab(gbox2,'串口设置')
+        self.toolBox.addTab(gbox3,'泵浦开关')
+        self.toolBox.addTab(gbox4,'功率计')
         self.toolBox.addTab(gbox5,'帮助')
         self.toolBox.setMaximumSize(10000,200)
         self.toolBox.resize(1200,200)
-        self.showBox = QHBoxLayout()
-
+        powerRecord = AddressBook()
+        self.powerRecordBox.addWidget(powerRecord)
 #
 #启动设置tabbox栏目，包含于setBox
 #
@@ -134,10 +181,11 @@ class View(QWidget):
         secondPumpBox = QVBoxLayout()
         # Command box
         self.setBox.addLayout(portBox)
-        self.setBox.addLayout(seedBox)
-        self.setBox.addLayout(firstPumpBox)
-        self.setBox.addLayout(secondPumpBox)
+        self.pumpBox.addLayout(seedBox)
+        self.pumpBox.addLayout(firstPumpBox)
+        self.pumpBox.addLayout(secondPumpBox)
         self.setBox.addStretch()
+        self.pumpBox.addStretch()
         #
         # self.showBox.addLayout(cmdBox)
 
@@ -173,7 +221,7 @@ class View(QWidget):
         portBox.addWidget(self.baundrateMenu, 1, 1)
         #port select
         portLabel = QLabel('Port: ')
-        portLB = QHBoxLayout()
+        # portLB = QHBoxLayout()
         portBox.addWidget(portLabel, 2, 0)
         self.portEdit = QLineEdit()
         self.portEdit.setEnabled(False)
@@ -226,8 +274,23 @@ class View(QWidget):
         self.setSeedFreValue.setSuffix('kHz')
         #self.setSeedFreValue.valueChanged.connect(self.emitWriteSeedFre)
         seedFreBox.addWidget(self.setSeedFreValue)
+
+        seedcurrBox = QHBoxLayout()
+        self.setSeedCurrentLabel = QLabel('setSeedCurrent:')
+        self.setSeedCurrent = QSpinBox()
+
+        self.setSeedCurrent.setMaximum(self.topSeedCurrent)
+        self.setSeedCurrent.setEnabled(False)
+        self.setSeedCurrent.setSingleStep(50)
+        self.setSeedCurrent.setValue(self.initSeedCurrent)
+        self.setSeedCurrent.setSuffix('mA')
+        seedcurrBox.addWidget(self.setSeedCurrentLabel)
+        seedcurrBox.addWidget(self.setSeedCurrent)
+        # seedcurrBox.addWidget(self.setSeedCurrent)
+
         seedBox.addLayout(seedPluseBox)
         seedBox.addLayout(seedFreBox)
+        seedBox.addLayout(seedcurrBox)
         #seedBox.addStretch()
 
         # amp select
@@ -237,26 +300,21 @@ class View(QWidget):
         #.setEnabled(True)
         #self.openAll.clicked.connect(partial(self.emit_send_command,'openAll'))
         firstPumpBox.addWidget(self.openAll)
+        self.setSeedCurrentLabel = QLabel('setSeedCurrent:')
         self.openSecondPump = QPushButton('opensecondpump')
         self.openSecondPump.setMinimumWidth(self.buttonMinimumWidth)
         self.openSecondPump.setEnabled(False)
         self.openSecondPump.clicked.connect(partial(self.emit_send_command,'opensecondpump'))
-        # secondPumpBox.addWidget(self.openSecondPump)
-        """
-        '这里将右上角opensecondpump\
-        换成spin，后面排版的时候记得换回来！！！'
-        """
 
-        self.setSeedCurrent = QSpinBox()
-        self.setSeedCurrent.setMaximum(self.topSeedCurrent)
-        self.setSeedCurrent.setEnabled(False)
-        self.setSeedCurrent.setSingleStep(50)
-        self.setSeedCurrent.setValue(self.initSeedCurrent)
-        self.setSeedCurrent.setSuffix('mA')
-        secondPumpBox.addWidget(self.setSeedCurrent)
 
-        firstPumpLabel=QLabel('一级泵浦调节')
-        secPumpLabel=QLabel('二级泵浦调节')
+        # firstPumpLabel=QLabel('一级泵浦调节')
+        # secPumpLabel=QLabel('二级泵浦调节')
+        self.sendfirst = QPushButton('setfirst')
+        self.sendfirst.setEnabled(False)
+        self.sendfirst.clicked.connect(self.emitFirstPumpCurrent)
+        self.sendsecond = QPushButton('setsecond')
+        self.sendsecond.setEnabled(False)
+        self.sendsecond.clicked.connect(self.emitSecondPumpCurrent)
         self.setFirstpump = QSpinBox(self)
         self.setFirstpump.setMaximum(self.topPumpCurrent)
         self.setFirstpump.setEnabled(False)
@@ -269,70 +327,35 @@ class View(QWidget):
         self.setSecondpump.setSingleStep(50)
         self.setSecondpump.setValue(self.init2stCurrent)
         self.setSecondpump.setSuffix('mA')
-        self.setFirstpump.valueChanged.connect(self.emitFirstPumpCurrent)
-        self.setSecondpump.valueChanged.connect(self.emitSecondPumpCurrent)
-
+        # self.setFirstpump.valueChanged.connect(self.emitFirstPumpCurrent)
+        # self.setSecondpump.valueChanged.connect(self.emitSecondPumpCurrent)
+        self.closeAll = QPushButton('closeAll')
+        # self.closeAll = QPushButton('setsecond')
+        self.closeAll.setEnabled(False)
+        # self.closeAll.clicked.connect(self.emitSecondPumpCurrent)
         self.setFirstpump.setEnabled(False)
         self.setSecondpump.setEnabled(False)
 
-        firstPumpBox.addWidget(firstPumpLabel)
-        secondPumpBox.addWidget(secPumpLabel)
+        firstPumpBox.addWidget(self.sendfirst)
+        secondPumpBox.addWidget(self.closeAll)
+        secondPumpBox.addWidget(self.sendsecond)
         firstPumpBox.addWidget(self.setFirstpump)
         secondPumpBox.addWidget(self.setSecondpump)
+
         firstPumpBox.addStretch()
         secondPumpBox.addStretch()
         #self.resize(250, 150)
         #tool init
-        widget1=QWidget()
-        widget2=QWidget()
+        # widget1=QWidget()
+        # widget2=QWidget()
 
 
-        #vboxMenu.addWidget(painter)
-        #空出部分以供后面补充
-        vboxMenu = QHBoxLayout(gbox1)
-        vboxMenu.addWidget(widget1)
-        vboxShow = QHBoxLayout(gbox3)
-        vboxShow.addWidget(widget2)
-
-
-
-        # show area
-        self.cmd_edit = QLineEdit()
-
-        cmd_btn = QPushButton('Send Command (ctrl+Q)')
-        cmd_btn.setMinimumWidth(self.buttonMinimumWidth)
-        cmd_btn.clicked.connect(self.emit_send_data)
-        #import cmd strl+enter
-        cmdEnterAction = QAction(self)
-        cmdEnterAction.setShortcut('ctrl+Q')
-        cmdEnterAction.setStatusTip(' press ctrl+Q to send command')
-        cmdEnterAction.triggered.connect(self.emit_send_data)
-        self.cmd_edit.addAction(cmdEnterAction)
-        self.editer = QPlainTextEdit()
-        self.editer.setReadOnly(True)
-        cmdBox = QVBoxLayout()
-        cmdBox.addWidget(self.cmd_edit)
-        cmdBox.addWidget(cmd_btn)
-        cmdBox.addWidget(self.editer)
-        self.editer.setMaximumSize(300,400)
-        cmd_btn.setMaximumSize(300,400)
-        self.cmd_edit.setMaximumSize(300,400)
-        #painter plot
-        self.painter = PaintArea()
-        self.showBox.addLayout(cmdBox)
-        self.showBox.addWidget(self.painter)
-
-        # setSeedPlot = QPushButton('plot')
-        # setSeedPlot.clicked.connect(self.Button2Plot)
-        # seedBox.addWidget(setSeedPlot)
-
-        self.mainBox.addWidget(self.toolBox)
-        self.mainBox.addLayout(self.showBox)
-
-
-
-        self.setLayout(self.mainBox)
-        self.setWindowTitle("光子暗化平台软件")
+        # #vboxMenu.addWidget(painter)
+        # #空出部分以供后面补充
+        # vboxMenu = QHBoxLayout(gbox1)
+        # vboxMenu.addWidget(widget1)
+        # vboxShow = QHBoxLayout(gbox3)
+        # vboxShow.addWidget(widget2)
 
     def show_error(self, value):
         msg = QMessageBox(
@@ -357,6 +380,9 @@ class View(QWidget):
         self.setSeedFreValue.setEnabled(True)
         self.setFirstpump.setEnabled(True)
         self.setSecondpump.setEnabled(True)
+        self.sendfirst.setEnabled(True)
+        self.sendsecond.setEnabled(True)
+        self.closeAll.setEnabled(True)
         self.openAll.setEnabled(True)
         self.openSecondPump.setEnabled(True)
         self.setSeedCurrent.setEnabled(True)
@@ -372,6 +398,9 @@ class View(QWidget):
         self.setSeedFreValue.setEnabled(False)
         self.setFirstpump.setEnabled(False)
         self.setSecondpump.setEnabled(False)
+        self.sendfirst.setEnabled(False)
+        self.sendsecond.setEnabled(False)
+        self.closeAll.setEnabled(False)
         self.openAll.setEnabled(False)
         self.openSecondPump.setEnabled(False)
         self.setSeedCurrent.setEnabled(False)
@@ -455,14 +484,14 @@ class View(QWidget):
 
 
 
-    def setCurrentValue(self, currentValue):
+    def setCurrentValue(self, currentValue,timeValue):
         if currentValue is not None:
-            self.currentValueList.append(currentValue)
-            self.painter.getpList(self.currentValueList)
-            self.painter.plotupdate()
+            self.currentValueList = currentValue
+            self.currentTimeList = timeValue
+
 
     def Button2Plot(self):
-        self.painter.plotupdate()
+        self.painter.update_figure()
 
     def closeEvent(self, event):
         self.end_cmd()
@@ -475,6 +504,12 @@ class View(QWidget):
     def update_gui(self):
         self.process_incoming()
         self.update()
+
+    def updataFigure(self,valulist):
+        # self.setCurrentValue(currentValue, timeValue)
+        self.painter.XYaxit(valulist[0],valulist[1])
+        self.painter.update_figure()
+        # self.update()
 
     def process_incoming(self):
         while self.queue.qsize():

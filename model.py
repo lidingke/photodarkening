@@ -6,15 +6,15 @@ import  threading
 import  queue
 #from    time                import sleep
 import time
+import logging
 from    sys                 import exit
 import pickle
+import sqlite3
 import pdb
-
 # PyQt5 imports
 from    PyQt5.QtCore        import pyqtSignal
 from    PyQt5.QtCore        import QObject
 from    PyQt5.QtCore        import QTime
-
 # PySerial imports
 import  serial
 from    serial.serialutil   import SerialException
@@ -29,6 +29,7 @@ class Model(threading.Thread, QObject):
     seedFrequeceSignal = pyqtSignal(object)
     firstCurrentSignal = pyqtSignal(object)
     secondCurrentSignal = pyqtSignal(object)
+    plotPower = pyqtSignal(object)
 
     def __init__(self):
         threading.Thread.__init__(self)
@@ -36,13 +37,14 @@ class Model(threading.Thread, QObject):
         # Queue with data (lines) received from serial port
         self.queue      = queue.Queue()
         self.currentValueList      = list()
+        self.currentTimeList = list()
         # Communications settings
         self.port       = 'com1'
         self.br         = 9600
         self.timeout    = 0.01
         # Line ending id
         #self.eol        = 0
-
+        self.username = 'lidingke'
         # PySerial object
         self.ser        = None
         # Flag for main cycle
@@ -57,18 +59,19 @@ class Model(threading.Thread, QObject):
         self.entry = entry
 
     def __init__slaveStatus(self):
-        self.isSeedOpen = False
+        self.isSeedOpen = True
         self.seedcurrentre = False
         self.seedpulsere = False
         self.seedfrequecere = False
-        self.seedcurrent = -1
-        self.seedpulse = -1
-        self.seedfrequece = -1
-        self.firstcurrent = -1
-        self.secondcurrent = -1
+        self.seedcurrent = 0
+        self.seedpulse = 0
+        self.seedfrequece = 0
+        self.firstcurrent = 0
+        self.secondcurrent = 0
         self.isFirstPumpOpen = False
         self.isSecondPumpOpen = False
         self.isLEDOpen = False
+        self.ti0 = 0
 
     def run(self):
         '''
@@ -82,22 +85,22 @@ class Model(threading.Thread, QObject):
         try:
 
             while self.running:
-                #print('running:',self.running)
+                #self.printShow('running:',self.running)
                 if self.ser:
-                    #print('Model start',self.ser)
+                    #self.printShow('Model start',self.ser)
                     data = None
                     #sleep(1)
                     #data = self.readline()
                     #ser = self.ser
                     data = self.analysisbit()
-                        #print('Error occured while reading data.')
+                        #self.printShow('Error occured while reading data.')
                     #try:runrun
                     if data :
-                        #print('lendata',len(data))
-                        #print('data:',data)
+                        #self.printShow('lendata',len(data))
+                        #self.printShow('data:',data)
                         self.coreMsgProcess(data)
-                        #print('上位机接收：',data)
-                        self.queue.put(data.strip())
+                        #self.printShow('上位机接收：',data)
+                        # self.queue.put(data.strip())
                     # except Exception as e:
                     #     data=b-1
                     time.sleep(self.timeout)
@@ -109,7 +112,7 @@ class Model(threading.Thread, QObject):
         '''
         Stop thread.
         '''
-        print('stop thread Model and close serial')
+        self.printShow('stop thread Model and close serial')
 
         if self.ser:
             self.ser.timeout = 0
@@ -117,6 +120,38 @@ class Model(threading.Thread, QObject):
             self.ser.close()
         # self.ser = None
         self.running = False
+
+    def printShow(self,*value,ifprint = True,text = True,nobyte = True):
+
+            # print(value)
+        # def pr(*value):
+        printlist = list()
+        textlist = list()
+        if value:
+            for x in value:
+                if type(x) == str:
+                    printlist.append(x)
+                    textlist.append(x)
+                elif type(x) == int:
+                    printlist.append(str(x))
+                    textlist.append(str(x))
+                elif type(x) == bytes:
+
+                    if nobyte == True:
+                        textlist.append(':bytes')
+                        # printlist.append(':'+str(x))
+                    elif nobyte == False:
+                        textlist.append(':'+str(x))
+                    printlist.append(':'+str(x))
+                else:
+                    printlist.append(str(x))
+                    textlist.append(str(x))
+            if ifprint:
+                print(''.join(printlist))
+            if text:
+                printText = ''.join(textlist)
+                if printText != ':bytes':
+                    self.queue.put(printText)
 
     def closePort(self):
         self.ser.close()
@@ -128,8 +163,8 @@ class Model(threading.Thread, QObject):
         try:
             self.ser = serial.Serial(self.port, self.br, timeout=120)
         except serial.serialutil.SerialException:
-            print('=== can not open the port ===')
-            print('ser=',self.ser)
+            self.printShow('=== can not open the port ===')
+            self.printShow('ser=',self.ser,text=False)
             #self.ser = serial.Serial(baudrate=self.br, timeout=120)
             #self.stop()
 
@@ -138,11 +173,12 @@ class Model(threading.Thread, QObject):
 
         try:
             self.ser = serial.Serial(self.port, self.br, timeout=120)
-            print(self.ser)
+            self.printShow(self.ser,text=False)
+            self.printShow('port is open port name is ',self.port)
         except serial.serialutil.SerialException:
-            print('=== can not open the port ===')
+            self.printShow('=== can not open the port ===')
             self.ser = serial.Serial(baudrate=self.br, timeout=120)
-            print('ser=',self.ser)
+            self.printShow('ser=',self.ser)
 
 
             #self.stop()
@@ -156,17 +192,22 @@ class Model(threading.Thread, QObject):
 
 
 
+    # def self.printShowShow():
+    #     """
+    #     re define pirnt fun
+    #     """
+    #     pass
 
 
         # try:
-        #     print(self.port,self.br)
+        #     self.printShow(self.port,self.br)
         #     self.ser = serial.Serial(
         #             self.port, self.br, timeout=120
         #     )
-        #     print(self.ser)
+        #     self.printShow(self.ser)
         #     return True
         # except SerialException:
-        #     print('Fail to open default port.')
+        #     self.printShow('Fail to open default port.')
         #     #self.ser = serial.Serial(baudrate=self.br, timeout=120)
         #     time.sleep(1)
         #     # self.ser = serial.Serial(
@@ -175,7 +216,7 @@ class Model(threading.Thread, QObject):
         #     self.stop()
         #     return False
 
-        #print(self.ser)
+        #self.printShow(self.ser)
 
 #==============================================================================
 # Get, Set from view
@@ -185,10 +226,10 @@ class Model(threading.Thread, QObject):
         return self.queue
 
     def getcurrentValueList(self):
-        if len(self.currentValueList) >0:
-            return self.currentValueList.pop()
-        else:
-            return None
+        return self.currentValueList
+
+    def getcurrentTimeList(self):
+        return self.currentTimeList
 
     def setSer(self,ser):
         self.ser = ser
@@ -214,7 +255,7 @@ class Model(threading.Thread, QObject):
         #self.ser = serial.Serial( port, self.br, timeout=120)
         # try:
         #     if not self.ser._port_handle:
-        #         print(self.ser._port_handle)
+        #         self.printShow(self.ser._port_handle)
 
         #     self.ser.port = self.port
         #     self.ser.open()
@@ -256,9 +297,9 @@ class Model(threading.Thread, QObject):
             dataSend = self.msgcoup(data)
         else:
             dataSend =data
-        #print(dataSend)
+        #self.printShow(dataSend)
         if dataSend:
-            print('上位机发送:',dataSend)
+            self.printShow('上位机发送:',dataSend,text =False)
             self.ser.write(dataSend)
 
         time.sleep(0.1)
@@ -313,20 +354,20 @@ class Model(threading.Thread, QObject):
         # x90statue = False
         bitlist = list()
         while self.running:
-            #print('keepbit')
+            #self.printShow('keepbit')
             ser = self.ser
             databit = self.readbit(self.ser)
             if databit == b'\xeb':
-                # print(databit,'1')
+                # self.printShow(databit,'1')
                 databit = self.readbit(self.ser)
                 if databit == b'\x90':
                     while True:
-                        # print(databit,'2')
+                        # self.printShow(databit,'2')
                         databit = self.readbit(self.ser)
                         if databit == b'\x90':
                             databit = self.readbit(self.ser)
                             data = b''.join(bitlist)
-                            print(data)
+                            self.printShow(data)
                             return data
                         bitlist.append(databit)
             elif databit == b'\x9A':
@@ -335,7 +376,7 @@ class Model(threading.Thread, QObject):
                     if databit == b'\xA9':
                         databit = self.readbit(self.ser)
                         data = b''.join(bitlist)
-                        print(data)
+                        self.printShow('received:',data,text = False)
                         return b'\x9A' + data
                     bitlist.append(databit)
 
@@ -350,47 +391,51 @@ class Model(threading.Thread, QObject):
         # elif len(data) > 5:
         #     data = data[2:]
         #     data = data[:-2]
-        # print(data[0:1],':',data[1:2],type(data[0]),type(data))
+        # self.printShow(data[0:1],':',data[1:2],type(data[0]),type(data))
         if data[0:1] == b'\x01':
+            # ti =
             if data[1:2] == b'\x11':
                 #current plot msg
-                #print(data,'12:',data[-2:])
+                #self.printShow(data,'12:',data[-2:])
                 currentValue = data[-2:].strip()
                 currentValue = int().from_bytes(currentValue,'big')/100
-                print('currentValue=',currentValue)
+                self.printShow('currentValue=',currentValue)
                 self.currentValueList.append(currentValue)
+                self.ti0 = 1 + self.ti0
+                self.currentTimeList.append(self.ti0)
+                self.emitPlot()
                 #停掉绘图以便测试
                 #self.emitCurrentValue(currentValue)
             elif data[1:2] == b'\x00':
                 # ==========
                 #open and close seed
                 #if data[2:3] == b'\x00\x00':
-                print('seed received',data)
+                # self.printShow('seed received',data, text =False,text=False)
                 if data[2:3] == b'\x00':
                     if data[3:4] == b'\x01':
-                        print('openseedreturn')
+                        self.printShow('openseedreturn')
                         self.isSeedOpen = True
                     elif data[3:4] == b'\x00':
-                        print('closeseedreturn')
+                        self.printShow('closeseedreturn')
                         self.isSeedOpen = False
                 elif data[2:3] == b'\x10':
-                        print('openseederror')
+                        self.printShow('openseederror')
                         self.isSeedOpen = False
             elif data[1:2] == b'\x01':
                 # ========
                 #seed current value set \x01
-                print('seed received',data)
+                self.printShow('seed received',data, text =False)
                 if data[2:3] == b'\x10':
-                    print('seederror')
+                    self.printShow('seederror')
                     self.seedcurrentre = False
                 else:
                     self.seedcurrentre = True
                     #current
             elif data[1:2] == b'\x02':
                 #seed pulse width
-                print('seed received',data)
+                self.printShow('seed received',data, text =False)
                 if data[2:3] == b'\x10':
-                    print('seederror')
+                    self.printShow('seederror')
                     self.seedpulsere = False
                 else:
                     self.seedpulsere = True
@@ -398,69 +443,69 @@ class Model(threading.Thread, QObject):
             elif data[1:2] == b'\x03':
                 #seed frequece set
                 if data[2:3] == b'\x10':
-                    print('seederror')
+                    self.printShow('seederror')
                     self.seedfrequecere = False
                 else:
                     self.seedfrequecere = True
                     #current
-                print('seed received',data)
+                self.printShow('seed received',data, text =False)
             elif data[1:2] == b'\x04':
                 if data[2:3] == b'\x10':
-                    print('seederror')
+                    self.printShow('seederror')
                     self.seedcurrent = -1
                 else:
                     self.seedcurrent = int().from_bytes(data[2:4],'big')
 
                 #seed current value get
-                print('seed received',data)
+                self.printShow('seed received',data, text =False)
             elif data[1:2] == b'\x05':
                 #seed pluse width read
-                print('seed received',data)
+                self.printShow('seed received',data, text =False)
                 if data[2:3] == b'\x10':
-                    print('seederror')
+                    self.printShow('seederror')
                     self.seedpulse = -1
                 else:
                     self.seedpulse = int().from_bytes(data[2:4],'big')
             elif data[1:2] == b'\x06':
                 #seed frequece read
-                print('seed received',data)
+                self.printShow('seed received',data, text =False)
                 if data[2:3] == b'\x10':
-                    print('seederror')
+                    self.printShow('seederror')
                     self.seedfrequece = -1
                 else:
                     self.seedfrequece = int().from_bytes(data[2:4],'big')
             else:
-                return b-1
+                return -1
         elif data[0:1] == b'\x02':
             if data[1:2] == b'\x00':
                 if data[2:3] == b'\x0A':
                     if data[3:5] == b'\x00\x01':
-                        print('openfirstpump')
+                        self.printShow('openfirstpump')
                         self.isFirstPumpOpen = True
                     elif data[3:5] == b'\x00\x00':
-                        print('closefirstpump')
+                        self.printShow('closefirstpump')
                         self.isFirstPumpOpen = False
 
                 elif data[2:3] == b'\x0B':
                     if data[3:5] == b'\x00\x01':
-                        print('opensecondpump')
+                        self.printShow('opensecondpump')
                         self.isSecondPumpOpen = True
                     elif data[3:5] == b'\x00\x00':
-                        print('closesecondpump')
+                        self.printShow('closesecondpump')
                         self.isSecondPumpOpen = False
             elif data[1:2] == b'\x01':
                 if data[2:3] == b'\x0A':
                     firstcurrent = int().from_bytes(data[3:5],'big')
-                    print('getfirstcurrent:',firstcurrent)
+                    self.printShow('getfirstcurrent:',firstcurrent)
                 elif data[2:3] == b'\x0B':
                     secondcurrent = int().from_bytes(data[3:5],'big')
-                    print('getsecondcurrent:',secondcurrent)
+                    self.printShow('getsecondcurrent:',secondcurrent)
         elif data[0:1] == b'\x9A':
             self.heat = int().from_bytes(data[1:3],'big')
             self.firstPower = int().from_bytes(data[3:5],'big')
             self.firstCurrent = int().from_bytes(data[5:7],'big')
             self.getPower = int().from_bytes(data[7:9],'big')
-            print('temperature and power is :',self.heat,
+            self.printShow('temperature and power is :',self.heat,
                 'and',self.getPower)
 
 
@@ -468,50 +513,69 @@ class Model(threading.Thread, QObject):
 # function send
 # ==================
 
+    def openAllThread(self):
+        threading.Thread(target=Model.openpaltform,args=(self,)).start()
+
     def openpaltform(self):
-        self.write(self.msgDictHex['openseed'])
+        # self.write(self.msgDictHex['openseed'])
+        # time.sleep(0.3)
+        # if self.isSeedOpen:
+        self.write(self.msgDictHex['openfirstpump'])
         time.sleep(0.3)
-        if self.isSeedOpen:
-            self.write(self.msgDictHex['openfirstpump'])
-            time.sleep(0.3)
-            if self.isFirstPumpOpen:
-                self.write(self.msgDictHex['opensecondpump'])
-                time.sleep(0.3)
+        # if self.isFirstPumpOpen:
+        self.write(self.msgDictHex['opensecondpump'])
+        time.sleep(0.3)
         isopen = self.isSeedOpened()
+        # pdb.set_trace()
         if isopen:
-            self.write(self.msgDictHex['seedcurrentvalueget'])
-            time.sleep(0.1)
-            self.write(self.msgDictHex['seedpulseread'])
-            time.sleep(0.1)
-            self.write(self.msgDictHex['seedfreread'])
-            time.sleep(0.1)
-            # pdb.set_trace()
-            # value = self.firstcurrent if self.firstcurrent > 0 else 0
-            # value = int(self.firstcurrent).to_bytes(2,'big')
-            valuemsg = self.msgDictHex['setfirstcurrent']
-            valuemsg = valuemsg[:5] + valuemsg[-2:]
-            time.sleep(0.1)
-            # value = self.secondcurrent if self.secondcurrent > 0 else 0
-            # value = int(self.secondcurrent).to_bytes(2,'big')
-            valuemsg = self.msgDictHex['setsecondcurrent']
-            valuemsg = valuemsg[:5] + valuemsg[-2:]
-            time.sleep(0.1)
+            self.printShow('init device set all zero')
+            self.writeSeedPulseAndFre([self.seedcurrent,self.seedpulse,self.seedfrequece])
+            self.writeFirstPumpCurrent(self.firstcurrent)
+            self.writesecondPumpCurrent(self.secondcurrent)
+        #     self.write(self.msgDictHex['seedcurrentvalueget'])
+        #     time.sleep(0.1)
+        #     self.write(self.msgDictHex['seedpulseread'])
+        #     time.sleep(0.1)
+        #     self.write(self.msgDictHex['seedfreread'])
+        #     time.sleep(0.1)
+        #     # pdb.set_trace()
+        #     # value = self.firstcurrent if self.firstcurrent > 0 else 0
+        #     # value = int(self.firstcurrent).to_bytes(2,'big')
+        #     valuemsg = self.msgDictHex['setfirstcurrent']
+        #     valuemsg = valuemsg[:5] + valuemsg[-2:]
+        #     time.sleep(0.1)
+        #     # value = self.secondcurrent if self.secondcurrent > 0 else 0
+        #     # value = int(self.secondcurrent).to_bytes(2,'big')
+        #     valuemsg = self.msgDictHex['setsecondcurrent']
+        #     valuemsg = valuemsg[:5] + valuemsg[-2:]
+        #     time.sleep(0.1)
         self.emitStatus()
 
+    def closeAll(self):
+        self.writeSeedPulseAndFre([self.seedcurrent,self.seedpulse,self.seedfrequece])
+        self.writeFirstPumpCurrent(self.firstcurrent)
+        self.writesecondPumpCurrent(self.secondcurrent)
 
-        # print('seed:',self.isSeedOpen,
+        self.write(self.msgDictHex['closesecondpump'])
+        time.sleep(0.3)
+    # if self.isFirstPumpOpen:
+        self.write(self.msgDictHex['closefirstpump'])
+        time.sleep(0.3)
+
+
+        # self.printShow('seed:',self.isSeedOpen,
         #     'isFirstPumpOpen:',self.isFirstPumpOpen,
         #     'isSecondPumpOpen:',self.isSecondPumpOpen)
     def isSeedOpened(self):
         if self.isSeedOpen\
             and self.isFirstPumpOpen\
             and self.isSecondPumpOpen:
-            print('openpaltform,seed,1st,2st')
+            self.printShow('openpaltform,seed,1st,2st')
             return True
         return False
 
     def isSeedSet(self):
-        print(self.seedcurrentre ,'and', self.seedpulsere,'and', self.seedfrequecere)
+        self.printShow(self.seedcurrentre ,'and', self.seedpulsere,'and', self.seedfrequecere)
 
         if self.seedcurrentre and self.seedpulsere\
         and self.seedfrequecere:
@@ -522,11 +586,11 @@ class Model(threading.Thread, QObject):
             time.sleep(0.1)
             self.write(self.msgDictHex['seedcurrentvalueget'])
             if self.seedcurrent != -1:
-                print('seedcurrent is set to ',self.seedcurrent)
+                self.printShow('seedcurrent is set to ',self.seedcurrent)
             if self.seedpulse != -1:
-                print('seedpulse is set to ',self.seedpulse)
+                self.printShow('seedpulse is set to ',self.seedpulse)
             if self.seedfrequece != -1:
-                print('seedfrequece is set to ',self.seedfrequece)
+                self.printShow('seedfrequece is set to ',self.seedfrequece)
 
 
 
@@ -535,72 +599,118 @@ class Model(threading.Thread, QObject):
 # Signals from view
 #==============================================================================
     # def writeSeedPulse(self,value):
-    #     # print('pulevalue:',value,type(value),int(value))
+    #     # self.printShow('pulevalue:',value,type(value),int(value))
     #     value = int(value).to_bytes(2,'big')
     #     valuemsg = self.msgDictHex['seedpulseset']
     #     valuemsg = valuemsg[:4] + value + valuemsg[6:]
-    #     print('pulevaluemsg',valuemsg)
+    #     self.printShow('pulevaluemsg',valuemsg)
     #     #self.write()
     # def writeSeedFre(self,value):
-    #     # print('frevalue:',value)
-    #     # print('frevalue:',value,type(value),int(value))
+    #     # self.printShow('frevalue:',value)
+    #     # self.printShow('frevalue:',value,type(value),int(value))
     #     value = int(value).to_bytes(2,'big')
     #     valuemsg = self.msgDictHex['seedfreset']
     #     valuemsg = valuemsg[:4] + value + valuemsg[6:]
-    #     print('frevaluemsg',valuemsg)
+    #     self.printShow('frevaluemsg',valuemsg)
     #     #self.write()
 
     def writeSeedPulseAndFre(self,seedPulseAndFre):
-        print('seedPulseAndFre:',seedPulseAndFre)
+        self.printShow('seedPulseAndFre:',seedPulseAndFre)
         if seedPulseAndFre:
             value = seedPulseAndFre[0]
-            # print('frevalue:',value            # print('frevalue:',value,type(value),int(value))
+            # self.printShow('frevalue:',value            # self.printShow('frevalue:',value,type(value),int(value))
             value = int(value).to_bytes(2,'big')
             valuemsg = self.msgDictHex['seedfreset']
             valuemsg = valuemsg[:4] + value + valuemsg[-2:]
-            print('frevaluemsg',valuemsg)
+            self.printShow('frevaluemsg',valuemsg)
             self.write(valuemsg)
             time.sleep(0.3)
             value = seedPulseAndFre[1]
-            # print('pulevalue:',value,type(value),int(value))
+            # self.printShow('pulevalue:',value,type(value),int(value))
             value = int(value).to_bytes(2,'big')
             valuemsg = self.msgDictHex['seedpulseset']
             valuemsg = valuemsg[:4] + value + valuemsg[-2:]
-            print('pulsevaluemsg',valuemsg)
+            self.printShow('pulsevaluemsg',valuemsg)
             self.write(valuemsg)
             time.sleep(0.3)
             value = seedPulseAndFre[2]
-            # print('pulevalue:',value,type(value),int(value))
+            # self.printShow('pulevalue:',value,type(value),int(value))
             value = int(value).to_bytes(2,'big')
             valuemsg = self.msgDictHex['seedcurrentvalueset']
             valuemsg = valuemsg[:4] + value + valuemsg[-2:]
-            print('currentvaluemsg',valuemsg)
+            self.printShow('currentvaluemsg',valuemsg)
             self.write(valuemsg)
             time.sleep(0.3)
             self.write(self.msgDictHex['openseedLED'])
             self.isSeedSet()
 
     def writeFirstPumpCurrent(self,value):
-        # print('frevalue:',value)
-        print('setfirstcurrent:',value,type(value),int(value))
+        # self.printShow('frevalue:',value)
+        # self.printShow('setfirstcurrent:',value,type(value),int(value))
         value = int(value).to_bytes(2,'big')
         valuemsg = self.msgDictHex['setfirstcurrent']
         valuemsg = valuemsg[:5] + value + valuemsg[-2:]
-        print('setfirstcurrent',valuemsg)
+        self.printShow('setfirstcurrent',valuemsg)
         self.write(valuemsg)
 
     def writesecondPumpCurrent(self,value):
-        # print('frevalue:',value)
-        print('setsecondcurrent:',value,type(value),int(value))
+        # self.printShow('frevalue:',value)
+        # self.printShow('setsecondcurrent:',value,type(value),int(value))
         value = int(value).to_bytes(2,'big')
         valuemsg = self.msgDictHex['setsecondcurrent']
         valuemsg = valuemsg[:5] + value + valuemsg[-2:]
-        print('setfirstcurrent',valuemsg)
+        self.printShow('setfirstcurrent',valuemsg)
         self.write(valuemsg)
 
 
-    def function():
-        pass
+###
+#sqlite save
+###
+    def initSql(self):
+        localTime=time.localtime()
+        tyear=str(localTime.tm_year)
+        tmoon=str(localTime.tm_mon) if len(str(localTime.tm_mon))==2 else '0'+str(localTime.tm_mon)
+        tday=str(localTime.tm_mday) if len(str(localTime.tm_mday))==2 else '0'+str(localTime.tm_mday)
+        dateNow=tyear+tmoon+tday
+        sqlTableName='TM'+dateNow+'RD'+self.username
+        conn = sqlite3.connect('data.db')
+        cursor = conn.cursor()
+        try:
+            strEx='create table if not exists '+sqlTableName+\
+            ' (time int(10), name varchar(10), word varchar(50))'
+            cursor.execute(strEx)
+        except sqlite3.OperationalError:
+            print('===sqlite3.OperationalError===')
+        except :
+            logging.exception( 'exception')
+            # addException2logtxt(traceback)
+        cursor.close()
+        conn.commit()
+        conn.close()
+        return sqlTableName
+
+
+    def save2Sql(self,sqlTableName,contentSql,snickSql,LocalTimeSql):
+        conn = sqlite3.connect('data.db')
+        cursor = conn.cursor()
+        try:
+            while LocalTimeSql:
+                strEx='insert into '+sqlTableName+' (time, name, word) values ('\
+                    +str(LocalTimeSql[0])+',\''+snickSql[0]+'\',\''+contentSql[0]+'\')'
+                cursor.execute(strEx)
+                del(LocalTimeSql[0],snickSql[0],contentSql[0])
+                #print(strEx)
+            #print('===save to sql===')
+        except sqlite3.OperationalError:
+                print('panda danmu database is busy! data is not save')
+        except Exception as e:
+            # info=sys.exc_info()
+            # # # print(info[0],":",info[1])
+            # # print(info[1])
+            logging.exception(e)
+        cursor.close()
+        conn.commit()
+        conn.close()
 
 
 #==============================================================================
@@ -638,3 +748,5 @@ class Model(threading.Thread, QObject):
         self.emitSencondCurrent()
         # pdb.set_trace()
 
+    def emitPlot(self):
+        self.plotPower.emit([self.currentTimeList,self.currentValueList])

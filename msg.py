@@ -1,5 +1,6 @@
 import pickle
 from re import findall
+# from threading import Thread
 msg = {}
 msgDictStr = {
 #===========seed===========
@@ -51,9 +52,9 @@ msgDictStr = {
         'setfirstcurrent':                          ' EB 90 02 01 0A FF FF 90 EB',
         'setsecondcurrent':                    ' EB 90 02 01 0B FF FF 90 EB',
         # pumperror
-        'pumperror':                               ' EB 90 02 FF FF FF FF 90 EB'
+        'pumperror':                               ' EB 90 02 FF FF FF FF 90 EB',
         #power caculate
-        'powerandtemp'                        '9A FF FF FF FF FF FF FF FF A9'
+        'powerandtemp':                        '9A FF FF FF FF FF FF FF FF A9'
 
 
 }
