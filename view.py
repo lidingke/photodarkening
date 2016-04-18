@@ -26,28 +26,36 @@ from PyQt5.QtCore       import pyqtSignal
 from PyQt5.QtCore       import Qt
 from PyQt5.QtCore       import QSize
 from PyQt5.QtCore       import QEvent
+from PyQt5.QtCore import QPointF
+from PyQt5.QtCore import QLineF
+from PyQt5.QtCore import QPoint
+from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QFont
 
+from PyQt5.QtGui import QPainter
+from PyQt5.QtGui import QPalette
+from PyQt5.QtGui import QPen
+from PyQt5.QtGui import QBrush
+from PyQt5.QtGui import QPalette
+from PyQt5.QtGui import QColor
 from PyQt5.QtGui       import QPixmap
+
+from viewtool import NQGroupBox
+
+#plot PaintArea class
+
 
 from queue              import Queue
 from functools        import partial
 import time
 import pdb
 
-#plot PaintArea class
-from PyQt5.QtCore import QPoint
-from PyQt5.QtGui import QColor
-from PyQt5.QtGui import QFont
-from PyQt5.QtCore import QPointF
-from PyQt5.QtCore import QLineF
-from PyQt5.QtGui import QPainter
-from PyQt5.QtGui import QPalette
-from PyQt5.QtGui import QPen
-from PyQt5.QtGui import QBrush
-
 from matplotlibPyQt5 import MyDynamicMplCanvas
 
-from viewpart import AddressBook
+from powerrecord import PowerRecord
+from user import UserView
+from user import User
+from lastlog import LastLog
 
 class View(QWidget):
 
@@ -60,6 +68,7 @@ class View(QWidget):
     seedPulseFreChanged = pyqtSignal(object)
     firstPumpChanged = pyqtSignal(object)
     secondPumpChanged = pyqtSignal(object)
+    startModel = pyqtSignal(object)
 
     def __init__(self):
         QWidget.__init__(self)
@@ -84,6 +93,13 @@ class View(QWidget):
         self.init1stCurrent = 0
         self.init2stCurrent = 0
         self.initSeedCurrent =0
+        self.last = LastLog()
+        self.lastpick = self.last.loadLast()
+        uslast = self.lastpick.get('user',False)
+        if uslast is False:
+            self.user = User()
+        else:
+            self.user = uslast
         self.__init__slaveStatus()
         self.__initUI()
 
@@ -148,24 +164,40 @@ class View(QWidget):
 
     def toolBoxUI(self):
         gbox1 = QGroupBox()
+        gbox1.setStyleSheet("QGroupBox{border:None;}")
         gbox2 = QGroupBox()
+        gbox2.setStyleSheet("QGroupBox{border:None;}")
         gbox3 = QGroupBox()
+        gbox3.setStyleSheet("QGroupBox{border:None;}")
         gbox4 = QGroupBox()
+        gbox4.setStyleSheet("QGroupBox{border:None;}")
         gbox5 = QGroupBox()
+        gbox5.setStyleSheet("QGroupBox{border:None;}")
         #self.menuBox = QHBoxLayout()
+        self.useBox = QHBoxLayout(gbox1)
         self.setBox = QHBoxLayout(gbox2)
         self.pumpBox = QHBoxLayout(gbox3)
         self.powerRecordBox = QHBoxLayout(gbox4)
         self.toolBox = QTabWidget()
+        # self.toolBox.setStyleSheet("QTabWidget.pane{background: transparent;}\
+        #     ")
         self.toolBox.addTab(gbox1,'用户登录')
         self.toolBox.addTab(gbox2,'串口设置')
         self.toolBox.addTab(gbox3,'泵浦开关')
         self.toolBox.addTab(gbox4,'功率计')
         self.toolBox.addTab(gbox5,'帮助')
+        # self.toolBox.
+        self.toolBox.setTabEnabled(1,False)
+        self.toolBox.setTabEnabled(2,False)
+        self.toolBox.setTabEnabled(3,False)
         self.toolBox.setMaximumSize(10000,200)
         self.toolBox.resize(1200,200)
-        powerRecord = AddressBook()
-        self.powerRecordBox.addWidget(powerRecord)
+        userbox = UserView()
+        userbox.usersignal.connect(self.setUser)
+        self.useBox.addWidget(userbox)
+        self.useBox.addStretch()
+        self.powerRecord = PowerRecord()
+        self.powerRecordBox.addWidget(self.powerRecord)
 #
 #启动设置tabbox栏目，包含于setBox
 #
@@ -217,7 +249,13 @@ class View(QWidget):
         self.baundrateMenu.currentIndexChanged.connect(self.emit_br_changed)
         self.baundrateMenu.setEnabled(False)
         # Set default baudrate 9600
-        self.baundrateMenu.setCurrentIndex(4)
+        baudindex = self.lastpick.get('baud',False)
+        if baudindex is not False :
+            self.baundrateMenu.setCurrentIndex(baudindex)
+        else:
+            self.baundrateMenu.setCurrentIndex(4)
+        # print(self.baundrateMenu.setCurrentIndex())
+        # pdb.set_trace()
         portBox.addWidget(self.baundrateMenu, 1, 1)
         #port select
         portLabel = QLabel('Port: ')
@@ -225,6 +263,9 @@ class View(QWidget):
         portBox.addWidget(portLabel, 2, 0)
         self.portEdit = QLineEdit()
         self.portEdit.setEnabled(False)
+        portindex = self.lastpick.get('port',False)
+        if baudindex is not False :
+            self.portEdit.setText(portindex)
         #self.portEdit.editingFinished.connect(self.changePort)
         portBox.addWidget(self.portEdit, 2, 1)
         #portBox.addLayout(portLB, 2, 1)
@@ -469,10 +510,13 @@ class View(QWidget):
         self.portEdit.insert(value)
 
     def getPort(self):
+        self.lastpick['port'] = self.portEdit.text()
         return self.portEdit.text()
 
     def getBaudrate(self):
+        self.lastpick['baud'] = self.baundrateMenu.currentIndex()
         return self.baundrateMenu.currentText()[:-5]
+
 
     def get_cmd(self):
         return self.cmd_edit.text()
@@ -494,6 +538,7 @@ class View(QWidget):
         self.painter.update_figure()
 
     def closeEvent(self, event):
+        self.last.saveLast(self.lastpick)
         self.end_cmd()
         QWidget.closeEvent(self, event)
         print('exit')
@@ -549,6 +594,7 @@ class View(QWidget):
         self.cmd_edit.clear()
 
 
+
     def emit_br_changed(self, value):
         baudrate = self.baundrateMenu.itemText(value)[:-5]
         self.baudrate_changed.emit(baudrate)
@@ -576,6 +622,16 @@ class View(QWidget):
         # print(self.setSeedPulse.text()[:-2],
         #     self.setSeedFreValue.text()[:-2],self.setSeedCurrent.text()[:-2])
         self.seedPulseFreChanged.emit(seedPulseAndFre)
+
+    def setUser(self,value):
+        self.user = value
+        if value.getName() is not False:
+            self.toolBox.setTabEnabled(1,True)
+            self.toolBox.setTabEnabled(2,True)
+            self.toolBox.setTabEnabled(3,True)
+            self.powerRecord.setUserID(self.user.getName())
+            # self.startModel.emit()
+        print('use in view:',self.user.getName())
 
 
 

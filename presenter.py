@@ -13,7 +13,8 @@ class Presenter:
         self.__view = view
         self.__view.show()
 
-        self.__view.startButton.clicked.connect(self.modelBegin)
+        # self.__view.startButton.clicked.connect(self.modelBegin)
+        self.modelBegin()
         # self.__view.closePortButton.clicked.connect(self.closeModel)
         self.__view.setPortButton.clicked.connect(self.setPort)
         self.__view.closePortButton.clicked.connect(self.closePort)
@@ -25,16 +26,18 @@ class Presenter:
 
     def end_cmd(self):
         self.__model.stop()
+        self.__view.lastLogSave()
 
     def modelBegin(self):
         self.__model = Model()
+        # self.__model.initPort(self.__view.getPort(),self.__view.getBaudrate())
         print('===openPort===')
         self.__model.begin()
 
         self.__view.set_queue(self.__model.get_queue())
         # self.__view.setCurrentValue(self.__model.getcurrentValueList(),self.__model.getcurrentTimeList())
         self.__view.set_end_cmd(self.end_cmd)
-        self.__view.set_port(self.__model.get_port())
+        # self.__view.set_port(self.__model.get_port())
 
         self.__model.start()
         self.setSignals()

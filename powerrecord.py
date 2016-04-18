@@ -1,9 +1,12 @@
-from PyQt5.QtWidgets import (QGridLayout, QHBoxLayout, QPushButton,
+from PyQt5.QtWidgets import (QTimeEdit, QGridLayout, QHBoxLayout, QPushButton,
     QVBoxLayout,QWidget,QLCDNumber,QListWidget,QListWidgetItem)
+from PyQt5.QtCore import (QTime, QDateTime)
 import time
 import threading
 import pickle
 import pdb
+import queue
+from pdfcreater import PdfCreater
 
 class PowerRecord(QWidget):
     """docstring for PowerRecord"""
@@ -16,18 +19,22 @@ class PowerRecord(QWidget):
 
         self.startTime = 0
         self.stopTime = time.time()
-        self.userID = 'lidingke'
+        self.userID = ''
+        self.powerData = queue.Queue()
         self.pick = list()
-        self.itemShowNum = 5
+        self.itemShowNum = 4
         self.itemChangeStatus = False
+        self.timeStepPause = False
         self.loadFile()
         self.UI_init()
         self.plantlist()
         # self.initItemText()
 
     def UI_init(self):
-        self.seButton = QPushButton('start')
-        self.seButton.clicked.connect(self.startOrStop)
+        self.seButton = QPushButton('begin')
+        self.seButton.clicked.connect(self.beginOendTime)
+        self.timeEdit = QTimeEdit()
+        # self.timeEdit.setMaximumTime()
         # self.hourlabel = QLabel('时')
         # self.hourShow = QLCDNumber()
         # self.minlabel = QLabel('分')
@@ -49,7 +56,7 @@ class PowerRecord(QWidget):
         # item = QListWidgetItem()
         # self.historylist.addItem(item)
         # self.historylist.setReadOnly(True)
-        timebox = QHBoxLayout()
+        # timebox = QHBoxLayout()
 
         # timebox.addWidget(self.hourlabel)
         # timebox.addWidget(self.hourShow)
@@ -60,15 +67,18 @@ class PowerRecord(QWidget):
 
         self.printbutton = QPushButton('print')
         self.printbutton.clicked.connect(self.printPDF)
+        buttonarea.addWidget(self.seButton)
+        buttonarea.addWidget(self.timeEdit)
         buttonarea.addWidget(self.printbutton)
         buttonarea.addStretch()
+        buttonarea.addWidget(self.secShow)
 
-        timebox.addWidget(self.secShow)
+        # timebox.addWidget()
         mainLayout = QGridLayout()
-        mainLayout.addWidget(self.seButton, 0, 0)
-        mainLayout.addLayout(timebox, 0, 1)
-        mainLayout.addWidget(self.historylist, 1,1)
-        mainLayout.addLayout(buttonarea, 1, 0)
+        # mainLayout.addWidget(, 0, 0)
+        # mainLayout.addLayout(timebox, 2, 0)
+        mainLayout.addWidget(self.historylist, 0,1)
+        mainLayout.addLayout(buttonarea, 0, 0)
         # mainLayout.addLayout(buttonLayout2, 2, 1)
         # self.loadFile()
         self.setLayout(mainLayout)
@@ -84,12 +94,15 @@ class PowerRecord(QWidget):
     def itemSelect(self):
         self.itemText = self.historylist.currentItem().text()
         self.itemChangeStatus = True
-        print(self.itemText)
+        # print(self.itemText)
 
     def printPDF(self):
         if self.itemChangeStatus is False:
             self.itemText = self.historylist.item(0).text()
         print('print:',self.itemText)
+        printer = PdfCreater(self,)
+        printer.saveToFile()
+        printer.savePdf()
 
     def loadFile(self):
         try:
@@ -125,11 +138,17 @@ class PowerRecord(QWidget):
         # pdb.set_trace()
         # self.historylist.clear()
         for i,x in enumerate(textlist):
-            starttime = time.strftime('%H:%M:%S',time.gmtime(x.get('start')))
-            stoptime = time.strftime('%H:%M:%S',time.gmtime(x.get('stop')))
-            textstr = 'start:'+starttime+', stop:'+stoptime+', user:'+x.get('userID')
+            if x.get('start',False) is not False:
+                pass
+                starttime = time.strftime('%H:%M:%S',time.gmtime(x.get('start')))
+                stoptime = time.strftime('%H:%M:%S',time.gmtime(x.get('stop')))
+                textstr = 'start:'+starttime+', stop:'+stoptime+', user:'+x.get('userID')
+            elif x.get('begin',False) is not False:
+                begin = time.strftime('%H:%M:%S',time.gmtime(x.get('begin')))
+                con = x.get('continue').toString()
+                textstr = 'begin:' + begin + ', cont:' + con + ', user:'+x.get('userID')
             # textstr = x['start']+':'+x['stop']+':'+x['userID']
-            print(textstr)
+            # print(textstr)
             # for x in range(1,self.itemShowNum):
             #     pass
             # pdb.set_trace()
@@ -141,27 +160,89 @@ class PowerRecord(QWidget):
             # if len(self.texlist) > 3:
             #     return
 
-    def startOrStop(self):
+    def beginOendTime(self):
         buttonState = self.seButton.text()
-        if buttonState == 'start':
-            print('start')
-            self.startTime = time.time()
-            self.seButton.setText('stop')
-            threading.Thread(target=PowerRecord.timeStep,args=(self,)).start()
+        timeState = self.timeEdit.text()
+        print(timeState)
+        print(self.userID)
+        if buttonState == 'begin' and timeState != '0:00':
+            self.beginTime = time.time()
+            self.editTime = self.timeEdit.time()
+            # print(self.editTime)
+            # self.seButton.setText('stop')
+            threading.Thread(target=PowerRecord.timerStep,args=(self,)).start()
+            self.seButton.setEnabled(False)
+            self.timeStepPause = False
 
-            # timeStep = time.clock() - self.startTime
-        elif buttonState == 'stop':
-            print('stop')
-            self.pick.append({'start':self.startTime,
-                'stop':self.stopTime,'userID':self.userID})
-            self.saveFile()
-            self.loadFile()
-            self.plantlist()
 
-            self.stopTime = time.time()
-            self.seButton.setText('start')
-            self.timebegin = False
+
+    # def startOrStop(self):
+    #     buttonState = self.seButton.text()
+    #     if buttonState == 'start':
+    #         print('start')
+    #         self.startTime = time.time()
+    #         self.seButton.setText('stop')
+    #         threading.Thread(target=PowerRecord.timeStep,args=(self,)).start()
+
+    #         # timeStep = time.clock() - self.startTime
+    #     elif buttonState == 'stop':
+    #         print('stop')
+    #         self.pick.append({'start':self.startTime,
+    #             'stop':self.stopTime,'userID':self.userID})
+    #         self.saveFile()
+    #         self.loadFile()
+    #         self.plantlist()
+
+    #         self.stopTime = time.time()
+    #         self.seButton.setText('start')
+    #         self.timebegin = False
+    #         # print(timeStep)
+
+    def timerSave(self):
+        # beginTime = time.strftime('%H:%M:%S', time.gmtime(self.beginTime) )
+        beginTime =self.beginTime
+        # pdb.set_trace()
+        # continueTime = 1
+        continueTime = self.editTime
+        # pdb.set_trace()
+        # print(continueTime)
+        # self.pick.append({'start:':beginTime,
+        #     'stop':continueTime,'userID':self.userID,})
+        self.pick.append({'begin':beginTime,
+            'continue':continueTime,'userID':self.userID})
+        self.saveFile()
+        self.loadFile()
+        self.plantlist()
+
+        self.stopTime = time.time()
+        self.seButton.setEnabled(True)
+        # self.seButton.setText('start')
+        # self.timebegin = False
+
+    def timerStep(self):
+        threadStartTime = time.clock()
+
+        self.timebegin = True
+        while self.timebegin:
+            timeStep = time.clock() - threadStartTime
+            gmTimeStep = time.gmtime(timeStep)
             # print(timeStep)
+            timestr = time.strftime('%H:%M:%S', gmTimeStep)
+            # print(timestr)
+            if self.editTime:
+                # pdb.set_trace()
+                nowQtime = QTime(gmTimeStep.tm_hour,gmTimeStep.tm_min)
+                if (self.editTime.minute() == nowQtime.minute())\
+                    and (self.editTime.hour() == nowQtime.hour()):
+                    print('timeget')
+                    self.timerSave()
+                    self.timeStepPause = True
+                if self.timeStepPause is True:
+                    threadStartTime = time.clock()
+                # print('st:',self.editTime,':',nowQtime)
+            self.secShow.display(timestr)
+            self.update_GUI()
+            time.sleep(0.5)
 
     def timeStep(self):
         threadStartTime = time.clock()
@@ -177,6 +258,22 @@ class PowerRecord(QWidget):
 
     def update_GUI(self):
         self.update()
+
+###
+# interface
+###
+
+    def getUserID(self):
+        return self.userID
+
+    def setUserID(self,userid):
+        self.userID = userid
+
+    def getPowerData(self):
+        return self.powerData
+
+    def setPowerData(self,data):
+        self.powerData.put(data)
 
 
 if __name__ == '__main__':
