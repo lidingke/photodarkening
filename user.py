@@ -2,7 +2,7 @@
 from PyQt5.QtWidgets import (QLabel,QLineEdit, QGridLayout, QHBoxLayout, QPushButton,
     QVBoxLayout,QWidget,QLCDNumber,QListWidget,QListWidgetItem)
 from PyQt5.QtCore       import pyqtSignal
-from viewtool import TabWidget
+# from viewtool import TabWidget
 import hashlib
 import pickle
 
@@ -25,45 +25,46 @@ class UserView(QWidget):
         passlabel = QLabel('password')
         self.passwordIput = QLineEdit()
         self.login= QPushButton('login')
-        self.login.clicked.connect(self.loginin)
+        self.login.clicked.connect(self.loginfun)
+        # self.logout = QPushButton('logout')
+        # self.logout.clicked.connect(self.logoutfun)
+
         self.register = QPushButton('register')
         self.register.setEnabled(False)
-        self.register.clicked.connect(self.enableRegister)
-        self.insert = QPushButton('insert')
-        self.insert.setEnabled(False)
-        self.insert.clicked.connect(self.insertUser)
-        self.save = QPushButton('save')
-        self.save.setEnabled(False)
-        self.insert.clicked.connect(self.saveInsert)
+        self.register.clicked.connect(self.registerfun)
         mainLayout.addWidget(namelabel, 0, 0)
         mainLayout.addWidget(passlabel, 0, 1)
         mainLayout.addWidget(self.nameIput, 1, 0)
         mainLayout.addWidget(self.passwordIput, 1, 1)
         mainLayout.addWidget(self.login, 2, 0)
+        # mainLayout.addWidget(self.logout, 2, 1)
         mainLayout.addWidget(self.register, 2, 1)
-        mainLayout.addWidget(self.insert, 3, 0)
-        mainLayout.addWidget(self.save, 3, 1)
+        # mainLayout.addWidget(self.save, 3, 1)
 
         self.setLayout(mainLayout)
 
-    def loginin(self):
-        name = self.nameIput.text()
-        password = self.passwordIput.text()
-        use = self.userboss.findUser(name)
-        useA = use.isPass(password)
-        if useA:
+    def loginfun(self):
+        if self.login.text() == 'login':
+
+            name = self.nameIput.text()
+            password = self.passwordIput.text()
+            use = self.userboss.findUser(name)
+            useA = use.isPass(password)
+            if useA:
+                self.usersignal.emit(use)
+                self.login.setText('logout')
+            print('use:',useA)
+        elif self.login.text() == 'logout':
+            use = User()
             self.usersignal.emit(use)
-        print('use:',useA)
+            self.login.setText('login')
 
-    def enableRegister(self):
+
+    # def logoutfun(self):
+    #     pass
+
+    def registerfun(self):
         pass
-
-    def insertUser(self):
-        pass
-
-    def saveInsert(self):
-        pass
-
 
 class UserManager(object):
     """docstring for UserManager"""

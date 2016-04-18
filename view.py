@@ -40,7 +40,6 @@ from PyQt5.QtGui import QPalette
 from PyQt5.QtGui import QColor
 from PyQt5.QtGui       import QPixmap
 
-from viewtool import NQGroupBox
 
 #plot PaintArea class
 
@@ -224,19 +223,19 @@ class View(QWidget):
         self.startButton = QPushButton('Start')
         self.startButton.setEnabled(True)
         self.startButton.setMinimumWidth(self.buttonMinimumWidth)
-        self.setPortButton = QPushButton('setPortButton')
+        self.setPortButton = QPushButton('openport')
         self.setPortButton.setMinimumWidth(self.buttonMinimumWidth)
         self.setPortButton.setEnabled(False)
 
-        self.closePortButton = QPushButton('closePortButton')
+        self.closePortButton = QPushButton('closePort')
         self.closePortButton.setMinimumWidth(self.buttonMinimumWidth)
         self.closePortButton.setEnabled(False)
 
 
         #self.startButton.setCheckable(True)
         #self.startButton.clicked.connect(partial(self.emit_send_command,'openport'))
-        portBox.addWidget(self.startButton, 0, 0)
-        portBox.addWidget(self.setPortButton, 1, 0)
+        # portBox.addWidget(self.startButton, 0, 0)
+        portBox.addWidget(self.setPortButton, 0, 0)
         portBox.addWidget(self.closePortButton, 0, 1)
 
         # - Baudrate select
@@ -256,6 +255,8 @@ class View(QWidget):
             self.baundrateMenu.setCurrentIndex(4)
         # print(self.baundrateMenu.setCurrentIndex())
         # pdb.set_trace()
+        baudLabel = QLabel('baud: ')
+        portBox.addWidget(baudLabel,1,0)
         portBox.addWidget(self.baundrateMenu, 1, 1)
         #port select
         portLabel = QLabel('Port: ')
@@ -631,6 +632,11 @@ class View(QWidget):
             self.toolBox.setTabEnabled(3,True)
             self.powerRecord.setUserID(self.user.getName())
             # self.startModel.emit()
+        else:
+            self.toolBox.setTabEnabled(1,False)
+            self.toolBox.setTabEnabled(2,False)
+            self.toolBox.setTabEnabled(3,False)
+            self.powerRecord.setUserID('NoneUser')
         print('use in view:',self.user.getName())
 
 

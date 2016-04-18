@@ -45,7 +45,7 @@ class Slave(object):
 
             ser.write(currentmsg)
 
-            sleep(10)
+            sleep(1)
             #return currentmsg
 
     def randomSend(self,ser):
