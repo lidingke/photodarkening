@@ -8,7 +8,7 @@ import pickle
 import pdb
 # from regest import Regester
 from PyQt5.QtWidgets import QDialog
-from regesterview import Ui_Dialog
+# from regesterview import Ui_Dialog
 from PyQt5.QtWidgets import QApplication
 from PyQt5.uic import loadUiType
 form_class, base_class = loadUiType('regesterview.ui')

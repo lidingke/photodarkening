@@ -36,6 +36,7 @@ class View(QWidget):
     firstPumpChanged = pyqtSignal(object)
     secondPumpChanged = pyqtSignal(object)
     startModel = pyqtSignal(object)
+    beginTime = pyqtSignal()
 
     def __init__(self):
         super(QWidget,self).__init__()
@@ -146,7 +147,7 @@ class View(QWidget):
         #self.menuBox = QHBoxLayout()
         self.useBox = QHBoxLayout(gbox1)
         self.setBox = QHBoxLayout(gbox2)
-        self.pumpBox = QHBoxLayout(gbox3)
+        self.pumpBox = QGridLayout(gbox3)
         self.powerRecordBox = QHBoxLayout(gbox4)
         self.toolBox = QTabWidget()
         # self.toolBox.setStyleSheet("QTabWidget.pane{background: transparent;}\
@@ -183,11 +184,11 @@ class View(QWidget):
         secondPumpBox = QVBoxLayout()
         # Command box
         self.setBox.addLayout(portBox)
-        self.pumpBox.addLayout(seedBox)
-        self.pumpBox.addLayout(firstPumpBox)
-        self.pumpBox.addLayout(secondPumpBox)
+        # self.pumpBox.addLayout(seedBox)
+        # self.pumpBox.addLayout(firstPumpBox)
+        # self.pumpBox.addLayout(secondPumpBox)
         self.setBox.addStretch()
-        self.pumpBox.addStretch()
+        # self.pumpBox.addStretch()
         #
         # self.showBox.addLayout(cmdBox)
 
@@ -257,11 +258,11 @@ class View(QWidget):
         #self.openSeedButton.setDisabled(True)
         self.openSeedButton.setEnabled(False)
         self.openSeedButton.clicked.connect(self.emitSeedPulseAndFre)
-        seedBox.addWidget(self.openSeedButton)
+        # seedBox.addWidget(self.openSeedButton)
         seedPluseBox = QHBoxLayout()
         self.seedPluseLabel = QLabel('setSeedPulse:')
         #self.etSeedPulseButton.clicked.connect(partial(self.emit_send_command,'setseed'))
-        seedPluseBox.addWidget(self.seedPluseLabel)
+        # seedPluseBox.addWidget(self.seedPluseLabel)
 
         self.setSeedPulse = QSpinBox(self)
         self.setSeedPulse.setMaximum(500)
@@ -286,7 +287,7 @@ class View(QWidget):
         self.setSeedFreValue.setValue(self.initSeedFre)
         self.setSeedFreValue.setSuffix('kHz')
         #self.setSeedFreValue.valueChanged.connect(self.emitWriteSeedFre)
-        seedFreBox.addWidget(self.setSeedFreValue)
+        # seedFreBox.addWidget(self.setSeedFreValue)
 
         seedcurrBox = QHBoxLayout()
         self.setSeedCurrentLabel = QLabel('setSeedCurrent:')
@@ -312,8 +313,8 @@ class View(QWidget):
         self.openAll.setEnabled(False)
         #.setEnabled(True)
         #self.openAll.clicked.connect(partial(self.emit_send_command,'openAll'))
-        firstPumpBox.addWidget(self.openAll)
-        self.setSeedCurrentLabel = QLabel('setSeedCurrent:')
+        # firstPumpBox.addWidget(self.openAll)
+        # self.setSeedCurrentLabel = QLabel('setSeedCurrent:')
         self.openSecondPump = QPushButton('opensecondpump')
         self.openSecondPump.setMinimumWidth(self.buttonMinimumWidth)
         self.openSecondPump.setEnabled(False)
@@ -350,10 +351,25 @@ class View(QWidget):
         self.setSecondpump.setEnabled(False)
 
         firstPumpBox.addWidget(self.sendfirst)
-        secondPumpBox.addWidget(self.closeAll)
+        # secondPumpBox.addWidget(self.closeAll)
         secondPumpBox.addWidget(self.sendsecond)
         firstPumpBox.addWidget(self.setFirstpump)
         secondPumpBox.addWidget(self.setSecondpump)
+        # allPumpBox = QGridLayout(QWidget)
+        self.pumpBox.addWidget(self.openAll,0,0)
+        self.pumpBox.addWidget(self.closeAll,1,0)
+        self.pumpBox.addWidget(self.openSeedButton,2,0)
+        self.pumpBox.addWidget(self.seedPluseLabel,0,1)
+        self.pumpBox.addWidget(self.setSeedPulse,0,2)
+        self.pumpBox.addWidget(self.seedFreLabel,1,1)
+        self.pumpBox.addWidget(self.setSeedFreValue,1,2)
+        self.pumpBox.addWidget(self.setSeedCurrentLabel,2,1)
+        self.pumpBox.addWidget(self.setSeedCurrent,2,2)
+        self.pumpBox.addWidget(self.sendfirst,0,3)
+        self.pumpBox.addWidget(self.setFirstpump,0,4)
+        self.pumpBox.addWidget(self.sendsecond,1,3)
+        self.pumpBox.addWidget(self.setSecondpump,1,4)
+        # self.pumpBox = allPumpBox
 
         firstPumpBox.addStretch()
         secondPumpBox.addStretch()
@@ -615,55 +631,57 @@ class View(QWidget):
     def lastLogSave(self):
         self.last.saveLast(self.lastpick)
 
-class PaintArea(QWidget):
-    """docstring for PaintArea"""
-    def __init__(self):
-        super(PaintArea, self).__init__()
-        self.setPalette(QPalette(Qt.white))
-        self.setAutoFillBackground(True)
-        self.setMinimumSize(500,400)
-        self.text = u'这个地方是绘图区域'
-        self.pen = QPen(Qt.black,1)
-        self.brush = QBrush()
-        self.font = QFont('arial', 15)
-        self.pList = list()
-        self.initTime = time.time()
-        #print('self.pList:',self.pList)
 
-    def paintEvent(self,event):
 
-        #pList = [int().from_bytes(x,'big') for x in self.pList]
-        pList =self.pList
-        #print('调用paintEvent:',len(pList),',event:',event)
-        p = QPainter(self)
-        #print('p=',p)
-        if len(pList) > 1:
-            p.translate(180,180)
-            p.setWindow(-10,-10,50,10)
+# class PaintArea(QWidget):
+#     """docstring for PaintArea"""
+#     def __init__(self):
+#         super(PaintArea, self).__init__()
+#         self.setPalette(QPalette(Qt.white))
+#         self.setAutoFillBackground(True)
+#         self.setMinimumSize(500,400)
+#         self.text = u'这个地方是绘图区域'
+#         self.pen = QPen(Qt.black,1)
+#         self.brush = QBrush()
+#         self.font = QFont('arial', 15)
+#         self.pList = list()
+#         self.initTime = time.time()
+#         #print('self.pList:',self.pList)
 
-            qPointList = [QPointF(c[0] - self.initTime,c[1]) for c in pList]
-            #需要判断一下绘图范围
-            print(qPointList)
-            p.setPen(self.pen)
-            p.setBrush(self.brush)
-            qPointlast = QPointF(0,0)
-            for qpPoint in qPointList:
-                #print('point:',qpPoint,qPointlast)
-                p.drawLine(qpPoint,qPointlast)
-                qPointlast = qpPoint
+#     def paintEvent(self,event):
 
-        else:
-            self.drawText(event,p)
+#         #pList = [int().from_bytes(x,'big') for x in self.pList]
+#         pList =self.pList
+#         #print('调用paintEvent:',len(pList),',event:',event)
+#         p = QPainter(self)
+#         #print('p=',p)
+#         if len(pList) > 1:
+#             p.translate(180,180)
+#             p.setWindow(-10,-10,50,10)
 
-    def plotupdate(self):
-        self.update()
+#             qPointList = [QPointF(c[0] - self.initTime,c[1]) for c in pList]
+#             #需要判断一下绘图范围
+#             print(qPointList)
+#             p.setPen(self.pen)
+#             p.setBrush(self.brush)
+#             qPointlast = QPointF(0,0)
+#             for qpPoint in qPointList:
+#                 #print('point:',qpPoint,qPointlast)
+#                 p.drawLine(qpPoint,qPointlast)
+#                 qPointlast = qpPoint
 
-    def drawText(self,event,qp):
-        qp.setPen(QColor(168, 34, 3))
-        qp.setFont(QFont('微软雅黑', 20))
-        qp.drawText(event.rect(), Qt.AlignCenter, self.text)
+#         else:
+#             self.drawText(event,p)
 
-    def getpList(self, pList):
-        self.pList = pList
-        self.text = u'开始缓存电流数据'
-        #return self.pList
+#     def plotupdate(self):
+#         self.update()
+
+#     def drawText(self,event,qp):
+#         qp.setPen(QColor(168, 34, 3))
+#         qp.setFont(QFont('微软雅黑', 20))
+#         qp.drawText(event.rect(), Qt.AlignCenter, self.text)
+
+#     def getpList(self, pList):
+#         self.pList = pList
+#         self.text = u'开始缓存电流数据'
+#         #return self.pList

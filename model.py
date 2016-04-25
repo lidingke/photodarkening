@@ -18,6 +18,7 @@ from    PyQt5.QtCore        import QTime
 # PySerial imports
 import  serial
 from    serial.serialutil   import SerialException
+from database import DataHand
 
 class Model(threading.Thread, QObject):
 
@@ -44,12 +45,13 @@ class Model(threading.Thread, QObject):
         self.timeout    = 0.01
         # Line ending id
         #self.eol        = 0
-        self.username = 'lidingke'
+        self.username = 'nobody'
         # PySerial object
         self.ser        = None
         # Flag for main cycle
         self.running    = True
-        self.ti0 = time.time()
+        self.ti0 = time.time()#set record start time
+        self.startRecord = False# set start record statues
         self.tempdetector = TempDetector()
         self.__init__slaveStatus()
 
@@ -59,6 +61,11 @@ class Model(threading.Thread, QObject):
         self.msgDictStr = entry['msgDictStr']
         self.sendmsgrec = entry['sendmsgrec']
         self.entry = entry
+
+        self.datahand = DataHand('powerdata.db')
+        self.datahand.username = self.username
+        # self.datahand.initSql()
+        # self.datahand.connectSql()
 
     def __init__slaveStatus(self):
         self.isSeedOpen = True
@@ -84,31 +91,28 @@ class Model(threading.Thread, QObject):
             target argument, if any, with sequential and keyword arguments taken
             from the args and kwargs arguments, respectively.
         '''
-        try:
+        while self.running:
+            #self.printShow('running:',self.running)
+            if self.ser:
+                #self.printShow('Model start',self.ser)
+                data = None
+                #sleep(1)
+                #data = self.readline()
+                #ser = self.ser
+                data = self.analysisbit()
+                    #self.printShow('Error occured while reading data.')
+                #try:runrun
+                if data :
+                    #self.printShow('lendata',len(data))
+                    #self.printShow('data:',data)
+                    self.coreMsgProcess(data)
+                    #self.printShow('上位机接收：',data)
+                    # self.queue.put(data.strip())
+                # except Exception as e:
+                #     data=b-1
+                time.sleep(self.timeout)
 
-            while self.running:
-                #self.printShow('running:',self.running)
-                if self.ser:
-                    #self.printShow('Model start',self.ser)
-                    data = None
-                    #sleep(1)
-                    #data = self.readline()
-                    #ser = self.ser
-                    data = self.analysisbit()
-                        #self.printShow('Error occured while reading data.')
-                    #try:runrun
-                    if data :
-                        #self.printShow('lendata',len(data))
-                        #self.printShow('data:',data)
-                        self.coreMsgProcess(data)
-                        #self.printShow('上位机接收：',data)
-                        # self.queue.put(data.strip())
-                    # except Exception as e:
-                    #     data=b-1
-                    time.sleep(self.timeout)
 
-        except KeyboardInterrupt:
-            exit()
 
     def stop(self):
         '''
@@ -122,6 +126,7 @@ class Model(threading.Thread, QObject):
             self.ser.close()
         # self.ser = None
         self.running = False
+        # self.datahand.closeConnect()
 
     def printShow(self,*value,ifprint = True,text = True,nobyte = True):
 
@@ -193,11 +198,15 @@ class Model(threading.Thread, QObject):
             return False
 
     def setBeginPlotTime(self):
-        self.ti0 = time.time()
+        self.startRecord = True
+        # self.ti0 = time.time()
+        print('get ti0:',self.ti0)
+        self.datahand.initSqltabel(self.ti0,self.username)
         self.currentTimeList.clear()
         self.currentValueList.clear()
 
-
+    def setStartTime(self,stime ):
+        self.ti0 = stime
 
     # def self.printShowShow():
     #     """
@@ -300,8 +309,12 @@ class Model(threading.Thread, QObject):
         @data data to send
         '''
         if type(data) is str:
-            pass
-            dataSend = self.msgcoup(data)
+            if data[:3] == 'msg':
+                print(data)
+                # pdb.set_trace()data[4:]
+                dataSend = b''.fromhex(data[4:])
+            else:
+                dataSend = self.msgcoup(data)
         else:
             dataSend =data
         #self.printShow(dataSend)
@@ -515,7 +528,8 @@ class Model(threading.Thread, QObject):
             self.printShow('temperature and power is :',self.heat,
                 'and',self.tmPower)
             self.currentValueList.append(self.tmPower)
-
+            if self.startRecord == True:
+                self.save2sql(self.tmPower)
             self.emitPlot()
 
 
@@ -672,55 +686,23 @@ class Model(threading.Thread, QObject):
         self.printShow('setfirstcurrent',valuemsg)
         self.write(valuemsg)
 
+    def creatPlot(self,tableName):
+        data = self.datahand.getTableData(tableName)
+        self.datahand.createPlot(data)
+
 
 ###
 #sqlite save
 ###
-    def initSql(self):
-        localTime=time.localtime()
-        tyear=str(localTime.tm_year)
-        tmoon=str(localTime.tm_mon) if len(str(localTime.tm_mon))==2 else '0'+str(localTime.tm_mon)
-        tday=str(localTime.tm_mday) if len(str(localTime.tm_mday))==2 else '0'+str(localTime.tm_mday)
-        dateNow=tyear+tmoon+tday
-        sqlTableName='TM'+dateNow+'RD'+self.username
-        conn = sqlite3.connect('data.db')
-        cursor = conn.cursor()
-        try:
-            strEx='create table if not exists '+sqlTableName+\
-            ' (time int(10), name varchar(10), word varchar(50))'
-            cursor.execute(strEx)
-        except sqlite3.OperationalError:
-            print('===sqlite3.OperationalError===')
-        except :
-            logging.exception( 'exception')
-            # addException2logtxt(traceback)
-        cursor.close()
-        conn.commit()
-        conn.close()
-        return sqlTableName
 
-
-    def save2Sql(self,sqlTableName,contentSql,snickSql,LocalTimeSql):
-        conn = sqlite3.connect('data.db')
-        cursor = conn.cursor()
+    def save2sql(self, power ):
+        startTime = str(int(self.ti0))
+        localTime = time.time()
+        tableName = 'TM'+startTime+'US'+self.username
         try:
-            while LocalTimeSql:
-                strEx='insert into '+sqlTableName+' (time, name, word) values ('\
-                    +str(LocalTimeSql[0])+',\''+snickSql[0]+'\',\''+contentSql[0]+'\')'
-                cursor.execute(strEx)
-                del(LocalTimeSql[0],snickSql[0],contentSql[0])
-                #print(strEx)
-            #print('===save to sql===')
-        except sqlite3.OperationalError:
-                print('panda danmu database is busy! data is not save')
+            self.datahand.save2Sql(tableName, localTime, power)
         except Exception as e:
-            # info=sys.exc_info()
-            # # # print(info[0],":",info[1])
-            # # print(info[1])
-            logging.exception(e)
-        cursor.close()
-        conn.commit()
-        conn.close()
+            raise e
 
 
 #==============================================================================

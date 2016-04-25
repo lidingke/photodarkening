@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import (QTimeEdit, QGridLayout, QHBoxLayout, QPushButton,
     QVBoxLayout,QWidget,QLCDNumber,QListWidget,QListWidgetItem)
-from PyQt5.QtCore import (QTime, QDateTime)
+from PyQt5.QtCore import (QTime, QDateTime, pyqtSignal)
+
 import time
 import threading
 import pickle
@@ -10,6 +11,8 @@ from pdfcreater import PdfCreater
 
 class PowerRecord(QWidget):
     """docstring for PowerRecord"""
+    beginTimeSignal = pyqtSignal(object)
+    sqlTableName = pyqtSignal(object)
     def __init__(self):
         super(PowerRecord, self).__init__()
         # self.arg = arg
@@ -25,6 +28,7 @@ class PowerRecord(QWidget):
         self.itemShowNum = 4
         self.itemChangeStatus = False
         self.timeStepPause = False
+        self.pdfItem = dict()
         self.loadFile()
         self.UI_init()
         self.plantlist()
@@ -66,6 +70,7 @@ class PowerRecord(QWidget):
         buttonarea = QVBoxLayout()
 
         self.printbutton = QPushButton('print')
+        # self.printbutton.clicked.connect(self.getDbdata)
         self.printbutton.clicked.connect(self.printPDF)
         buttonarea.addWidget(self.seButton)
         buttonarea.addWidget(self.timeEdit)
@@ -93,16 +98,33 @@ class PowerRecord(QWidget):
 
     def itemSelect(self):
         self.itemText = self.historylist.currentItem().text()
+        self.itemNum = self.historylist.currentRow()
+        # pdb.set_trace()
+        pickget = self.pick[-self.itemNum-1]
+        self.startTimetic = pickget.get('begin')
+        self.printUserID = pickget.get('userID')
+        print('num,pick:',self.itemNum, self.startTimetic)
+
         self.itemChangeStatus = True
         # print(self.itemText)
 
     def printPDF(self):
+        self.getDbdata()
         if self.itemChangeStatus is False:
             self.itemText = self.historylist.item(0).text()
         print('print:',self.itemText)
+        # self.pdfItem['']
         printer = PdfCreater(self,)
         printer.saveToFile()
         printer.savePdf()
+
+    def getDbdata(self):
+        localTime = self.startTimetic
+        username = self.userID
+        localTime = str(int(localTime))
+        tableName='TM'+localTime+'US'+username
+        self.sqlTableName.emit(tableName)
+
 
     def loadFile(self):
         try:
@@ -147,6 +169,7 @@ class PowerRecord(QWidget):
                 begin = time.strftime('%H:%M:%S',time.gmtime(x.get('begin')))
                 con = x.get('continue').toString()
                 textstr = 'begin:' + begin + ', cont:' + con + ', user:'+x.get('userID')
+                # textstr.startTime = self.startTime
             # textstr = x['start']+':'+x['stop']+':'+x['userID']
             # print(textstr)
             # for x in range(1,self.itemShowNum):
@@ -167,6 +190,9 @@ class PowerRecord(QWidget):
         print(self.userID)
         if buttonState == 'begin' and timeState != '0:00':
             self.beginTime = time.time()
+            print('beginTime:',self.beginTime)
+            self.beginTimeSignal.emit(self.beginTime)
+            # self.emitBeginTime()
             self.editTime = self.timeEdit.time()
             # print(self.editTime)
             # self.seButton.setText('stop')
@@ -274,6 +300,13 @@ class PowerRecord(QWidget):
 
     def setPowerData(self,data):
         self.powerData.put(data)
+
+
+###
+#emit
+###
+    def emitBeginTime(self):
+        self.beginTime.emit(self.beginTime)
 
 
 if __name__ == '__main__':

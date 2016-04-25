@@ -57,7 +57,9 @@ class Presenter:
         # self.__view.baudrate_changed.connect(self.__model.set_br)
         # self.__view.port_changed.connect(self.__model.set_port)
         self.__view.send_data.connect(self.__model.write)
+        self.__view.powerRecord.beginTimeSignal.connect(self.__model.setStartTime)
         self.__view.powerRecord.seButton.clicked.connect(self.__model.setBeginPlotTime)
+        self.__view.powerRecord.sqlTableName.connect(self.__model.creatPlot)
         self.__model.error.connect(self.__view.show_error)
 
         self.__model.plotPower.connect(self.__view.updataFigure)
