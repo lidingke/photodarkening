@@ -14,7 +14,9 @@ class Presenter:
         self.__view.show()
 
         # self.__view.startButton.clicked.connect(self.modelBegin)
-        self.modelBegin()
+        self.__view.startModel.connect(self.modelBegin)
+
+        # self.modelBegin()
         # self.__view.closePortButton.clicked.connect(self.closeModel)
         self.__view.setPortButton.clicked.connect(self.setPort)
         self.__view.closePortButton.clicked.connect(self.closePort)
@@ -28,7 +30,9 @@ class Presenter:
         self.__model.stop()
         self.__view.lastLogSave()
 
-    def modelBegin(self):
+    def modelBegin(self,started):
+        if started == True:
+            return
         self.__model = Model()
         # self.__model.initPort(self.__view.getPort(),self.__view.getBaudrate())
         print('===openPort===')
@@ -53,6 +57,7 @@ class Presenter:
         # self.__view.baudrate_changed.connect(self.__model.set_br)
         # self.__view.port_changed.connect(self.__model.set_port)
         self.__view.send_data.connect(self.__model.write)
+        self.__view.powerRecord.seButton.clicked.connect(self.__model.setBeginPlotTime)
         self.__model.error.connect(self.__view.show_error)
 
         self.__model.plotPower.connect(self.__view.updataFigure)

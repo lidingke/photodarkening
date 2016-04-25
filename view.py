@@ -2,48 +2,16 @@
 # coding=utf-8
 
 # Library imports
-from PyQt5.QtWidgets    import QWidget
-from PyQt5.QtWidgets    import QLabel
-from PyQt5.QtWidgets    import QLineEdit
-from PyQt5.QtWidgets    import QPushButton
-from PyQt5.QtWidgets    import QPlainTextEdit
-from PyQt5.QtWidgets    import QCheckBox
-from PyQt5.QtWidgets    import QVBoxLayout
-from PyQt5.QtWidgets    import QHBoxLayout
-from PyQt5.QtWidgets    import QGridLayout
-from PyQt5.QtWidgets    import QComboBox
-from PyQt5.QtWidgets    import QMessageBox
-from PyQt5.QtWidgets    import QSpinBox
-from PyQt5.QtWidgets    import QSpacerItem
-from PyQt5.QtWidgets    import QTabWidget
-from PyQt5.QtWidgets    import QGroupBox
-from PyQt5.QtWidgets    import QAction
+from PyQt5.QtWidgets    import (QWidget, QLabel, QLineEdit,
+    QPushButton, QPlainTextEdit, QCheckBox, QVBoxLayout,
+    QHBoxLayout, QGridLayout, QComboBox, QMessageBox,
+    QSpinBox, QSpacerItem, QTabWidget, QGroupBox, QAction)
 
+from PyQt5.QtCore       import (QTimer, pyqtSignal, Qt, QPointF)
 
-from PyQt5.QtCore       import QTimer
-from PyQt5.QtCore       import QObject
-from PyQt5.QtCore       import pyqtSignal
-from PyQt5.QtCore       import Qt
-from PyQt5.QtCore       import QSize
-from PyQt5.QtCore       import QEvent
-from PyQt5.QtCore import QPointF
-from PyQt5.QtCore import QLineF
-from PyQt5.QtCore import QPoint
-from PyQt5.QtGui import QColor
-from PyQt5.QtGui import QFont
-
-from PyQt5.QtGui import QPainter
-from PyQt5.QtGui import QPalette
-from PyQt5.QtGui import QPen
-from PyQt5.QtGui import QBrush
-from PyQt5.QtGui import QPalette
-from PyQt5.QtGui import QColor
-from PyQt5.QtGui       import QPixmap
-
+from PyQt5.QtGui import (QColor, QFont, QPainter, QPalette, QPen, QBrush)
 
 #plot PaintArea class
-
-
 from queue              import Queue
 from functools        import partial
 import time
@@ -70,7 +38,9 @@ class View(QWidget):
     startModel = pyqtSignal(object)
 
     def __init__(self):
+        super(QWidget,self).__init__()
         QWidget.__init__(self)
+
 
         self.queue      = Queue()
         self.end_cmd    = None
@@ -80,6 +50,7 @@ class View(QWidget):
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_gui)
         self.timer.start(100)
+        self.modelstarted = False
         self.currentValueList =list()
         self.currentTimeList = list()
         self.buttonMinimumWidth = 100
@@ -631,7 +602,9 @@ class View(QWidget):
             self.toolBox.setTabEnabled(2,True)
             self.toolBox.setTabEnabled(3,True)
             self.powerRecord.setUserID(self.user.getName())
-            # self.startModel.emit()
+
+            self.startModel.emit(self.modelstarted)
+            self.modelstarted = True
         else:
             self.toolBox.setTabEnabled(1,False)
             self.toolBox.setTabEnabled(2,False)
@@ -639,7 +612,8 @@ class View(QWidget):
             self.powerRecord.setUserID('NoneUser')
         print('use in view:',self.user.getName())
 
-
+    def lastLogSave(self):
+        self.last.saveLast(self.lastpick)
 
 class PaintArea(QWidget):
     """docstring for PaintArea"""

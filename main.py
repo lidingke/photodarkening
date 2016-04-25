@@ -11,6 +11,7 @@ from PyQt5.QtGui import QColor
 # Local imports
 from    view        import View
 from    presenter   import Presenter
+from user import User
 
 
 if __name__ == '__main__':

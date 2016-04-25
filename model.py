@@ -49,6 +49,8 @@ class Model(threading.Thread, QObject):
         self.ser        = None
         # Flag for main cycle
         self.running    = True
+        self.ti0 = time.time()
+        self.tempdetector = TempDetector()
         self.__init__slaveStatus()
 
         with open('msg.pickle', 'rb') as f:
@@ -190,6 +192,11 @@ class Model(threading.Thread, QObject):
         else:
             return False
 
+    def setBeginPlotTime(self):
+        self.ti0 = time.time()
+        self.currentTimeList.clear()
+        self.currentValueList.clear()
+
 
 
     # def self.printShowShow():
@@ -301,7 +308,6 @@ class Model(threading.Thread, QObject):
         if dataSend:
             self.printShow('上位机发送:',dataSend,text =False)
             self.ser.write(dataSend)
-
         time.sleep(0.1)
 
     # def readline(self):
@@ -404,8 +410,6 @@ class Model(threading.Thread, QObject):
                 self.ti0 = 1 + self.ti0
                 self.currentTimeList.append(self.ti0)
                 self.emitPlot()
-                #停掉绘图以便测试
-                #self.emitCurrentValue(currentValue)
             elif data[1:2] == b'\x00':
                 # ==========
                 #open and close seed
@@ -501,12 +505,18 @@ class Model(threading.Thread, QObject):
                     secondcurrent = int().from_bytes(data[3:5],'big')
                     self.printShow('getsecondcurrent:',secondcurrent)
         elif data[0:1] == b'\x9A':
+            ti1 = time.time() -self.ti0
+            self.currentTimeList.append(ti1)
             self.heat = int().from_bytes(data[1:3],'big')
             self.firstPower = int().from_bytes(data[3:5],'big')
             self.firstCurrent = int().from_bytes(data[5:7],'big')
             self.getPower = int().from_bytes(data[7:9],'big')
+            self.tmPower = self.tempdetector.getPower(self.heat,self.getPower)
             self.printShow('temperature and power is :',self.heat,
-                'and',self.getPower)
+                'and',self.tmPower)
+            self.currentValueList.append(self.tmPower)
+
+            self.emitPlot()
 
 
 # ==================
@@ -750,3 +760,52 @@ class Model(threading.Thread, QObject):
 
     def emitPlot(self):
         self.plotPower.emit([self.currentTimeList,self.currentValueList])
+
+import numpy as np
+from matplotlib import pyplot
+
+class TempDetector(object):
+    """
+型号         |T0 【℃】| Z0 【mV/W】| Zc【（mV/W）/℃】
+B01-SMC| 20℃         | 50.3                | 0.088
+B05-SMC| 20℃         | 134.2              | 0.235
+C50-MC   | 20℃        | 0.59775          | 0.000747
+给出的temp实际上是电阻值单位kΩ，
+给出的功率power实际上是电压值单位为V
+    """
+    def __init__(self, detect = 'B05-SMC'):
+        super(TempDetector, self).__init__()
+        para = {
+        'B01-SMC': [20,50.3,0.088],
+        'B05-SMC': [20,134.2,0.235],
+        'C50-MC':   [20,0.59775,0.000747]
+        }
+        getpara = para[detect]
+        self.stand_temp = getpara[0]
+        self.init_sen = getpara[1]
+        self.correct_sen = getpara[2]
+        # self.temp = temp
+        # self.voltage = power
+        self.poly = self.fit(10)
+
+    def getPower(self, temp = 0, voltage = 0,):
+        stand_temp= self.stand_temp
+        init_sen = self.init_sen
+        correct_sen = self.correct_sen
+        temp = self.poly(temp)
+        #Z=Z0+（T-T0）*Zc
+        sensitivity = init_sen +(temp-stand_temp)*correct_sen
+        #Φ = U/Z
+        power = voltage/sensitivity
+        #voltage 为探测器输出电压，单位是V，sensitivity 为探测器的灵敏度，单位是mV/W
+        return power
+
+    def fit(self,lit = 10):
+        x = [90,    80,     70,   60,     56, 50, 40, 30, 20, 11,   8, 5.5, 4, 3.5, 2]
+        y = [-18, -15.5, -14, -11.5, -10,  -8, -4,  1.5, 10, 20, 30, 40, 50, 60, 70]
+        z = np.polyfit(x, y, lit)
+        p = np.poly1d(z)
+        # print('p:',p )
+        # y2 = [p(i) for i in x]
+        # pyplot.plot(x,y2, hold = True)
+        return p

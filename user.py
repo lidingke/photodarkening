@@ -5,6 +5,43 @@ from PyQt5.QtCore       import pyqtSignal
 # from viewtool import TabWidget
 import hashlib
 import pickle
+import pdb
+# from regest import Regester
+from PyQt5.QtWidgets import QDialog
+from regesterview import Ui_Dialog
+from PyQt5.QtWidgets import QApplication
+from PyQt5.uic import loadUiType
+form_class, base_class = loadUiType('regesterview.ui')
+
+class Regester(QDialog, form_class):
+    """docstring for Regester"""
+    pass2father = pyqtSignal(object)
+    def __init__(self):
+        super(Regester, self).__init__()
+        # self.arg = arg
+        # self.ui = Ui_Dialog()
+        self.setupUi(self)
+        self.setModal(True)
+        # self.pass2father.connect(father.getsignal)
+        self.levelitems = ['master','worker','user','guest']
+        self.level.addItems(self.levelitems)
+        self.save.clicked.connect(self.getUser)
+        self.level.setCurrentIndex(2)
+        self.password.setEchoMode(QLineEdit.Password)
+        self.passwordagain.setEchoMode(QLineEdit.Password)
+
+
+    def getUser(self):
+        self.name = self.username.text()
+        self.password1 = self.password.text()
+        self.password2 = self.passwordagain.text()
+        self.types = self.level.currentText()
+        # pdb.set_trace()
+        print(self.password1 ,':', self.password2,type(self.password1),type(self.password2))
+        if self.password1 == self.password2:
+            self.pass2father.emit((self.name,self.password1,self.types))
+            self.accept()
+
 
 
 class UserView(QWidget):
@@ -20,17 +57,20 @@ class UserView(QWidget):
 
     def UI_init(self):
         mainLayout = QGridLayout()
-        namelabel = QLabel('use')
+        namelabel = QLabel('user')
         self.nameIput = QLineEdit()
         passlabel = QLabel('password')
         self.passwordIput = QLineEdit()
+        self.passwordIput.setEchoMode(QLineEdit.Password)
         self.login= QPushButton('login')
+        self.login.status = 'login'
         self.login.clicked.connect(self.loginfun)
         # self.logout = QPushButton('logout')
         # self.logout.clicked.connect(self.logoutfun)
 
         self.register = QPushButton('register')
-        self.register.setEnabled(False)
+        self.register.setEnabled(True)
+
         self.register.clicked.connect(self.registerfun)
         mainLayout.addWidget(namelabel, 0, 0)
         mainLayout.addWidget(passlabel, 0, 1)
@@ -44,34 +84,47 @@ class UserView(QWidget):
         self.setLayout(mainLayout)
 
     def loginfun(self):
-        if self.login.text() == 'login':
+        if self.login.status == 'login':
 
             name = self.nameIput.text()
             password = self.passwordIput.text()
+            self.userboss.loadUsers()
             use = self.userboss.findUser(name)
             useA = use.isPass(password)
             if useA:
                 self.usersignal.emit(use)
-                self.login.setText('logout')
+                self.login.status = 'logout'
             print('use:',useA)
         elif self.login.text() == 'logout':
             use = User()
             self.usersignal.emit(use)
-            self.login.setText('login')
+            self.login.status = 'login'
 
 
     # def logoutfun(self):
     #     pass
 
     def registerfun(self):
-        pass
+        re = Regester()
+        re.pass2father.connect(self.getsignal)
+        re.exec_()
+            # pass
+
+    def getsignal(self,arg):
+        use = User()
+        use.setUser(arg[0], arg[1] , arg[2])
+        self.userboss.insertUser(use.getName(), use)
+        self.userboss.saveUsers()
+        print('father get :',arg[0], arg[1] , arg[2])
+
 
 class UserManager(object):
     """docstring for UserManager"""
     def __init__(self):
         super(UserManager, self).__init__()
         self.users = dict()
-        self.loadUsers()
+        # self.us = User()
+        # self.loadUsers()
 
     def saveUsers(self):
         print('save a user.pickle len = ',len(self.users))
@@ -81,21 +134,13 @@ class UserManager(object):
     def loadUsers(self):
         with open('user.pickle', 'rb') as f:
             self.users = pickle.load(f)
-        # except FileNotFoundError:
-        #     self.users = dict()
-        # except EOFError:
-        #     self.users = dict()
-
-# class Users(dict):
-#     """docstring for Users"""
-#     def __init__(self):
-#         super(Users, self).__init__()
-#         # self.arg = arg
+        print(self.users)
 
     def findUser(self,name):
         return self.users.get(name,User())
 
     def insertUser(self,name,user):
+        print('insert users :')
         self.users[name] = user
 
     def delUser(self,name):
@@ -112,6 +157,8 @@ class User(object):
         self.types = 'user'
         self.hashkey1 = 'YOFC'
         self.hashkey2 = 'CFOY'
+        self.leveldict = {
+        'master':1,'worker':2,'user':3,'guest':4}
 
     def setName(self,value):
         if self.name is False:
@@ -163,14 +210,15 @@ class User(object):
     def getType(self):
         return self.types
 
-    def setUser(self,name,password,level,types):
+    def setUser(self,name,password,types):
+        level = self.leveldict.get(types,10)
         self.setName(name)
         self.setPassword(password)
         self.setLevel(level)
         self.setType(types)
 
     def getUser(self):
-        us = (self.name,self.password,self.level,self.types)
+        us = (self.name,self.password,self.types)
         return us
 
 if __name__ == '__main__':

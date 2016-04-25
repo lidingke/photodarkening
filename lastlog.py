@@ -1,28 +1,28 @@
 import pickle
+from toolkit import WRpickle
+# import WRpickle
 # from re import findall
-class LastLog(object):
+
+class LastLog(WRpickle):
     """docstring for LastLog"""
-    def __init__(self):
-        super(LastLog, self).__init__()
+    def __init__(self,name = 'lastlog.pickle'):
+        super(LastLog, self).__init__(name)
         # self.arg = arg
-        self.pickname = 'lastlog.pickle'
+        # self.pickname = name
         self.pick = {}
 
     def loadLast(self):
-        with open(self.pickname,'rb') as f:
-            self.pick = pickle.load(f)
+        self.pick = self.loadPick()
         return self.pick
 
-
     def saveLast(self,pick):
-        with open(self.pickname,'wb') as f:
-             pickle.dump(pick,f)
+        self.savePick(pick)
 
+# rewrite insertItem
     def insertItem(self,key,item):
         if type(key) is not str:
             raise TypeError('key must be a str')
         self.pick[key] = item
-
 
 class MsgSet(object):
     """docstring for MsgSet"""
