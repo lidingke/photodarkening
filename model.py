@@ -367,8 +367,9 @@ class Model(threading.Thread, QObject):
     def analysisbit(self):
         '''
                 return without package
+                input bit data analysis
         '''
-        readlive = True
+        # readlive = True
         # xebstatue = False
         # x90statue = False
         bitlist = list()
@@ -398,12 +399,11 @@ class Model(threading.Thread, QObject):
                         self.printShow('received:',data,text = False)
                         return b'\x9A' + data
                     bitlist.append(databit)
-
         return b'-1'
 
     def coreMsgProcess(self,data):
         '''
-        message analysis and manage
+        input message analysis and manage
         '''
         # if data == None:
         #     return '-1'
