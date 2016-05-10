@@ -1,7 +1,7 @@
 import serial
 # from serial.tools import list_ports
 import re
-from model import Model
+from modelcore import ModelCore
 import threading
 import random
 from time import sleep
@@ -15,7 +15,7 @@ class Slave(object):
         #self.arg = arg
         self.currentSendLive = True
         self.running = True
-        self.port = 'com13'
+        self.port = 'com15'
         self.br = 9600
 
     def __init__slaveStatus(self):
@@ -95,7 +95,7 @@ class Slave(object):
 
         # port_list = list(list_ports.comports())
 
-        model = Model()
+        model = ModelCore()
         model.set_port(self.port)
         self.ser = serial.Serial(self.port, self.br, timeout=120)
         #model.begin()
@@ -126,7 +126,7 @@ class Slave(object):
         #开个线程随机发送信号
         #threading.Thread(target=Slave.randomSend,args=(self,ser,)).start()
         # 开个线程发功
-        # threading.Thread(target=Slave.powerSend,args=(self,ser,)).start()
+        threading.Thread(target=Slave.powerSend,args=(self,ser,)).start()
         while True:
             sertext = model.analysisbit()
             #sertext=ser.read(7)

@@ -7,7 +7,7 @@ import  queue
 #from    time                import sleep
 import time
 import logging
-from    sys                 import exit
+# from    sys                 import exit
 import pickle
 import sqlite3
 import pdb
@@ -17,8 +17,8 @@ from    PyQt5.QtCore        import QObject
 from    PyQt5.QtCore        import QTime
 # PySerial imports
 import  serial
-from    serial.serialutil   import SerialException
-from database import DataHand
+# from    serial.serialutil   import SerialException
+# from database import DataHand
 
 class Model(threading.Thread, QObject):
 
@@ -36,13 +36,14 @@ class Model(threading.Thread, QObject):
         threading.Thread.__init__(self)
         QObject.__init__(self)
         # Queue with data (lines) received from serial port
-        self.queue      = queue.Queue()
+        self.setDaemon(True)#deamon thread, close as same as father thread
+        self.printText      = queue.Queue()
         self.currentValueList      = list()
         self.currentTimeList = list()
         # Communications settings
         self.port       = 'com1'
         self.br         = 9600
-        self.timeout    = 0.01
+        self.timeout    = 0.001
         # Line ending id
         #self.eol        = 0
         self.username = 'nobody'
@@ -62,8 +63,9 @@ class Model(threading.Thread, QObject):
         self.sendmsgrec = entry['sendmsgrec']
         self.entry = entry
 
-        self.datahand = DataHand('powerdata.db')
-        self.datahand.username = self.username
+        # self.datahand = DataHand('powerdata.db')
+        # self.datahand.username = self.username
+
         # self.datahand.initSql()
         # self.datahand.connectSql()
 
@@ -92,27 +94,25 @@ class Model(threading.Thread, QObject):
             from the args and kwargs arguments, respectively.
         '''
         while self.running:
-            #self.printShow('running:',self.running)
             if self.ser:
+                data = self.analysisbit()
+                if data :
+                    self.coreMsgProcess(data)
+            time.sleep(self.timeout)
+
+            #self.printShow('running:',self.running)
                 #self.printShow('Model start',self.ser)
-                data = None
                 #sleep(1)
                 #data = self.readline()
                 #ser = self.ser
-                data = self.analysisbit()
                     #self.printShow('Error occured while reading data.')
                 #try:runrun
-                if data :
                     #self.printShow('lendata',len(data))
                     #self.printShow('data:',data)
-                    self.coreMsgProcess(data)
                     #self.printShow('上位机接收：',data)
-                    # self.queue.put(data.strip())
+                    # self.printText.put(data.strip())
                 # except Exception as e:
                 #     data=b-1
-                time.sleep(self.timeout)
-
-
 
     def stop(self):
         '''
@@ -129,9 +129,8 @@ class Model(threading.Thread, QObject):
         # self.datahand.closeConnect()
 
     def printShow(self,*value,ifprint = True,text = True,nobyte = True):
-
-            # print(value)
-        # def pr(*value):
+        ''' print to CMD and text plain
+        '''
         printlist = list()
         textlist = list()
         if value:
@@ -143,7 +142,6 @@ class Model(threading.Thread, QObject):
                     printlist.append(str(x))
                     textlist.append(str(x))
                 elif type(x) == bytes:
-
                     if nobyte == True:
                         textlist.append(':bytes')
                         # printlist.append(':'+str(x))
@@ -158,7 +156,7 @@ class Model(threading.Thread, QObject):
             if text:
                 printText = ''.join(textlist)
                 if printText != ':bytes':
-                    self.queue.put(printText)
+                    self.printText.put(printText)
 
     def closePort(self):
         self.ser.close()
@@ -177,7 +175,6 @@ class Model(threading.Thread, QObject):
 
 
     def reSetPort(self):
-
         try:
             self.ser = serial.Serial(self.port, self.br, timeout=120)
             self.printShow(self.ser,text=False)
@@ -201,7 +198,7 @@ class Model(threading.Thread, QObject):
         self.startRecord = True
         # self.ti0 = time.time()
         print('get ti0:',self.ti0)
-        self.datahand.initSqltabel(self.ti0,self.username)
+        # self.datahand.initSqltabel(self.ti0,self.username)
         self.currentTimeList.clear()
         self.currentValueList.clear()
 
@@ -213,8 +210,6 @@ class Model(threading.Thread, QObject):
     #     re define pirnt fun
     #     """
     #     pass
-
-
         # try:
         #     self.printShow(self.port,self.br)
         #     self.ser = serial.Serial(
@@ -231,15 +226,14 @@ class Model(threading.Thread, QObject):
         #     # )
         #     self.stop()
         #     return False
-
         #self.printShow(self.ser)
 
 #==============================================================================
-# Get, Set from view
+# Get, Set port about message from view
 #==============================================================================
 
     def get_queue(self):
-        return self.queue
+        return self.printText
 
     def getcurrentValueList(self):
         return self.currentValueList
@@ -251,15 +245,14 @@ class Model(threading.Thread, QObject):
         self.ser = ser
 
     def set_port(self,port):
-        # if self.port is not port:
         self.port = port
 
     def set_br(self, baudrate):
-        # if self.br is not baudrate:
         self.br = baudrate
+
         #self.ser.baudrate = self.br
-
-
+        # if self.br is not baudrate:
+        # if self.port is not port:
     # def reset_port(self, port):
     #     #self.ser.close()
     #     time.sleep(0.1)
@@ -306,55 +299,48 @@ class Model(threading.Thread, QObject):
 
     def write(self, data):
         '''
-        @data data to send
+        data to send
         '''
         if type(data) is str:
             if data[:3] == 'msg':
-                print(data)
-                # pdb.set_trace()data[4:]
                 dataSend = b''.fromhex(data[4:])
             else:
                 dataSend = self.msgcoup(data)
         else:
             dataSend =data
-        #self.printShow(dataSend)
         if dataSend:
             self.printShow('上位机发送:',dataSend,text =False)
             self.ser.write(dataSend)
         time.sleep(0.1)
 
+                # print(data)
+        #self.printShow(dataSend)
+                # pdb.set_trace()data[4:]
     # def readline(self):
     #     try:
     #         data = self.ser.read(15)
     #     except Exception as e:
     #         raise e
     #     return data
+            # if ser and ser.isOpen is True:
+        # except Exception as e:
+        #     raise e
 
     def readbit(self,ser):
         try:
             if ser:
-            # if ser and ser.isOpen is True:
                 data = ser.read(1)
-        # except Exception as e:
-        #     raise e
         except serial.serialutil.SerialException :
             time.sleep(1)
             data = b'-1'
-        except NoneType :
-            time.sleep(1)
-            data = b'-1'
-
-
+        # except NoneType :
+        #     time.sleep(1)
+        #     data = b'-1'
         return data
 
-
-
-
     def msgcoup(self,msg):
+        '''package a message if msg length > 6
         '''
-        package a message if msg length > 6
-        '''
-
         msg = self.msgDictHex.get(msg, b'-1')
         if msg is b'-1':
             return msg
@@ -399,7 +385,7 @@ class Model(threading.Thread, QObject):
                         self.printShow('received:',data,text = False)
                         return b'\x9A' + data
                     bitlist.append(databit)
-        return b'-1'
+        return None
 
     def coreMsgProcess(self,data):
         '''
@@ -412,18 +398,19 @@ class Model(threading.Thread, QObject):
         #     data = data[:-2]
         # self.printShow(data[0:1],':',data[1:2],type(data[0]),type(data))
         if data[0:1] == b'\x01':
-            # ti =
-            if data[1:2] == b'\x11':
-                #current plot msg
-                #self.printShow(data,'12:',data[-2:])
-                currentValue = data[-2:].strip()
-                currentValue = int().from_bytes(currentValue,'big')/100
-                self.printShow('currentValue=',currentValue)
-                self.currentValueList.append(currentValue)
-                self.ti0 = 1 + self.ti0
-                self.currentTimeList.append(self.ti0)
-                self.emitPlot()
-            elif data[1:2] == b'\x00':
+            # # ti =
+            # if data[1:2] == b'\x11':
+            #     pass
+                # #current plot msg
+                # #self.printShow(data,'12:',data[-2:])
+                # currentValue = data[-2:].strip()
+                # currentValue = int().from_bytes(currentValue,'big')/100
+                # self.printShow('currentValue=',currentValue)
+                # self.currentValueList.append(currentValue)
+                # self.ti0 = 1 + self.ti0
+                # self.currentTimeList.append(self.ti0)
+                # self.emitPlot()
+            if data[1:2] == b'\x00':
                 # ==========
                 #open and close seed
                 #if data[2:3] == b'\x00\x00':
@@ -502,7 +489,6 @@ class Model(threading.Thread, QObject):
                     elif data[3:5] == b'\x00\x00':
                         self.printShow('closefirstpump')
                         self.isFirstPumpOpen = False
-
                 elif data[2:3] == b'\x0B':
                     if data[3:5] == b'\x00\x01':
                         self.printShow('opensecondpump')
@@ -686,9 +672,9 @@ class Model(threading.Thread, QObject):
         self.printShow('setfirstcurrent',valuemsg)
         self.write(valuemsg)
 
-    def creatPlot(self,tableName):
-        data = self.datahand.getTableData(tableName)
-        self.datahand.createPlot(data)
+    # def creatPlot(self,tableName):
+    #     data = self.datahand.getTableData(tableName)
+    #     self.datahand.createPlot(data)
 
 
 ###
@@ -699,10 +685,10 @@ class Model(threading.Thread, QObject):
         startTime = str(int(self.ti0))
         localTime = time.time()
         tableName = 'TM'+startTime+'US'+self.username
-        try:
-            self.datahand.save2Sql(tableName, localTime, power)
-        except Exception as e:
-            raise e
+        # try:
+        #     self.datahand.save2Sql(tableName, localTime, power)
+        # except Exception as e:
+        #     raise e
 
 
 #==============================================================================
@@ -732,19 +718,17 @@ class Model(threading.Thread, QObject):
         self.secondCurrentSignal.emit(self.secondcurrent)
 
     def emitStatus(self):
-        # pdb.set_trace()
         self.emitSeedCurrent()
         self.emitSeedPulse()
         self.emitSeedFrequece()
         self.emitFirstCurrent()
         self.emitSencondCurrent()
-        # pdb.set_trace()
 
     def emitPlot(self):
         self.plotPower.emit([self.currentTimeList,self.currentValueList])
 
 import numpy as np
-from matplotlib import pyplot
+# from matplotlib import pyplot
 
 class TempDetector(object):
     """

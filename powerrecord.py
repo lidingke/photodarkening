@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import (QTimeEdit, QGridLayout, QHBoxLayout, QPushButton,
     QVBoxLayout,QWidget,QLCDNumber,QListWidget,QListWidgetItem)
 from PyQt5.QtCore import (QTime, QDateTime, pyqtSignal)
 
+from reportDialog import ReportDialog
 import time
 import threading
 import pickle
@@ -9,10 +10,13 @@ import pdb
 import queue
 from pdfcreater import PdfCreater
 
+
+
 class PowerRecord(QWidget):
     """docstring for PowerRecord"""
     beginTimeSignal = pyqtSignal(object)
     sqlTableName = pyqtSignal(object)
+
     def __init__(self):
         super(PowerRecord, self).__init__()
         # self.arg = arg
@@ -29,9 +33,13 @@ class PowerRecord(QWidget):
         self.itemChangeStatus = False
         self.timeStepPause = False
         self.pdfItem = dict()
+        self.figGet = None
         self.loadFile()
         self.UI_init()
         self.plantlist()
+        # with open('template.qss') as t:
+        #     self.setStyleSheet(t.read())
+
         # self.initItemText()
 
     def UI_init(self):
@@ -48,10 +56,12 @@ class PowerRecord(QWidget):
         self.secShow.setNumDigits(10)
         self.secShow.display('00:00:00')
         self.historylist = QListWidget()
+        self.historylist.setCurrentRow(1)
         for x in range(0,self.itemShowNum):
             item = QListWidgetItem()
             self.historylist.addItem(item)
             # pdb.set_trace()
+        # self.itemSelect()
         self.historylist.itemSelectionChanged.connect(self.itemSelect)
 
         # item.setText('kklong')
@@ -99,6 +109,7 @@ class PowerRecord(QWidget):
     def itemSelect(self):
         self.itemText = self.historylist.currentItem().text()
         self.itemNum = self.historylist.currentRow()
+        print(self.itemNum)
         # pdb.set_trace()
         pickget = self.pick[-self.itemNum-1]
         self.startTimetic = pickget.get('begin')
@@ -110,15 +121,33 @@ class PowerRecord(QWidget):
 
     def printPDF(self):
         self.getDbdata()
-        if self.itemChangeStatus is False:
-            self.itemText = self.historylist.item(0).text()
-        print('print:',self.itemText)
+        # if self.itemChangeStatus is False:
+        #     self.itemText = self.historylist.item(0).text()
+        # print('print:',self.itemText)
         # self.pdfItem['']
+        if self.figGet:
+            self.figGet.savePlotFig()
+        rep = ReportDialog()
+        rep.exec_()
+        '''
         printer = PdfCreater(self,)
         printer.saveToFile()
         printer.savePdf()
+       '''
+
+    def getNowFig(self,fig):
+        self.figGet = fig
+
 
     def getDbdata(self):
+        if self.itemChangeStatus is False:
+            self.itemText = self.historylist.item(0).text()
+            self.itemNum = 0
+            pickget = self.pick[-self.itemNum-1]
+            self.startTimetic = pickget.get('begin')
+            self.printUserID = pickget.get('userID')
+            print('num,pick:',self.itemNum, self.startTimetic)
+            print('print:',self.itemText)
         localTime = self.startTimetic
         username = self.userID
         localTime = str(int(localTime))
@@ -128,11 +157,11 @@ class PowerRecord(QWidget):
 
     def loadFile(self):
         try:
-            with open('usertask.pickle','rb') as f:
+            with open('data\\usertask.pickle','rb') as f:
                 self.pick = pickle.load(f)
                 f.close()
         except FileNotFoundError:
-            newfile = open('usertask.pickle','wb')
+            newfile = open('data\\usertask.pickle','wb')
             self.pick = list()
             pickle.dump(self.pick,newfile)
             newfile.close()
@@ -146,7 +175,7 @@ class PowerRecord(QWidget):
 
     def saveFile(self):
         try:
-            with open('usertask.pickle','wb') as f:
+            with open('data\\usertask.pickle','wb') as f:
                 pickle.dump(self.pick,f)
                 f.close()
         except Exception as e:

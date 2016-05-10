@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     app.setPalette(pt)
     font = app.font()
-    font.setPointSize(12)
+    font.setPointSize(10)
     font.setFamily('微软雅黑')
 
     app.setFont(font)

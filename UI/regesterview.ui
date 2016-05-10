@@ -33,8 +33,22 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="password"/>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="passwordagain"/>
+     </item>
+     <item row="4" column="0">
+      <widget class="QPushButton" name="save">
+       <property name="text">
+        <string>Save</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>level:</string>
+       </property>
+      </widget>
      </item>
      <item row="2" column="0">
       <widget class="QLabel" name="label_3">
@@ -43,15 +57,8 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="1">
-      <widget class="QLineEdit" name="passwordagain"/>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="label_4">
-       <property name="text">
-        <string>level:</string>
-       </property>
-      </widget>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="password"/>
      </item>
      <item row="3" column="1">
       <widget class="QComboBox" name="level">
@@ -63,10 +70,10 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="0">
-      <widget class="QPushButton" name="save">
+     <item row="4" column="1">
+      <widget class="QLabel" name="msgtext">
        <property name="text">
-        <string>Save</string>
+        <string>TextLabel</string>
        </property>
       </widget>
      </item>

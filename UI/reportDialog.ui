@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>492</width>
+    <height>242</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>12</y>
+     <width>201</width>
+     <height>126</height>
+    </rect>
+   </property>
+   <layout class="QFormLayout" name="formLayout">
+    <item row="0" column="0">
+     <widget class="QLabel" name="labelDate">
+      <property name="text">
+       <string>日期：</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QLineEdit" name="lineEditDate"/>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="labelWorker">
+      <property name="text">
+       <string>操作人：</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="lineEditWorker"/>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="labelFibertype">
+      <property name="text">
+       <string>光纤型号：</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QLineEdit" name="lineEditFibertype"/>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="labelProducer">
+      <property name="text">
+       <string>生产厂家：</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QLineEdit" name="lineEditProducer"/>
+    </item>
+    <item row="4" column="0">
+     <widget class="QLabel" name="labelFiberNo">
+      <property name="text">
+       <string>光纤编号：</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="QLineEdit" name="lineEditFiberNo"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QWidget" name="">
+   <property name="geometry">
+    <rect>
+     <x>240</x>
+     <y>10</y>
+     <width>225</width>
+     <height>204</height>
+    </rect>
+   </property>
+   <layout class="QFormLayout" name="formLayout_2">
+    <item row="0" column="0">
+     <widget class="QLabel" name="labelTemperature">
+      <property name="text">
+       <string>环境温度：</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QLineEdit" name="lineEditTemperature"/>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="labelHumidity">
+      <property name="text">
+       <string>环境湿度：</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="lineEditHumidity"/>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="labelSignalwavelength">
+      <property name="text">
+       <string>信号光波长：</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QLineEdit" name="lineEditSignalwavelength"/>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="labelSingalpulsewidth">
+      <property name="text">
+       <string>信号光脉宽：</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QLineEdit" name="lineEditSignalpulsewidth"/>
+    </item>
+    <item row="4" column="0">
+     <widget class="QLabel" name="labelSingalfrequence">
+      <property name="text">
+       <string>信号光频率：</string>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="QLineEdit" name="lineEditFrequence"/>
+    </item>
+    <item row="5" column="0">
+     <widget class="QLabel" name="labelSecondpulsepower">
+      <property name="text">
+       <string>二级泵浦功率：</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="1">
+     <widget class="QLineEdit" name="lineEditSecondpulsepower"/>
+    </item>
+    <item row="6" column="0">
+     <widget class="QLabel" name="labelFiberlength">
+      <property name="text">
+       <string>光纤长度：</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="1">
+     <widget class="QLineEdit" name="lineEditFiberlength"/>
+    </item>
+    <item row="7" column="0">
+     <widget class="QLabel" name="labelTimelong">
+      <property name="text">
+       <string>测试时长：</string>
+      </property>
+     </widget>
+    </item>
+    <item row="7" column="1">
+     <widget class="QLineEdit" name="lineEditTimelong"/>
+    </item>
+   </layout>
+  </widget>
+  <zorder>lineEditWorker</zorder>
+  <zorder>labelWorker</zorder>
+  <zorder>labelDate</zorder>
+  <zorder>labelFibertype</zorder>
+  <zorder>labelProducer</zorder>
+  <zorder>labelFiberNo</zorder>
+  <zorder>labelTemperature</zorder>
+  <zorder>labelHumidity</zorder>
+  <zorder>labelSignalwavelength</zorder>
+  <zorder>labelSingalpulsewidth</zorder>
+  <zorder>labelSingalfrequence</zorder>
+  <zorder>labelSecondpulsepower</zorder>
+  <zorder>labelFiberlength</zorder>
+  <zorder>labelTimelong</zorder>
+  <zorder>lineEditDate</zorder>
+  <zorder>lineEditFibertype</zorder>
+  <zorder>lineEditProducer</zorder>
+  <zorder>lineEditFiberNo</zorder>
+  <zorder>lineEditTemperature</zorder>
+  <zorder>lineEditHumidity</zorder>
+  <zorder>lineEditSignalpulsewidth</zorder>
+  <zorder>lineEditFrequence</zorder>
+  <zorder>lineEditSecondpulsepower</zorder>
+  <zorder>lineEditFiberlength</zorder>
+  <zorder>lineEditTimelong</zorder>
+  <zorder>labelTemperature</zorder>
+  <zorder>lineEditSignalwavelength</zorder>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

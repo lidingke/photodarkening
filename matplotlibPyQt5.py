@@ -4,21 +4,24 @@ import matplotlib
 matplotlib.use("Qt5Agg")
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSizePolicy, QMessageBox, QWidget
-from numpy import arange, sin, pi
+# from numpy import arange, sin, pi
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+from matplotlib import pyplot
+import threading
 
 
 class MyMplCanvas(FigureCanvas):
     """Ultimately, this is a QWidget (as well as a FigureCanvasAgg, etc.)."""
     def __init__(self, parent=None, width=5, height=4, dpi=100):
         fig = Figure(figsize=(width, height), dpi=dpi, facecolor = 'white' )
+        self.fig = fig
         self.axes = fig.add_subplot(111)
         # fig.facecolor = black
         # We want the axes cleared every time plot() is called
         self.axes.hold(False)
 
-        self.compute_initial_figure()
+        # self.compute_initial_figure()
 
         #
         FigureCanvas.__init__(self, fig)
@@ -29,15 +32,6 @@ class MyMplCanvas(FigureCanvas):
                                    QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
-    def compute_initial_figure(self):
-        pass
-
-class MyStaticMplCanvas(MyMplCanvas):
-    """Simple canvas with a sine plot."""
-    def compute_initial_figure(self):
-        t = arange(0.0, 3.0, 0.01)
-        s = sin(2*pi*t)
-        self.axes.plot(t, s)
 
 
 class MyDynamicMplCanvas(MyMplCanvas):
@@ -50,18 +44,43 @@ class MyDynamicMplCanvas(MyMplCanvas):
         self.axes.set_xlabel('Time(s)')
         self.axes.set_ylabel('Power(W)')
         self.axes.grid(True)
+        self.lasty = 1
+        self.xlist = list()
+        self.ylist = list()
 
     def compute_initial_figure(self):
         self.axes.plot([0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5], 'r')
+        # self.axes.xticks([0.0,0.5,1.0])
 
     def update_figure(self):
         # Build a list of 4 random integers between 0 and 10 (both inclusive)
         # l = [random.randint(0, 10) for i in range(4)]
         if self.xlist:
-            # pass
-            # print(self.xlist,self.ylist)
+            try:
+                hugeNumAvoid = abs(self.ylist[-1]/self.lasty)
+                if hugeNumAvoid >100 or hugeNumAvoid < 0.001:
+                    return
+            except ZeroDivisionError:
+                pass
             self.axes.plot(self.xlist, self.ylist, 'r')
             self.draw()
+            self.lasty = self.ylist[-1]
+
+    def savePlotFig(self):
+        pass
+        # threading.Thread(target = self.savefigThread,daemon = True).start()
+
+    def savefigThread(self):
+        if self.xlist:
+            pyplot.plot(self.xlist, self.ylist)
+            pyplot.show()
+            pyplot.savefig("d.png",dpi = 100)
+        # self.axes.plot(self.xlist, self.ylist, 'r')
+        # import matplotlib.pyplot as plt
+        # plt.plot(range(10))
+        # plt.savefig('testplot.png')
+
+
 
     def XYaxit(self,x,y):
         self.xlist = x
@@ -87,9 +106,9 @@ class ApplicationWindow(QMainWindow):
         self.main_widget = QWidget(self)
 
         l = QVBoxLayout(self.main_widget)
-        sc = MyStaticMplCanvas(self.main_widget, width=5, height=4, dpi=100)
+        # sc = MyStaticMplCanvas(self.main_widget, width=5, height=4, dpi=100)
         dc = MyDynamicMplCanvas(self.main_widget, width=5, height=4, dpi=100)
-        l.addWidget(sc)
+        # l.addWidget(sc)
         l.addWidget(dc)
 
         self.main_widget.setFocus()

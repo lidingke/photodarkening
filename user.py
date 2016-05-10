@@ -1,46 +1,72 @@
 
-from PyQt5.QtWidgets import (QLabel,QLineEdit, QGridLayout, QHBoxLayout, QPushButton,
+from PyQt5.QtWidgets import (QLabel,QLineEdit, QGridLayout, QPushButton,
     QVBoxLayout,QWidget,QLCDNumber,QListWidget,QListWidgetItem)
 from PyQt5.QtCore       import pyqtSignal
 # from viewtool import TabWidget
 import hashlib
 import pickle
 import pdb
-# from regest import Regester
+# from regest import Register
 from PyQt5.QtWidgets import QDialog
-# from regesterview import Ui_Dialog
+from UI.registerUI import Ui_Dialog
 from PyQt5.QtWidgets import QApplication
-from PyQt5.uic import loadUiType
-form_class, base_class = loadUiType('regesterview.ui')
+# from PyQt5.uic import loadUiType
+# form_class, base_class = loadUiType('Registerview.ui')
 
-class Regester(QDialog, form_class):
-    """docstring for Regester"""
+class Register(QDialog):
+    """docstring for Register"""
+    # passwdSignal1 = pyqtSignal(object)
+    # passwdSignal2 = pyqtSignal(object)
     pass2father = pyqtSignal(object)
+
     def __init__(self):
-        super(Regester, self).__init__()
+        super(Register, self).__init__()
         # self.arg = arg
-        # self.ui = Ui_Dialog()
-        self.setupUi(self)
-        self.setModal(True)
-        # self.pass2father.connect(father.getsignal)
+        self.ui = Ui_Dialog()
+        self.ui.setupUi(self)
         self.levelitems = ['master','worker','user','guest']
-        self.level.addItems(self.levelitems)
-        self.save.clicked.connect(self.getUser)
-        self.level.setCurrentIndex(2)
-        self.password.setEchoMode(QLineEdit.Password)
-        self.passwordagain.setEchoMode(QLineEdit.Password)
+        self.ui.level.addItems(self.levelitems)
+        self.ui.save.clicked.connect(self.saveuser)
+        self.ui.level.setCurrentIndex(2)
+        self.ui.msgtext.setText('')
+        self.ui.password.textChanged.connect(self.passwdDetector)
+        self.ui.passwordagain.textChanged.connect(self.passwdDetector)
 
+        # self.passwdSignal1.connect(self.password1)
+        # self.passwdSignal2.connect(self.password2)
 
-    def getUser(self):
-        self.name = self.username.text()
-        self.password1 = self.password.text()
-        self.password2 = self.passwordagain.text()
-        self.types = self.level.currentText()
-        # pdb.set_trace()
-        print(self.password1 ,':', self.password2,type(self.password1),type(self.password2))
-        if self.password1 == self.password2:
-            self.pass2father.emit((self.name,self.password1,self.types))
-            self.accept()
+    def saveuser(self):
+        self.name = self.ui.username.text()
+        self.password1 = self.ui.password.text()
+        self.password2 = self.ui.passwordagain.text()
+        self.types = self.ui.level.currentText()
+        if self.password1 is not self.password2:
+            self.ui.msgtext.setText('密码不相等')
+            return
+        us = User()
+        us.setUser(self.name, self.password, self.types)
+        usm = UserManager()
+        usm.loadUsers()
+        usm.insertUser(us.getName, us)
+        usm.saveUsers()
+
+    def passwdDetector(self):
+        pswd1 = self.ui.password.text()
+        pswd2 = self.ui.passwordagain.text()
+        if pswd2 or pswd1:
+            if len(pswd1)<6 or len(pswd2)<6:
+                self.ui.msgtext.setText('密码必须大于6位')
+            elif len(pswd1)>18 or len(pswd2)>18:
+                self.ui.msgtext.setText('密码必须小于18位')
+            else:
+                self.ui.msgtext.setText('')
+            for x in pswd1, pswd2:
+                # if (x.isdigit() or x.isalpha() ) is True:
+                #     print('zhimushuz:',x.isdigit() ,x.isalpha(),x)
+                if x.isalpha() or x.isdigit():
+                    print('alpha or digit:')
+                else:
+                    self.ui.msgtext.setText('密码必须为字母或数字')
 
 
 
@@ -105,7 +131,7 @@ class UserView(QWidget):
     #     pass
 
     def registerfun(self):
-        re = Regester()
+        re = Register()
         re.pass2father.connect(self.getsignal)
         re.exec_()
             # pass
@@ -128,11 +154,11 @@ class UserManager(object):
 
     def saveUsers(self):
         print('save a user.pickle len = ',len(self.users))
-        with open('user.pickle', 'wb') as f:
+        with open('data\\user.pickle', 'wb') as f:
             pickle.dump(self.users, f)
 
     def loadUsers(self):
-        with open('user.pickle', 'rb') as f:
+        with open('data\\user.pickle', 'rb') as f:
             self.users = pickle.load(f)
         print(self.users)
 

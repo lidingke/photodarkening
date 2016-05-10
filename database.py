@@ -6,10 +6,10 @@ class DataHand(object):
     """docstring for DataHand
     table: 'TM'+dateNow+'US'+self.username
     """
-    def __init__(self, name = 'data.db'):
+    def __init__(self, name = 'data\\data.db'):
         super(DataHand, self).__init__()
         self.name = name
-        logging.basicConfig(filename = 'databaselog.txt', filemode = 'a',
+        logging.basicConfig(filename = 'data\\databaselog.txt', filemode = 'a',
             level = logging.ERROR, format = '%(asctime)s - %(levelname)s: %(message)s')
         self.username = 'nobody'
 

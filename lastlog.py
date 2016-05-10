@@ -5,7 +5,7 @@ from toolkit import WRpickle
 
 class LastLog(WRpickle):
     """docstring for LastLog"""
-    def __init__(self,name = 'lastlog.pickle'):
+    def __init__(self,name = 'data\\lastlog.pickle'):
         super(LastLog, self).__init__(name)
         # self.arg = arg
         # self.pickname = name
@@ -16,6 +16,7 @@ class LastLog(WRpickle):
         return self.pick
 
     def saveLast(self,pick):
+        # print('saveLast',pick)
         self.savePick(pick)
 
 # rewrite insertItem
@@ -26,9 +27,9 @@ class LastLog(WRpickle):
 
 class MsgSet(object):
     """docstring for MsgSet"""
-    def __init__(self, arg):
+    def __init__(self):
         super(MsgSet, self).__init__()
-        self.arg = arg
+        # self.arg = arg
 # from threading import Thread
         self.msg = {}
         self.msgDictStr = {
@@ -108,5 +109,10 @@ class MsgSet(object):
         print(sendmsgrec)
         print('len,msgDictHex,sendmsgrec',len(msgDictHex),len(sendmsgrec))
 
-        with open('msg.pickle', 'wb') as f1:
+        with open('data\\msg.pickle', 'wb') as f1:
             pickle.dump(msg, f1)
+
+
+if __name__ == '__main__':
+    ms = MsgSet()
+    ms.msgProccess()

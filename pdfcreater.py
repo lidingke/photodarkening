@@ -66,8 +66,8 @@ class PdfContext(object):
       'temperature': '25℃',
       'humidity': '30%',
       'signalwavelength': '1064nm',
-      'singalpulsewidth': '26ns',
-      'singalfrequence': '100kHz',
+      'signalpulsewidth': '26ns',
+      'signalpulsewidth': '100kHz',
       'secondpulsepower': '6.20W',
       'fiberlength': '4.5m',
       'timelong': '10hr',
@@ -82,10 +82,10 @@ class PdfContext(object):
       }
 
     def getContext(self):
-      pass
+      return self.context
 
-    def inputContext(self):
-      pass
+    def inputContext(self,context):
+      self.context = context
 
     def thtmlGet(self):
         text = self.context
@@ -100,8 +100,8 @@ class PdfContext(object):
         temperature = text.get('temperature','')
         humidity = text.get('humidity','')
         signalwavelength = text.get('signalwavelength','')
-        singalpulsewidth = text.get('singalpulsewidth','')
-        singalfrequence = text.get('singalfrequence','')
+        signalpulsewidth = text.get('signalpulsewidth','')
+        signalfrequence = text.get('signalfrequence','')
         secondpulsepower = text.get('secondpulsepower','')
         fiberlength = text.get('fiberlength','')
         timelong = text.get('timelong','')
@@ -191,8 +191,8 @@ class PdfContext(object):
     <p>环境温度：'''+temperature+'''<br />
     环境湿度：'''+humidity+'''<br />
     信号光波长：'''+signalwavelength+'''<br />
-    信号光脉宽：'''+singalpulsewidth+'''<br />
-    信号光频率：'''+singalfrequence+'''<br />
+    信号光脉宽：'''+signalpulsewidth+'''<br />
+    信号光频率：'''+signalfrequence+'''<br />
     二级泵浦光功率: '''+secondpulsepower+'''<br />
     光纤长度：'''+fiberlength+'''<br />
     测试时长：'''+timelong+'''</p>
