@@ -3,11 +3,10 @@
 *.bat
 *.exe
 *.txt
-/Fonts
-/Image
 *.pdf
 *.md
 /renwu
 *.html
 /recycle
 *.db
+/data
