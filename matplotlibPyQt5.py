@@ -63,10 +63,11 @@ class MyDynamicMplCanvas(MyMplCanvas):
                     return
             except ZeroDivisionError:
                 pass
+            print('isStartLog',self.isStartLog)
             if self.isStartLog == False:
                 self.beforeLog()
             else:
-                self.getLogPlotPara()
+                # self.getLogPlotPara()
                 self.afterLog()
             self.lasty = self.ylist[-1]
 
@@ -76,15 +77,21 @@ class MyDynamicMplCanvas(MyMplCanvas):
                 self.axes.set_ylim(0,1)
             self.draw()
 
+    def getStartLog(self,bool_ ):
+        print('lg set ',bool_)
+        self.isStartLog = bool_
+
     def getLogTimeState(self,pydatetime ):
         self.timeState = pydatetime
         tp = pydatetime
         self.timeStatesec = (tp.hour*60+tp.minute)*60+tp.second
+        print('timsec',self.timeStatesec)
 
     def afterLog(self):
             self.axes.plot(self.xlist, self.ylist, 'r')
-            if self.timeState.hour > 0:
-                self.axes.set_ylim(0,self.timeState.hour)
+            # if self.timeState.hour > 0:
+            self.axes.set_xlim(0,self.timeStatesec)
+            print('setsec ',self.timeStatesec)
             if self.ylist[-1] < 1:
                 self.axes.set_ylim(0,1)
             self.draw()

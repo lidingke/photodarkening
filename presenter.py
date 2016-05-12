@@ -45,7 +45,6 @@ class Presenter:
         self.srcModel.begin()
         self.srcModel.start()
         self.setSourceSignals()
-
         # self.__view.set_queue(self.srcModel.get_queue())
         # self.__view.enablePortSet()
         # self.__view.setCurrentValue(self.srcModel.getcurrentValueList(),self.srcModel.getcurrentTimeList())

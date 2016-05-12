@@ -58,9 +58,9 @@ class ModelPump(ModelCore):
             # self.firstPower = int().from_bytes(data[3:5],'little')
             # self.firstCurrent = int().from_bytes(data[5:7],'little')
             self.getPower = int().from_bytes(data[5:7],'little')
-            if self.getPower > 65200:#some times error number from slave ,most of them higher them 65200
-                self.printShow('收到功率乱码')
-                self.getPower = int().from_bytes(data[-7:-5],'little')
+            # if self.getPower > 65200:#some times error number from slave ,most of them higher them 65200
+            #     self.printShow('收到功率乱码')
+            #     self.getPower = int().from_bytes(data[-7:-5],'little')
             print('十进制温度：',self.heat,'电压：',self.getPower)
             if self.heat <100:
                 self.lastTemp = self.heat
@@ -109,12 +109,12 @@ class ModelPump(ModelCore):
         self.writesecondPumpCurrent(self.secondcurrent)
         '''
         self.write(self.msgDictHex['closesecondpump'])
-        '''
+        # '''
         time.sleep(0.3)
     # if self.isFirstPumpOpen:
         self.write(self.msgDictHex['closefirstpump'])
         time.sleep(0.3)
-        '''
+        # '''
 
 
         # self.printShow('seed:',self.isSeedOpen,
