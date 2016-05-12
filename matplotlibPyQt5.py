@@ -63,6 +63,11 @@ class MyDynamicMplCanvas(MyMplCanvas):
             except ZeroDivisionError:
                 pass
             self.axes.plot(self.xlist, self.ylist, 'r')
+            if self.ylist[-1] < 1:
+                # pass
+                self.axes.set_ylim(0,1)
+
+            # self.axes.set_yticks([0.0,0.2,0.4,0.6,0.8,1.0])
             self.draw()
             self.lasty = self.ylist[-1]
 
@@ -79,8 +84,6 @@ class MyDynamicMplCanvas(MyMplCanvas):
         # import matplotlib.pyplot as plt
         # plt.plot(range(10))
         # plt.savefig('testplot.png')
-
-
 
     def XYaxit(self,x,y):
         self.xlist = x

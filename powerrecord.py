@@ -16,6 +16,7 @@ class PowerRecord(QWidget):
     """docstring for PowerRecord"""
     beginTimeSignal = pyqtSignal(object)
     sqlTableName = pyqtSignal(object)
+    stopSavePower = pyqtSignal(object)
 
     def __init__(self):
         super(PowerRecord, self).__init__()
@@ -114,7 +115,7 @@ class PowerRecord(QWidget):
         pickget = self.pick[-self.itemNum-1]
         self.startTimetic = pickget.get('begin')
         self.printUserID = pickget.get('userID')
-        print('num,pick:',self.itemNum, self.startTimetic)
+        print('itemSelect:',self.itemNum, self.startTimetic,self.printUserID)
 
         self.itemChangeStatus = True
         # print(self.itemText)
@@ -271,6 +272,7 @@ class PowerRecord(QWidget):
 
         self.stopTime = time.time()
         self.seButton.setEnabled(True)
+        self.stopSavePower.emit(True)
         # self.seButton.setText('start')
         # self.timebegin = False
 

@@ -42,7 +42,8 @@ class View(QWidget):
     startSrcModel = pyqtSignal(object)
     startPumpModel = pyqtSignal(object)
     startTempModel = pyqtSignal(object)
-    beginTime = pyqtSignal()
+    beginTime = pyqtSignal(object)
+    emitUsername = pyqtSignal(object)
 
     def __init__(self):
         super(QWidget,self).__init__()
@@ -63,8 +64,8 @@ class View(QWidget):
         self.currentValueList =list()
         self.currentTimeList = list()
         self.buttonMinimumWidth = 100
-        self.topSeedCurrent = 700
-        self.topPumpCurrent = 1000
+        # self.topSeedCurrent = 700
+        # self.topPumpCurrent = 1000
         self.canClosePort = True
 
         self.initSeedPulse = 0
@@ -327,6 +328,13 @@ class View(QWidget):
         self.setSecondpump = self.pumpUI.secondpumpSpin
         self.setSecondpump.setValue(self.init2stCurrent)
         self.closeAll = self.pumpUI.sourceClose
+        self.pumpUI.firstpumpSpin.setMaximum(1000)
+        self.pumpUI.secondpumpSpin.setMaximum(10000)
+        self.pumpUI.secondpumpSpin.setSingleStep(500)
+
+
+        self.pumpUI.firstPumpSet.setDisabled(True)
+        self.pumpUI.sourceSet.setDisabled(True)
 
         # self.setSecondpump.setSingleStep(50)
         # self.setFirstpump.setSingleStep(50)
@@ -695,6 +703,8 @@ class View(QWidget):
             self.pumpModelstarted = True
             # self.startTempModel.emit(self.tempModelstarted)
             # self.tempModelstarted = True
+            self.emitUsername.emit(self.user.getName())
+            print('emit username:',self.user.getName())
         else:
             self.toolBox.setTabEnabled(1,False)
             self.toolBox.setTabEnabled(2,False)

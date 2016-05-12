@@ -282,9 +282,9 @@ class ModelCore(threading.Thread, QObject):
                 while True:
                     databit = self.readbit(self.ser)
                     if databit == b'\xA9':
-                        databit = self.readbit(self.ser)
+                        # databit = self.readbit(self.ser)
                         data = b''.join(bitlist)
-                        self.printShow('received:',data,text = False)
+                        self.printShow('received:',b'\x9A' + data +b'\xA9',text = False)
                         return b'\x9A' + data +b'\xA9'
                     bitlist.append(databit)
         # return None
@@ -333,6 +333,9 @@ class ModelCore(threading.Thread, QObject):
     def set_br(self, baudrate):
         self.br = baudrate
 
+    def setUsername(self,name):
+        self.username = name
+        print('username is set: ',self.username)
 
 # if __name__ == '__main__':
 #     """is singleton"""

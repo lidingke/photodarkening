@@ -20,6 +20,9 @@ class ModelPump(ModelCore):
         self.startRecord = False# set start record statues
         self.datahand = DataHand('data\\powerdata.db')
         self.datahand.username = self.username
+        self.saveStop = False
+        self.lastPower = 1
+        self.lastTemp = 1
 
     def coreMsgProcess(self,data):
         '''input message analysis and manage
@@ -50,18 +53,24 @@ class ModelPump(ModelCore):
         elif data[0:1] == b'\x9A':
             ti1 = time.time() -self.ti0
             self.currentTimeList.append(ti1)
-            # print('十六进制温度：',data[1:3],'电压：',data[9:11],'length',len(data))
+            print('十六进制温度：',data[1:3],'电压：',data[5:7],'length',len(data))
             self.heat = int().from_bytes(data[1:3],'little')/100
-            self.firstPower = int().from_bytes(data[3:5],'little')
-            self.firstCurrent = int().from_bytes(data[5:7],'little')
-            self.getPower = int().from_bytes(data[9:11],'little')
-            # print('十进制温度：',self.heat,'电压：',self.getPower)
-            self.getPower = (self.getPower/4096)*3#
+            # self.firstPower = int().from_bytes(data[3:5],'little')
+            # self.firstCurrent = int().from_bytes(data[5:7],'little')
+            self.getPower = int().from_bytes(data[5:7],'little')
+            if self.getPower > 65200:#some times error number from slave ,most of them higher them 65200
+                self.printShow('收到功率乱码')
+                self.getPower = int().from_bytes(data[-7:-5],'little')
+            print('十进制温度：',self.heat,'电压：',self.getPower)
+            if self.heat <100:
+                self.lastTemp = self.heat
+            if self.getPower <65200:
+                self.lastPower = self.getPower
+            self.getPower = (self.getPower/4096)*3#！！！！！这里也改了注意！！！！！！！！！
             self.tmPower = self.tempdetector.getPower(self.heat,self.getPower)
-            self.printShow('Temp and V is :',self.heat,
-                'and',self.tmPower)
+            self.printShow('温度:',self.heat,'℃','  功率:',round(self.tmPower,4),'W')
             self.currentValueList.append(self.tmPower)
-            if self.startRecord == True:
+            if (self.startRecord == True) and (self.saveStop == False):
                 self.save2sql(self.tmPower)
             self.emitPlot()
 
@@ -76,10 +85,14 @@ class ModelPump(ModelCore):
         threading.Thread(target=self.openAll).start()
 
     def openAll(self):
+        '''
         self.write(self.msgDictHex['openfirstpump'])
         time.sleep(0.3)
+        '''
         self.write(self.msgDictHex['opensecondpump'])
+        '''
         time.sleep(0.3)
+
         # isopen = self.isSeedOpened()
         # if isopen:
         self.printShow('init device set all zero')
@@ -87,6 +100,7 @@ class ModelPump(ModelCore):
         self.writeFirstPumpCurrent(self.firstcurrent)
         self.writesecondPumpCurrent(self.secondcurrent)
         self.emitStatus()
+        '''
 
     def closeAll(self):
         # self.writeSeedPulseAndFre([self.seedcurrent,self.seedpulse,self.seedfrequece])
@@ -95,10 +109,12 @@ class ModelPump(ModelCore):
         self.writesecondPumpCurrent(self.secondcurrent)
         '''
         self.write(self.msgDictHex['closesecondpump'])
+        '''
         time.sleep(0.3)
     # if self.isFirstPumpOpen:
         self.write(self.msgDictHex['closefirstpump'])
         time.sleep(0.3)
+        '''
 
 
         # self.printShow('seed:',self.isSeedOpen,
@@ -119,7 +135,7 @@ class ModelPump(ModelCore):
         # self.printShow('frevalue:',value)
         # self.printShow('setfirstcurrent:',value,type(value),int(value))
         print('firstvalue',value)
-        value = int(value)*4#!!!!!!!!!!!!!!!!!!!!!!!!!!重大改动!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        value = int(value)*4#*4 is about slave
         value = int(value).to_bytes(2,'big')
         valuemsg = self.msgDictHex['setfirstcurrent']
         valuemsg = valuemsg[:5] + value + valuemsg[-2:]
@@ -182,18 +198,22 @@ class ModelPump(ModelCore):
     def getcurrentTimeList(self):
         return self.currentTimeList
 
+    def setSaveStop(self,isture):
+        self.saveStop = isture
 
 #plort start status
     def setBeginPlotTime(self):
         self.startRecord = True
+        self.saveStop = False
         # self.ti0 = time.time()
-        print('get ti0:',self.ti0)
+        print('get ti0:',self.ti0,'init tabel username',self.username)
         self.datahand.initSqltabel(self.ti0,self.username)
         self.currentTimeList.clear()
         self.currentValueList.clear()
 
     def setStartTime(self,stime ):
         self.ti0 = stime
+
 
 #sqlite save
     def save2sql(self, power ):

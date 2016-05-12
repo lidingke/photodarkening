@@ -101,6 +101,9 @@ class Presenter:
         self.__view.powerRecord.beginTimeSignal.connect(self.pumpModel.setStartTime)
         self.__view.powerRecord.seButton.clicked.connect(self.pumpModel.setBeginPlotTime)
         self.__view.powerRecord.sqlTableName.connect(self.pumpModel.creatPlot)
+        self.__view.powerRecord.stopSavePower.connect(self.pumpModel.setSaveStop)
+        print('model signals set?')
+        self.__view.emitUsername.connect(self.pumpModel.setUsername)
     # def setSignals(self):
     #     # self.__view.send_data.connect(self.srcModel.write)
     #     self.__view.powerRecord.beginTimeSignal.connect(self.srcModel.setStartTime)

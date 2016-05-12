@@ -62,15 +62,26 @@ class Slave(object):
         #currentmsg = self.sendmsg['sendplot']
         while True:
             #print(currentmsg)
-            cp1,cp2,cp3,cp4 = self.rdcreate(8,12,1),self.rdcreate(),self.rdcreate(),self.rdcreate(3,6,1)
-            currentmsg = b'\x9A'+ cp1 + cp2 + cp3 + cp4 +b'\xA9'
+            cp1,cp2,cp3,cp4 = self.rdcreate(8,12,1),self.rdcreate(),self.rdcreate(25,27,1,head = 'little'),self.rdcreate(3,6,1)
+            currentmsg = b'\x9A'+ cp1 +cp2 + cp3 + cp4 +b'\xA9'
             print('发功：',currentmsg)
             # pdb.set_trace()
             # print('发送电流：',currentmsg,': ',int().from_bytes(cb1,'big'),int().from_bytes(cb2,'big'),int().from_bytes(cb3,'big'),int().from_bytes(cb4,'big')
             ser.write(currentmsg)
             sleep(3)
 
-
+    def errorSend(self,ser):
+        errorlist = [
+        b'\x9A\xA9',
+        b'\x9A\xA9\x9A\xA9\x9A\xA9\x9A\xA9\x9A\xA9',
+        b'\x9A\x01\x01\x03\x08\x9A\xA9',
+        b'\x9A\x23\x90\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xA9'
+        ]
+        while True:
+            for x in errorlist:
+                pass
+                ser.write(x)
+                sleep(100)
 
 
     def process(self):
@@ -127,6 +138,8 @@ class Slave(object):
         #threading.Thread(target=Slave.randomSend,args=(self,ser,)).start()
         # 开个线程发功
         threading.Thread(target=Slave.powerSend,args=(self,ser,)).start()
+        #开个线程发error信息
+        threading.Thread(target=Slave.errorSend,args=(self,ser,)).start()
         while True:
             sertext = model.analysisbit()
             #sertext=ser.read(7)
@@ -140,9 +153,9 @@ class Slave(object):
 
         ser.close()
 
-    def rdcreate(self,a = 2, b =10 ,c =100):
+    def rdcreate(self,a = 2, b =10 ,c =100 , head = 'big'):
         cb = int(random.uniform(a,b)*c)
-        cb = cb.to_bytes(2,'big')
+        cb = cb.to_bytes(2,head)
         return cb
 
     def msganalysis(self,sertext):
@@ -210,6 +223,7 @@ class Slave(object):
                         print(serstr,value)
                     elif serstr == 'setfirstcurrent':
                         print(serstr,value)
+                        print('晓光说不要发送一级的电流，还不快关掉！！！')
                         self.firstcurrent = value
                     elif serstr == 'setsecondcurrent':
                         print(serstr,value)
