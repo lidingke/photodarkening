@@ -198,6 +198,7 @@ class View(QWidget):
         self.useBox.addStretch()
         self.powerRecord = PowerRecord()
         self.powerRecord.getNowFig(self.painter)
+        self.powerRecord.timeStateSignal.connect(self.painter.getLogTimeState)
         self.powerRecordBox.addWidget(self.powerRecord)
 #
 #port set

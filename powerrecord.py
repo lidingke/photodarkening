@@ -17,6 +17,7 @@ class PowerRecord(QWidget):
     beginTimeSignal = pyqtSignal(object)
     sqlTableName = pyqtSignal(object)
     stopSavePower = pyqtSignal(object)
+    timeStateSignal = pyqtSignal(object)
 
     def __init__(self):
         super(PowerRecord, self).__init__()
@@ -222,9 +223,11 @@ class PowerRecord(QWidget):
             self.beginTime = time.time()
             print('beginTime:',self.beginTime)
             self.beginTimeSignal.emit(self.beginTime)
+
             # self.emitBeginTime()
             self.editTime = self.timeEdit.time()
-            # print(self.editTime)
+            self.timeStateSignal.emit(self.editTime.toPyTime())
+            print('editTime:',self.editTime,'toPyTime',self.editTime.toPyTime())
             # self.seButton.setText('stop')
             threading.Thread(target=PowerRecord.timerStep,args=(self,)).start()
             self.seButton.setEnabled(False)
@@ -278,7 +281,6 @@ class PowerRecord(QWidget):
 
     def timerStep(self):
         threadStartTime = time.clock()
-
         self.timebegin = True
         while self.timebegin:
             timeStep = time.clock() - threadStartTime

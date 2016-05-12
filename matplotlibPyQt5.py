@@ -3,12 +3,16 @@ import random
 import matplotlib
 matplotlib.use("Qt5Agg")
 from PyQt5 import QtCore
+from PyQt5.QtCore import QTime
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMenu, QVBoxLayout, QSizePolicy, QMessageBox, QWidget
 # from numpy import arange, sin, pi
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib import pyplot
 import threading
+import datetime
+
+#branch
 
 
 class MyMplCanvas(FigureCanvas):
@@ -17,16 +21,10 @@ class MyMplCanvas(FigureCanvas):
         fig = Figure(figsize=(width, height), dpi=dpi, facecolor = 'white' )
         self.fig = fig
         self.axes = fig.add_subplot(111)
-        # fig.facecolor = black
         # We want the axes cleared every time plot() is called
         self.axes.hold(False)
-
-        # self.compute_initial_figure()
-
-        #
         FigureCanvas.__init__(self, fig)
         self.setParent(parent)
-
         FigureCanvas.setSizePolicy(self,
                                    QSizePolicy.Expanding,
                                    QSizePolicy.Expanding)
@@ -44,9 +42,12 @@ class MyDynamicMplCanvas(MyMplCanvas):
         self.axes.set_xlabel('Time(s)')
         self.axes.set_ylabel('Power(W)')
         self.axes.grid(True)
+        self.isStartLog = False
         self.lasty = 1
         self.xlist = list()
         self.ylist = list()
+        self.timeState = datetime.time()
+        self.timeStatesec = 0
 
     def compute_initial_figure(self):
         self.axes.plot([0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5], 'r')
@@ -55,21 +56,38 @@ class MyDynamicMplCanvas(MyMplCanvas):
     def update_figure(self):
         # Build a list of 4 random integers between 0 and 10 (both inclusive)
         # l = [random.randint(0, 10) for i in range(4)]
-        if self.xlist:
+        if self.ylist:
             try:
                 hugeNumAvoid = abs(self.ylist[-1]/self.lasty)
                 if hugeNumAvoid >100 or hugeNumAvoid < 0.001:
                     return
             except ZeroDivisionError:
                 pass
+            if self.isStartLog == False:
+                self.beforeLog()
+            else:
+                self.getLogPlotPara()
+                self.afterLog()
+            self.lasty = self.ylist[-1]
+
+    def beforeLog(self):
             self.axes.plot(self.xlist, self.ylist, 'r')
             if self.ylist[-1] < 1:
-                # pass
                 self.axes.set_ylim(0,1)
-
-            # self.axes.set_yticks([0.0,0.2,0.4,0.6,0.8,1.0])
             self.draw()
-            self.lasty = self.ylist[-1]
+
+    def getLogTimeState(self,pydatetime ):
+        self.timeState = pydatetime
+        tp = pydatetime
+        self.timeStatesec = (tp.hour*60+tp.minute)*60+tp.second
+
+    def afterLog(self):
+            self.axes.plot(self.xlist, self.ylist, 'r')
+            if self.timeState.hour > 0:
+                self.axes.set_ylim(0,self.timeState.hour)
+            if self.ylist[-1] < 1:
+                self.axes.set_ylim(0,1)
+            self.draw()
 
     def savePlotFig(self):
         pass
