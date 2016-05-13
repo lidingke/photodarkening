@@ -22,7 +22,7 @@ class DataHand(object):
         cursor = conn.cursor()
         try:
             strEx='create table if not exists '+sqlTableName+\
-            ' (time float(17), power float(10))'
+            ' (time float(17), power float(10), data varchar(10))'
             cursor.execute(strEx)
         except Exception as e:
             raise e
@@ -31,14 +31,18 @@ class DataHand(object):
         conn.close()
         return sqlTableName
 
-    def save2Sql(self,sqlTableName,localTime,power):
+    def save2Sql(self,sqlTableName,localTime,power,data):
         conn = sqlite3.connect(self.name)
         cursor = conn.cursor()
         try:
-            strEx='insert into '+sqlTableName+'(time, power) values ('+str(localTime)+' , '+str(power)+' )'
+            strEx='insert into '+sqlTableName+'(time, power,data) values ('+str(localTime)+' , '+str(power)+', \''+data+'\')'
+            print(strEx)
             cursor.execute(strEx)
-        except sqlite3.OperationalError:
-                print('database is busy! data is not save')
+
+        except sqlite3.OperationalError as e :
+            raise e
+
+            print('database is busy! data is not save')
         except Exception as e:
             logging.exception(e)
             self.closeConnect()

@@ -63,12 +63,12 @@ class Slave(object):
         while True:
             #print(currentmsg)
             cp1,cp2,cp3,cp4 = self.rdcreate(8,12,1),self.rdcreate(),self.rdcreate(25,27,1,head = 'little'),self.rdcreate(3,6,1)
-            currentmsg = b'\x9A'+ cp1 +cp2 + cp3 + cp4 +b'\xA9'
+            currentmsg = b'\x9A'+ cp1 +cp2 + cp3 + cp4 +b'\xFF\xFF'+b'\xA9'
             print('发功：',currentmsg)
             # pdb.set_trace()
             # print('发送电流：',currentmsg,': ',int().from_bytes(cb1,'big'),int().from_bytes(cb2,'big'),int().from_bytes(cb3,'big'),int().from_bytes(cb4,'big')
             ser.write(currentmsg)
-            sleep(3)
+            sleep(1)
 
     def errorSend(self,ser):
         errorlist = [
@@ -79,9 +79,9 @@ class Slave(object):
         ]
         while True:
             for x in errorlist:
-                pass
+                print('send error msg')
                 ser.write(x)
-                sleep(100)
+                sleep(10)
 
 
     def process(self):

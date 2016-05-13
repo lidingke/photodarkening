@@ -17,6 +17,8 @@ from    PyQt5.QtCore        import QObject
 from    PyQt5.QtCore        import QTime
 # PySerial imports
 import  serial
+
+from toolkit import HexSplit
 # from    serial.serialutil   import SerialException
 # from database import DataHand
 
@@ -143,7 +145,7 @@ class Model(threading.Thread, QObject):
                     textlist.append(str(x))
                 elif type(x) == bytes:
                     if nobyte == True:
-                        textlist.append(':bytes')
+                        textlist.append(x.hex())
                         # printlist.append(':'+str(x))
                     elif nobyte == False:
                         textlist.append(':'+str(x))

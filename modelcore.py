@@ -13,6 +13,8 @@ from    PyQt5.QtCore        import QObject
 from    PyQt5.QtCore        import QTime
 # PySerial imports
 import  serial
+
+from toolkit import HexSplit
 # from    serial.serialutil   import SerialException
 # class Singleton(type):
 #     """docstring for Singleton"""
@@ -44,6 +46,7 @@ class ModelCore(threading.Thread, QObject):
         self.running    = True
         self.srcPortOpen = False
         self.pumpOpen = False
+        # self.hexsplit = HexSplit.fun()
 
         with open('data\\msg.pickle', 'rb') as f:
             entry = pickle.load(f)
@@ -90,6 +93,7 @@ class ModelCore(threading.Thread, QObject):
                 data = self.analysisbit()
                 if data :
                     self.coreMsgProcess(data)
+                    print(HexSplit.fun(data.hex()))
             time.sleep(self.timeout)
 
 
@@ -143,8 +147,8 @@ class ModelCore(threading.Thread, QObject):
                     textlist.append(str(x))
                 elif type(x) == bytes:
                     if nobyte == True:
-                        textlist.append(':bytes')
-                        # printlist.append(':'+str(x))
+                        textlist.append('\ '+x.hex())
+                        printlist.append('\ '+x.hex())
                     elif nobyte == False:
                         textlist.append(':'+str(x))
                     printlist.append(':'+str(x))
@@ -279,13 +283,21 @@ class ModelCore(threading.Thread, QObject):
                             return data
                         bitlist.append(databit)
             elif databit == b'\x9A':
+                tick = 1
                 while True:
+                    tick = tick + 1
                     databit = self.readbit(self.ser)
+                    # print('tick ',tick)
                     if databit == b'\xA9':
-                        # databit = self.readbit(self.ser)
-                        data = b''.join(bitlist)
-                        self.printShow('received:',b'\x9A' + data +b'\xA9',text = False)
-                        return b'\x9A' + data +b'\xA9'
+                        if tick == 12:
+                            print('接收位数第',tick)
+                            # databit = self.readbit(self.ser)
+                            data = b''.join(bitlist)
+                            # self.printShow('received:',b'\x9A' + data +b'\xA9',text = False)
+                            return b'\x9A' + data +b'\xA9'
+                        else:
+                            print('位数errror')
+                            return b'0'
                     bitlist.append(databit)
         # return None
 

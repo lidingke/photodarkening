@@ -44,10 +44,11 @@ class MyDynamicMplCanvas(MyMplCanvas):
         self.axes.grid(True)
         self.isStartLog = False
         self.lasty = 1
-        self.xlist = list()
-        self.ylist = list()
+        self.xlist = [0]
+        self.ylist = [0]
         self.timeState = datetime.time()
         self.timeStatesec = 0
+        self.xunit = 'sec'
 
     def compute_initial_figure(self):
         self.axes.plot([0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5], 'r')
@@ -63,13 +64,13 @@ class MyDynamicMplCanvas(MyMplCanvas):
                     return
             except ZeroDivisionError:
                 pass
-            print('isStartLog',self.isStartLog)
+            # print('isStartLog',self.isStartLog)
             if self.isStartLog == False:
                 self.beforeLog()
             else:
                 # self.getLogPlotPara()
                 self.afterLog()
-            self.lasty = self.ylist[-1]
+            self.lasty = self.ypoint
 
     def beforeLog(self):
             self.axes.plot(self.xlist, self.ylist, 'r')
@@ -78,13 +79,19 @@ class MyDynamicMplCanvas(MyMplCanvas):
             self.draw()
 
     def getStartLog(self,bool_ ):
-        print('lg set ',bool_)
+        # print('lg set ',bool_)
         self.isStartLog = bool_
 
     def getLogTimeState(self,pydatetime ):
         self.timeState = pydatetime
         tp = pydatetime
         self.timeStatesec = (tp.hour*60+tp.minute)*60+tp.second
+        if tp.hour>1:
+            self.xunit = 'hour'
+        elif tp.minute > 5:
+            self.xunit = 'min'
+        else:
+            self.xunit = 'sec'
         print('timsec',self.timeStatesec)
 
     def afterLog(self):
@@ -111,8 +118,27 @@ class MyDynamicMplCanvas(MyMplCanvas):
         # plt.savefig('testplot.png')
 
     def XYaxit(self,x,y):
-        self.xlist = x
-        self.ylist = y
+        x = self.sec2HourOrMin(x)
+        if x:
+            self.xpoint = x
+            self.ypoint = y
+            self.xlist.append(x)
+            self.ylist.append(y)
+
+    def sec2HourOrMin(self,x):
+        if self.xunit == 'sec':
+            return x
+        elif self.xunit == 'min':
+            return x/60
+        elif self.xunit == 'hour':
+            return x/3600
+        else:
+            return x
+
+
+    def clearPlotList(self):
+        self.xlist.clear()
+        self.ylist.clear()
 
 class ApplicationWindow(QMainWindow):
     def __init__(self):
