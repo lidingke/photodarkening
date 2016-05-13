@@ -9,13 +9,14 @@ class ModelPump(ModelCore):
     firstCurrentSignal = pyqtSignal(object)
     secondCurrentSignal = pyqtSignal(object)
     plotPower = pyqtSignal(object)
+    beginPlot = pyqtSignal()
 
     def __init__(self):
         super(ModelPump, self).__init__()
         self.lastvalue = 0
         self.tempdetector = TempDetector()
-        self.currentValueList      = list()
-        self.currentTimeList = list()
+        self.currentValue  = 0
+        self.currentTime = 0
         self.ti0 = time.time()
         self.startRecord = False# set start record statues
         self.datahand = DataHand('data\\powerdata.db')
@@ -52,7 +53,7 @@ class ModelPump(ModelCore):
                     self.printShow('getsecondcurrent:',secondcurrent)
         elif data[0:1] == b'\x9A':
             ti1 = time.time() -self.ti0
-            self.currentTimeList.append(ti1)
+            self.currentTime = ti1
             print('十六进制温度：',data[1:3],'电压：',data[5:7],'length',len(data))
             self.heat = int().from_bytes(data[1:3],'little')/100
             # self.firstPower = int().from_bytes(data[3:5],'little')
@@ -69,7 +70,7 @@ class ModelPump(ModelCore):
             self.getPower = (self.getPower/4096)*3#！！！！！这里也改了注意！！！！！！！！！
             self.tmPower = self.tempdetector.getPower(self.heat,self.getPower)
             self.printShow('温度:',self.heat,'℃','  功率:',round(self.tmPower,4),'W')
-            self.currentValueList.append(self.tmPower)
+            self.currentValue = self.tmPower
             if (self.startRecord == True) and (self.saveStop == False):
                 self.save2sql(self.tmPower)
             self.emitPlot()
@@ -189,14 +190,14 @@ class ModelPump(ModelCore):
         self.cValue.emit([gotTime,value])
 
     def emitPlot(self):
-        self.plotPower.emit([self.currentTimeList,self.currentValueList])
+        self.plotPower.emit([self.currentTime,self.currentValue])
 
 
-    def getcurrentValueList(self):
-        return self.currentValueList
+    def getcurrentValue(self):
+        return self.currentValue
 
-    def getcurrentTimeList(self):
-        return self.currentTimeList
+    def getcurrentTime(self):
+        return self.currentTime
 
     def setSaveStop(self,isture):
         self.saveStop = isture
@@ -208,8 +209,9 @@ class ModelPump(ModelCore):
         # self.ti0 = time.time()
         print('get ti0:',self.ti0,'init tabel username',self.username)
         self.datahand.initSqltabel(self.ti0,self.username)
-        self.currentTimeList.clear()
-        self.currentValueList.clear()
+        self.beginPlot.emit()
+        # self.currentTime.clear()
+        # self.currentValue.clear()
 
     def setStartTime(self,stime ):
         self.ti0 = stime

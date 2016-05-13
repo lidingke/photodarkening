@@ -37,6 +37,7 @@ class PowerRecord(QWidget):
         self.timeStepPause = False
         self.pdfItem = dict()
         self.figGet = None
+        self.timebegin = True
         self.loadFile()
         self.UI_init()
         self.plantlist()
@@ -47,6 +48,7 @@ class PowerRecord(QWidget):
 
     def UI_init(self):
         self.seButton = QPushButton('begin')
+        self.seButton.buttonState = 'begin'
         self.seButton.clicked.connect(self.beginOendTime)
         self.timeEdit = QTimeEdit()
         # self.timeEdit.setMaximumTime()
@@ -216,24 +218,33 @@ class PowerRecord(QWidget):
             #     return
 
     def beginOendTime(self):
-        buttonState = self.seButton.text()
+        # buttonState =
         timeState = self.timeEdit.text()
-        print(timeState)
-        print(self.userID)
-        if buttonState == 'begin' and timeState != '0:00':
+        # print(timeState)
+        # print(self.userID)
+        if self.seButton.buttonState == 'begin' and timeState != '0:00':
             self.beginTime = time.time()
             print('beginTime:',self.beginTime)
             self.beginTimeSignal.emit(self.beginTime)
-
             # self.emitBeginTime()
             self.editTime = self.timeEdit.time()
             self.timeStateSignal.emit(self.editTime.toPyTime())
             self.logStateSignal.emit(True)
             print('editTime:',self.editTime,'toPyTime',self.editTime.toPyTime())
             # self.seButton.setText('stop')
-            threading.Thread(target=PowerRecord.timerStep,args=(self,)).start()
-            self.seButton.setEnabled(False)
+            self.timebegin = True
+            threading.Thread(target=self.timerStep,deamon = True).start()
+            self.ledStartTime = time.clock()
+            self.seButton.setText('stop')
+            self.seButton.buttonState = 'stop'
             self.timeStepPause = False
+            time.sleep(0.3)
+        elif self.seButton.buttonState == 'stop':
+            self.timebegin = False
+            self.seButton.setText('begin')
+            self.seButton.buttonState = 'begin'
+
+
 
 
 
@@ -283,7 +294,6 @@ class PowerRecord(QWidget):
 
     def timerStep(self):
         threadStartTime = time.clock()
-        self.timebegin = True
         while self.timebegin:
             timeStep = time.clock() - threadStartTime
             gmTimeStep = time.gmtime(timeStep)
@@ -303,19 +313,19 @@ class PowerRecord(QWidget):
                 # print('st:',self.editTime,':',nowQtime)
             self.secShow.display(timestr)
             self.update_GUI()
-            time.sleep(0.5)
+            time.sleep(0.3)
 
-    def timeStep(self):
-        threadStartTime = time.clock()
-        self.timebegin = True
-        while self.timebegin:
-            timeStep = time.clock() - threadStartTime
-            # print(timeStep)
-            timestr = time.strftime('%H:%M:%S',time.gmtime(timeStep))
-            # print(timestr)
-            self.secShow.display(timestr)
-            self.update_GUI()
-            time.sleep(1)
+    # def timeStep(self):
+    #     threadStartTime = time.clock()
+    #     # self.timebegin = True
+    #     while self.timebegin:
+    #         timeStep = time.clock() - threadStartTime
+    #         # print(timeStep)
+    #         timestr = time.strftime('%H:%M:%S',time.gmtime(timeStep))
+    #         # print(timestr)
+    #         self.secShow.display(timestr)
+    #         self.update_GUI()
+    #         time.sleep(1)
 
     def update_GUI(self):
         self.update()
