@@ -65,7 +65,7 @@ class HexSplit(object):
         # self.arg = arg
 
     def fun(c):
-        if type(c) != str:
+        if type(c) != bytes:
             return
         xhex = c.hex()
         xlist = list()

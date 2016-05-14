@@ -3,6 +3,7 @@ from PyQt5.QtCore import pyqtSignal
 import threading
 import time
 from database import DataHand
+import pdb
 
 class ModelPump(ModelCore):
     """docstring for ModelPump"""
@@ -24,6 +25,9 @@ class ModelPump(ModelCore):
         self.saveStop = False
         self.lastPower = 1
         self.lastTemp = 1
+        self.MFilterLen = 5
+        self.powerDataList = []
+        self.powerDataNum = 0
 
     def coreMsgProcess(self,data):
         '''input message analysis and manage
@@ -52,29 +56,45 @@ class ModelPump(ModelCore):
                     secondcurrent = int().from_bytes(data[3:5],'big')
                     self.printShow('getsecondcurrent:',secondcurrent)
         elif data[0:1] == b'\x9A':
-            ti1 = time.time() -self.ti0
-            self.currentTime = ti1
-            print('十六进制温度：',data[1:3],'电压：',data[5:7],'length',len(data))
-            self.heat = int().from_bytes(data[1:3],'little')/100
-            # self.firstPower = int().from_bytes(data[3:5],'little')
-            # self.firstCurrent = int().from_bytes(data[5:7],'little')
-            self.getPower = int().from_bytes(data[5:7],'little')
-            # if self.getPower > 65200:#some times error number from slave ,most of them higher them 65200
-            #     self.printShow('收到功率乱码')
-            #     self.getPower = int().from_bytes(data[-7:-5],'little')
-            print('十进制温度：',self.heat,'电压：',self.getPower)
-            if self.heat <100:
-                self.lastTemp = self.heat
-            if self.getPower <65200:
-                self.lastPower = self.getPower
-            self.getPower = (self.getPower/4096)*3#！！！！！这里也改了注意！！！！！！！！！
-            self.tmPower = self.tempdetector.getPower(self.heat,self.getPower)
-            self.printShow('温度:',self.heat,'℃','  功率:',round(self.tmPower,4),'W')
-            self.currentValue = self.tmPower
+            dlst = self.powerDataList
+            pdata = self.getPowerData(data)
+            if self.powerDataNum != self.MFilterLen:
+                self.powerDataNum = self.powerDataNum +1
+                dlst.append(pdata)
+            else:
+                self.powerDataNum = 1
+                # pdb.set_trace()
+                dlst.sort()
+                self.currentValue = dlst[int(self.MFilterLen/2)+1]
+                dlst.clear()
+                dlst.append(pdata)
+                ti1 = time.time() -self.ti0
+                self.currentTime = ti1
+                # self.currentValue = self.tmPower
+                self.emitPlot()
             if (self.startRecord == True) and (self.saveStop == False):
                 hexdata = data.hex()
-                self.save2sql(self.tmPower,hexdata)
-            self.emitPlot()
+                self.save2sql(pdata,hexdata)
+
+
+    def getPowerData(self,data):
+        print('十六进制温度：',data[1:3],'电压：',data[5:7],'length',len(data))
+        self.heat = int().from_bytes(data[1:3],'little')/100
+        # self.firstPower = int().from_bytes(data[3:5],'little')
+        # self.firstCurrent = int().from_bytes(data[5:7],'little')
+        self.getPower = int().from_bytes(data[5:7],'little')
+        # if self.getPower > 65200:#some times error number from slave ,most of them higher them 65200
+        #     self.printShow('收到功率乱码')
+        #     self.getPower = int().from_bytes(data[-7:-5],'little')
+        print('十进制温度：',self.heat,'电压：',self.getPower)
+        if self.heat <100:
+            self.lastTemp = self.heat
+        if self.getPower <65200:
+            self.lastPower = self.getPower
+        self.getPower = (self.getPower/4096)*3#！！！！！这里也改了注意！！！！！！！！！
+        self.tmPower = self.tempdetector.getPower(self.heat,self.getPower)
+        self.printShow('温度:',self.heat,'℃','  功率:',round(self.tmPower,4),'W')
+        return self.tmPower
 
     def creatPlot(self,tableName):
         data = self.datahand.getTableData(tableName)

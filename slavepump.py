@@ -62,13 +62,26 @@ class Slave(object):
         #currentmsg = self.sendmsg['sendplot']
         while True:
             #print(currentmsg)
-            cp1,cp2,cp3,cp4 = self.rdcreate(8,12,1),self.rdcreate(),self.rdcreate(25,27,1,head = 'little'),self.rdcreate(3,6,1)
+            cp1,cp2,cp3,cp4 = self.rdcreate(8,12,1),self.rdcreate(),self.rdcreate(20,60,1,head = 'little'),self.rdcreate(3,6,1)
             currentmsg = b'\x9A'+ cp1 +cp2 + cp3 + cp4 +b'\xFF\xFF'+b'\xA9'
             print('发功：',currentmsg)
             # pdb.set_trace()
             # print('发送电流：',currentmsg,': ',int().from_bytes(cb1,'big'),int().from_bytes(cb2,'big'),int().from_bytes(cb3,'big'),int().from_bytes(cb4,'big')
             ser.write(currentmsg)
             sleep(1)
+
+
+    def bigPowerSend(self,ser):
+        #currentmsg = self.sendmsg['sendplot']
+        while True:
+            #print(currentmsg)
+            cp1,cp2,cp3,cp4 = self.rdcreate(8,12,1),self.rdcreate(),self.rdcreate(2,100,1,head = 'little'),self.rdcreate(3,6,1)
+            currentmsg = b'\x9A'+ cp1 +cp2 + cp3 + cp4 +b'\xFF\xFF'+b'\xA9'
+            print('发功：',currentmsg)
+            # pdb.set_trace()
+            # print('发送电流：',currentmsg,': ',int().from_bytes(cb1,'big'),int().from_bytes(cb2,'big'),int().from_bytes(cb3,'big'),int().from_bytes(cb4,'big')
+            ser.write(currentmsg)
+            sleep(10)
 
     def errorSend(self,ser):
         errorlist = [
@@ -137,9 +150,11 @@ class Slave(object):
         #开个线程随机发送信号
         #threading.Thread(target=Slave.randomSend,args=(self,ser,)).start()
         # 开个线程发功
-        threading.Thread(target=Slave.powerSend,args=(self,ser,)).start()
+        threading.Thread(target=self.powerSend,args=(ser,)).start()
+        # 开个线程发噪声
+        threading.Thread(target=self.bigPowerSend,args=(ser,)).start()
         #开个线程发error信息
-        threading.Thread(target=Slave.errorSend,args=(self,ser,)).start()
+        threading.Thread(target=self.errorSend,args=(ser,)).start()
         while True:
             sertext = model.analysisbit()
             #sertext=ser.read(7)
