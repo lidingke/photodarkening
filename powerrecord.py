@@ -233,7 +233,7 @@ class PowerRecord(QWidget):
             print('editTime:',self.editTime,'toPyTime',self.editTime.toPyTime())
             # self.seButton.setText('stop')
             self.timebegin = True
-            threading.Thread(target=self.timerStep,daemon = True).start()
+            threading.Thread(target=self.timerStep,deamon = True).start()
             self.ledStartTime = time.clock()
             self.seButton.setText('stop')
             self.seButton.buttonState = 'stop'

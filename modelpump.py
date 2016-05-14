@@ -56,6 +56,7 @@ class ModelPump(ModelCore):
                     secondcurrent = int().from_bytes(data[3:5],'big')
                     self.printShow('getsecondcurrent:',secondcurrent)
         elif data[0:1] == b'\x9A':
+<<<<<<< HEAD
             dlst = self.powerDataList
             pdata = self.getPowerData(data)
             if self.powerDataNum != self.MFilterLen:
