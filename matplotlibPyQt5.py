@@ -11,6 +11,7 @@ from matplotlib.figure import Figure
 from matplotlib import pyplot
 import threading
 import datetime
+import pdb
 
 #branch
 
@@ -89,20 +90,24 @@ class MyDynamicMplCanvas(MyMplCanvas):
         self.timeState = pydatetime
         tp = pydatetime
         self.timeStatesec = (tp.hour*60+tp.minute)*60+tp.second
-        if tp.hour>1:
+        if self.timeStatesec>3600:
             self.xunit = 'hour'
-        elif tp.minute > 5:
+            self.timended = (self.timeStatesec/3600)*1.2
+        elif self.timeStatesec > 300:#5min
             self.xunit = 'min'
+            self.timended = (self.timeStatesec/60)*1.2
         else:
             self.xunit = 'sec'
+            self.timended = self.timeStatesec
         print('timsec',self.timeStatesec)
 
     def afterLog(self):
             self.axes.plot(self.xlist, self.ylist, 'r')
             # if self.timeState.hour > 0:
-            xlimit = self.pydatetime2xlim(self.timeStatesec)
+            xlimit = self.timended
             self.axes.set_xlim(0,xlimit)
-            print('setsec ',self.timeStatesec)
+            print('setsec ',self.timeStatesec,'timended:',self.timended)
+            print('xunit',self.xunit)
             if self.ylist[-1] < 1:
                 self.axes.set_ylim(0,1)
             else:
@@ -125,7 +130,10 @@ class MyDynamicMplCanvas(MyMplCanvas):
         # plt.savefig('testplot.png')
 
     def XYaxit(self,x,y):
+        print('x_sec:',x,'xunit:',self.xunit)
+        # pdb.set_trace()
         x = self.sec2HourOrMin(x)
+        print('x_min:',x)
         if x:
             self.xpoint = x
             self.ypoint = y
@@ -142,15 +150,15 @@ class MyDynamicMplCanvas(MyMplCanvas):
         else:
             return x
 
-    def pydatetime2xlim(self,pdt ):
-        if self.xunit == 'sec':
-            return pdt
-        elif self.xunit == 'min':
-            return pdt / 60 + 1
-        elif self.xunit == 'hour':
-            return pdt/3600 + 1
-        else:
-            return pdt
+    # def pydatetime2xlim(self,pdt ):
+    #     if self.xunit == 'sec':
+    #         return pdt
+    #     elif self.xunit == 'min':
+    #         return pdt / 60 + 1
+    #     elif self.xunit == 'hour':
+    #         return pdt/3600 + 1
+    #     else:
+    #         return pdt
 
     def clearPlotList(self):
         self.xlist.clear()
