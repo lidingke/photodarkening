@@ -75,7 +75,7 @@ class Slave(object):
         #currentmsg = self.sendmsg['sendplot']
         while True:
             #print(currentmsg)
-            cp1,cp2,cp3,cp4 = self.rdcreate(8,12,1),self.rdcreate(),self.rdcreate(2,100,1,head = 'little'),self.rdcreate(3,6,1)
+            cp1,cp2,cp3,cp4 = self.rdcreate(8,12,1),self.rdcreate(),self.rdcreate(2,1000,1,head = 'little'),self.rdcreate(3,6,1)
             currentmsg = b'\x9A'+ cp1 +cp2 + cp3 + cp4 +b'\xFF\xFF'+b'\xA9'
             print('发功：',currentmsg)
             # pdb.set_trace()

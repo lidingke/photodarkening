@@ -4,6 +4,7 @@ import threading
 import time
 from database import DataHand
 import pdb
+from toolkit import HexSplit
 
 class ModelPump(ModelCore):
     """docstring for ModelPump"""
@@ -56,26 +57,32 @@ class ModelPump(ModelCore):
                     secondcurrent = int().from_bytes(data[3:5],'big')
                     self.printShow('getsecondcurrent:',secondcurrent)
         elif data[0:1] == b'\x9A':
-<<<<<<< HEAD
             dlst = self.powerDataList
-            pdata = self.getPowerData(data)
+            powerDataAndOriginal = [self.getPowerData(data),HexSplit.fun(data)]
             if self.powerDataNum != self.MFilterLen:
                 self.powerDataNum = self.powerDataNum +1
-                dlst.append(pdata)
             else:
                 self.powerDataNum = 1
                 # pdb.set_trace()
                 dlst.sort()
-                self.currentValue = dlst[int(self.MFilterLen/2)+1]
+                midValue = dlst[int(self.MFilterLen/2)+1]
+                try:
+                    self.currentValue = midValue[0]
+                    originData = midValue[1]
+                except IndexError:
+                    return
+                except Exception as e :
+                    raise e
                 dlst.clear()
-                dlst.append(pdata)
+                # dlst.append([pdata,HexSplit.fun(data.hex())])
                 ti1 = time.time() -self.ti0
                 self.currentTime = ti1
                 # self.currentValue = self.tmPower
                 self.emitPlot()
-            if (self.startRecord == True) and (self.saveStop == False):
-                hexdata = data.hex()
-                self.save2sql(pdata,hexdata)
+                if (self.startRecord == True) and (self.saveStop == False):
+                    # hexdata = data.hex()
+                    self.save2sql(self.currentValue,originData)
+            dlst.append(powerDataAndOriginal)
 
 
     def getPowerData(self,data):

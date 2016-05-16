@@ -46,6 +46,9 @@ class MyDynamicMplCanvas(MyMplCanvas):
         self.lasty = 1
         self.xlist = [0]
         self.ylist = [0]
+        self.yMax = 1
+        self.xpoint = 0
+        self.ypoint = 0
         self.timeState = datetime.time()
         self.timeStatesec = 0
         self.xunit = 'sec'
@@ -97,21 +100,25 @@ class MyDynamicMplCanvas(MyMplCanvas):
     def afterLog(self):
             self.axes.plot(self.xlist, self.ylist, 'r')
             # if self.timeState.hour > 0:
-            self.axes.set_xlim(0,self.timeStatesec)
+            xlimit = self.pydatetime2xlim(self.timeStatesec)
+            self.axes.set_xlim(0,xlimit)
             print('setsec ',self.timeStatesec)
             if self.ylist[-1] < 1:
                 self.axes.set_ylim(0,1)
+            else:
+                self.axes.set_ylim(0,self.ypoint*1.5)
             self.draw()
 
     def savePlotFig(self):
         pass
-        # threading.Thread(target = self.savefigThread,daemon = True).start()
+        threading.Thread(target = self.savefigThread,daemon = True).start()
 
     def savefigThread(self):
-        if self.xlist:
-            pyplot.plot(self.xlist, self.ylist)
-            pyplot.show()
-            pyplot.savefig("d.png",dpi = 100)
+        # if self.xlist:
+        #     # pyplot.plot(self.xlist, self.ylist)
+        #     # pyplot.show()
+        self.fig.savefig("d.pdf", format = 'pdf')
+
         # self.axes.plot(self.xlist, self.ylist, 'r')
         # import matplotlib.pyplot as plt
         # plt.plot(range(10))
@@ -135,6 +142,15 @@ class MyDynamicMplCanvas(MyMplCanvas):
         else:
             return x
 
+    def pydatetime2xlim(self,pdt ):
+        if self.xunit == 'sec':
+            return pdt
+        elif self.xunit == 'min':
+            return pdt / 60 + 1
+        elif self.xunit == 'hour':
+            return pdt/3600 + 1
+        else:
+            return pdt
 
     def clearPlotList(self):
         self.xlist.clear()
