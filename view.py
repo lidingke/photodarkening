@@ -16,8 +16,9 @@ from queue              import Queue
 from functools        import partial
 import time
 import pdb
-from UI.portUI import Ui_GroupBox as PortGBUI
+from UI.portGBUI import Ui_GroupBox as PortGBUI
 from UI.pumpUI import Ui_GroupBox as PumpUI
+from UI.powerUI import Ui_Form as PowerUI
 # from portGBUI import Ui_GroupBox as PortGBUI
 from matplotlibPyQt5 import MyDynamicMplCanvas
 
@@ -119,15 +120,21 @@ class View(QWidget):
         cmdEnterAction.triggered.connect(self.emit_send_data)
         self.cmd_edit = QLineEdit()
         self.cmd_edit.addAction(cmdEnterAction)
+        cmdBox = QVBoxLayout()
+        # cmdBox.addWidget(self.cmd_edit)
+        # cmdBox.addWidget(cmd_btn)
+        self.powerShow = PowerUI()
+        self.powerShow.setupUi(QWidget())
+        print('type',type(self.powerShow))
+        # cmdBox.addWidget(self.powerShow.widget)
+
+#message box
         self.editer = QPlainTextEdit()
         self.editer.setReadOnly(True)
-        cmdBox = QVBoxLayout()
-        cmdBox.addWidget(self.cmd_edit)
-        cmdBox.addWidget(cmd_btn)
+        self.editer.setMaximumSize(300,2000)
         cmdBox.addWidget(self.editer)
-        self.editer.setMaximumSize(300,1000)
-        cmd_btn.setMaximumSize(300,400)
-        self.cmd_edit.setMaximumSize(300,100)
+        # cmd_btn.setMaximumSize(300,400)
+        # self.cmd_edit.setMaximumSize(300,100)
 
 ###
 #paint area use matplotlib
@@ -138,7 +145,7 @@ class View(QWidget):
         self.showBox.addWidget(self.painter)
         self.toolBoxUI()
         self.mainBox.addWidget(self.toolBox)
-        self.mainBox.addLayout(self.showBox)
+        self.mainBox.addLayout(self.powerShow)
 
         #painter plot
         # self.painter = PaintArea()
@@ -213,6 +220,13 @@ class View(QWidget):
         # self.portUI.baundrateTemp.addItems(menuItem)
 #source port set
         #source
+        portItem = ['com1','com2','com3','com4',
+            'com5','com6','com7','com8','com9',
+            'com10','com11','com12','com13',
+            'com14','com15','com16','com17',
+            'com18','com19','com20']
+        self.portUI.portSource.addItems(portItem)
+        self.portUI.portPump.addItems(portItem)
         self.setPortButton = self.portUI.openportSource
         self.closePortButton = self.portUI.closeportSource
         self.baundrateMenu = self.portUI.baundrateSource
@@ -225,7 +239,9 @@ class View(QWidget):
             self.baundrateMenu.setCurrentIndex(4)
         portindex = self.lastpick.get('srcPort',False)
         if baudindex is not False :
-            self.portEdit.setText(portindex)
+            self.portEdit.setCurrentIndex(portindex)
+        else:
+            self.portEdit.setCurrentIndex(1)
 
         baudindex = self.lastpick.get('pumpBaud',False)
         if baudindex is not False :
@@ -234,7 +250,9 @@ class View(QWidget):
             self.portUI.baundratePump.setCurrentIndex(4)
         portindex = self.lastpick.get('pumpPort',False)
         if baudindex is not False :
-            self.portUI.portPump.setText(portindex)
+            self.portUI.portPump.setCurrentIndex(portindex)
+        else:
+            self.portUI.portPump.setCurrentIndex(2)
 
         # baudindex = self.lastpick.get('tempBaud',False)
         # if baudindex is not False :
@@ -557,16 +575,16 @@ class View(QWidget):
         self.portEdit.insert(value)
 
     def getSrcPort(self):
-        self.lastpick['srcPort'] = self.portEdit.text()
-        return self.portEdit.text()
+        self.lastpick['srcPort'] = self.portEdit.currentIndex()
+        return self.portEdit.currentText()
 
     def getSrcBaudrate(self):
         self.lastpick['srcBaud'] = self.baundrateMenu.currentIndex()
         return self.baundrateMenu.currentText()[:-5]
 
     def getPumpPort(self):
-        self.lastpick['pumpPort'] = self.portUI.portPump.text()
-        return self.portUI.portPump.text()
+        self.lastpick['pumpPort'] = self.portUI.portPump.currentIndex()
+        return self.portUI.portPump.currentText()
 
     def getPumpBaudrate(self):
         self.lastpick['pumpBaud'] = self.portUI.baundratePump.currentIndex()
