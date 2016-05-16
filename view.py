@@ -18,7 +18,7 @@ import time
 import pdb
 from UI.portGBUI import Ui_GroupBox as PortGBUI
 from UI.pumpUI import Ui_GroupBox as PumpUI
-from UI.powerUI import Ui_Form as PowerUI
+# from UI.powerUI import Ui_Form as PowerUI
 # from portGBUI import Ui_GroupBox as PortGBUI
 from matplotlibPyQt5 import MyDynamicMplCanvas
 
@@ -123,9 +123,9 @@ class View(QWidget):
         cmdBox = QVBoxLayout()
         # cmdBox.addWidget(self.cmd_edit)
         # cmdBox.addWidget(cmd_btn)
-        self.powerShow = PowerUI()
-        self.powerShow.setupUi(QWidget())
-        print('type',type(self.powerShow))
+        # self.powerShow = PowerUI()
+        # self.powerShow.setupUi(QWidget())
+        # print('type',type(self.powerShow))
         # cmdBox.addWidget(self.powerShow.widget)
 
 #message box
@@ -141,11 +141,12 @@ class View(QWidget):
 ###
         self.paintwidget = QWidget(self)
         self.painter = MyDynamicMplCanvas(self.paintwidget, width=5, height=4, dpi=100)
+        self.showBox.addLayout(self.powerShowUI())
         self.showBox.addLayout(cmdBox)
         self.showBox.addWidget(self.painter)
         self.toolBoxUI()
         self.mainBox.addWidget(self.toolBox)
-        self.mainBox.addLayout(self.powerShow)
+        self.mainBox.addLayout(self.showBox)
 
         #painter plot
         # self.painter = PaintArea()
@@ -262,6 +263,15 @@ class View(QWidget):
         # portindex = self.lastpick.get('tempPort',False)
         # if baudindex is not False :
         #     self.portUI.portTemp.setText(portindex)
+
+    def powerShowUI(self):
+        self.powerText = QLabel()
+        powerTextBox = QGroupBox()
+        powerTextBox.setStyleSheet("QGroupBox{background:blue;}")
+        # self.powe
+        layout = QGridLayout(powerTextBox)
+        layout.addWidget(self.powerText)
+        return layout
 
 
 

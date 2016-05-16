@@ -10,3 +10,4 @@
 *.db
 data
 *.pickle
+*.pyc
