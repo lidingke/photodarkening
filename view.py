@@ -22,6 +22,7 @@ from UI.pumpUI import Ui_GroupBox as PumpUI
 # from portGBUI import Ui_GroupBox as PortGBUI
 from matplotlibPyQt5 import MyDynamicMplCanvas
 
+from powershow import PowerShow
 from powerrecord import PowerRecord
 from user import UserView
 from user import User
@@ -131,7 +132,15 @@ class View(QWidget):
 #message box
         self.editer = QPlainTextEdit()
         self.editer.setReadOnly(True)
+<<<<<<< HEAD
         self.editer.setMaximumSize(300,2000)
+=======
+        cmdBox = QVBoxLayout()
+        # cmdBox.addWidget(self.cmd_edit)
+        # cmdBox.addWidget(cmd_btn)
+        pshow = PowerShow()
+        cmdBox.addWidget(pshow)
+>>>>>>> a45e80ec77a4a8729fa4205165faae001fd09cab
         cmdBox.addWidget(self.editer)
         # cmd_btn.setMaximumSize(300,400)
         # self.cmd_edit.setMaximumSize(300,100)
