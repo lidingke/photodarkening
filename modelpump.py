@@ -29,6 +29,7 @@ class ModelPump(ModelCore):
         self.MFilterLen = 5
         self.powerDataList = []
         self.powerDataNum = 0
+        self.showPowerData = [0]
 
     def coreMsgProcess(self,data):
         '''input message analysis and manage
@@ -82,11 +83,12 @@ class ModelPump(ModelCore):
                 if (self.startRecord == True) and (self.saveStop == False):
                     # hexdata = data.hex()
                     self.save2sql(self.currentValue,originData)
+                    self.powerStatus(self.currentValue)
             dlst.append(powerDataAndOriginal)
 
 
     def getPowerData(self,data):
-        print('十六进制温度：',data[1:3],'电压：',data[5:7],'length',len(data))
+        # print('十六进制温度：',data[1:3],'电压：',data[5:7],'length',len(data))
         self.heat = int().from_bytes(data[1:3],'little')/100
         # self.firstPower = int().from_bytes(data[3:5],'little')
         # self.firstCurrent = int().from_bytes(data[5:7],'little')
@@ -94,7 +96,7 @@ class ModelPump(ModelCore):
         # if self.getPower > 65200:#some times error number from slave ,most of them higher them 65200
         #     self.printShow('收到功率乱码')
         #     self.getPower = int().from_bytes(data[-7:-5],'little')
-        print('十进制温度：',self.heat,'电压：',self.getPower)
+        # print('十进制温度：',self.heat,'电压：',self.getPower)
         if self.heat <100:
             self.lastTemp = self.heat
         if self.getPower <65200:
@@ -255,6 +257,35 @@ class ModelPump(ModelCore):
             self.datahand.save2Sql(tableName, localTime, power, hexdata)
         except Exception as e:
             raise e
+
+    def powerStatus(self,data ):
+        lst = self.showPowerData
+        logNumber = lst[0] +1
+        if logNumber < 2:
+            self.showPowerData = [logNumber, data, data, 0, data, data]
+        else:
+            currentPower = lst[1]
+            averagePower = lst[2]
+            variancePower = lst[3]
+            maxPower = lst[4]
+            minPower = lst[5]
+
+            currentPower = data
+            variancePower = \
+                (logNumber-2)*variancePower/(logNumber-1)\
+                +(data - averagePower)**2/logNumber
+            averagePower = averagePower + (data - averagePower)/logNumber
+
+            if data > maxPower:
+                maxPower = data
+            if data < minPower:
+                minPower = data
+
+            self.showPowerData = [logNumber,
+            currentPower, averagePower, variancePower,
+            maxPower, minPower]
+            print('power show',self.showPowerData)
+
 
 class TempDetector(object):
     """
