@@ -132,15 +132,15 @@ class View(QWidget):
 #message box
         self.editer = QPlainTextEdit()
         self.editer.setReadOnly(True)
-<<<<<<< HEAD
+# <<<<<<< HEAD
         self.editer.setMaximumSize(300,2000)
-=======
+# =======
         cmdBox = QVBoxLayout()
         # cmdBox.addWidget(self.cmd_edit)
         # cmdBox.addWidget(cmd_btn)
         pshow = PowerShow()
         cmdBox.addWidget(pshow)
->>>>>>> a45e80ec77a4a8729fa4205165faae001fd09cab
+# >>>>>>> a45e80ec77a4a8729fa4205165faae001fd09cab
         cmdBox.addWidget(self.editer)
         # cmd_btn.setMaximumSize(300,400)
         # self.cmd_edit.setMaximumSize(300,100)
@@ -150,7 +150,7 @@ class View(QWidget):
 ###
         self.paintwidget = QWidget(self)
         self.painter = MyDynamicMplCanvas(self.paintwidget, width=5, height=4, dpi=100)
-        self.showBox.addLayout(self.powerShowUI())
+        # self.showBox.addLayout(self.powerShowUI())
         self.showBox.addLayout(cmdBox)
         self.showBox.addWidget(self.painter)
         self.toolBoxUI()
@@ -273,14 +273,14 @@ class View(QWidget):
         # if baudindex is not False :
         #     self.portUI.portTemp.setText(portindex)
 
-    def powerShowUI(self):
-        self.powerText = QLabel()
-        powerTextBox = QGroupBox()
-        powerTextBox.setStyleSheet("QGroupBox{background:blue;}")
-        # self.powe
-        layout = QGridLayout(powerTextBox)
-        layout.addWidget(self.powerText)
-        return layout
+    # def powerShowUI(self):
+    #     self.powerText = QLabel()
+    #     powerTextBox = QGroupBox()
+    #     powerTextBox.setStyleSheet("QGroupBox{background:blue;}")
+    #     # self.powe
+    #     layout = QGridLayout(powerTextBox)
+    #     layout.addWidget(self.powerText)
+    #     return layout
 
 
 
@@ -358,6 +358,7 @@ class View(QWidget):
         self.setSeedCurrent = self.pumpUI.currentSpin
         self.setSeedCurrent.setValue(self.initSeedCurrent)
         self.openAll = self.pumpUI.sourceOpen
+        print('is openall button')
         self.sendfirst = self.pumpUI.firstPumpSet
         self.sendfirst.clicked.connect(self.emitFirstPumpCurrent)
         self.sendsecond = self.pumpUI.secondPumpSet

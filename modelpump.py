@@ -5,6 +5,7 @@ import time
 from database import DataHand
 import pdb
 from toolkit import HexSplit
+import collections
 
 class ModelPump(ModelCore):
     """docstring for ModelPump"""
@@ -27,7 +28,7 @@ class ModelPump(ModelCore):
         self.lastPower = 1
         self.lastTemp = 1
         self.MFilterLen = 5
-        self.powerDataList = []
+        self.powerDataList =collections.deque( maxlen=5)
         self.powerDataNum = 0
         self.showPowerData = [0]
 
@@ -58,33 +59,41 @@ class ModelPump(ModelCore):
                     secondcurrent = int().from_bytes(data[3:5],'big')
                     self.printShow('getsecondcurrent:',secondcurrent)
         elif data[0:1] == b'\x9A':
-            dlst = self.powerDataList
+            # dlst = self.powerDataList
             powerDataAndOriginal = [self.getPowerData(data),HexSplit.fun(data)]
-            if self.powerDataNum != self.MFilterLen:
-                self.powerDataNum = self.powerDataNum +1
-            else:
-                self.powerDataNum = 1
-                # pdb.set_trace()
-                dlst.sort()
-                midValue = dlst[int(self.MFilterLen/2)+1]
-                try:
-                    self.currentValue = midValue[0]
-                    originData = midValue[1]
-                except IndexError:
-                    return
-                except Exception as e :
-                    raise e
-                dlst.clear()
-                # dlst.append([pdata,HexSplit.fun(data.hex())])
+            #
+            deque = self.powerDataList
+            deque.append(powerDataAndOriginal)
+            if len(deque) == 5:
+                lst = [x[0] for x in deque]
+                lst.sort()
+                self.currentValue = sum(lst[1:4])/3
                 ti1 = time.time() -self.ti0
                 self.currentTime = ti1
                 # self.currentValue = self.tmPower
                 self.emitPlot()
                 if (self.startRecord == True) and (self.saveStop == False):
                     # hexdata = data.hex()
-                    self.save2sql(self.currentValue,originData)
+                    self.save2sql(self.currentValue,powerDataAndOriginal[1])
                     self.powerStatus(self.currentValue)
-            dlst.append(powerDataAndOriginal)
+            # dlst.append(powerDataAndOriginal)
+
+#old agrithm
+            #if self.powerDataNum != self.MFilterLen:
+            #     self.powerDataNum = self.powerDataNum +1
+            # else:
+            #     self.powerDataNum = 1
+            #     # pdb.set_trace()
+            #     dlst.sort()
+            #     midValue = dlst[int(self.MFilterLen/2)+1]
+            #     try:
+            #         self.currentValue = midValue[0]
+            #         originData = midValue[1]
+            #     except IndexError:
+            #         return
+            #     except Exception as e :
+            #         raise e
+            #     dlst.clear()
 
 
     def getPowerData(self,data):
