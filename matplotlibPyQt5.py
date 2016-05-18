@@ -107,7 +107,7 @@ class MyDynamicMplCanvas(MyMplCanvas):
             xlimit = self.timended
             self.axes.set_xlim(0,xlimit)
             print('setsec ',self.timeStatesec,'timended:',self.timended)
-            print('xunit',self.xunit)
+            # print('xunit',self.xunit)
             if self.ylist[-1] < 1:
                 self.axes.set_ylim(0,1)
             else:
@@ -130,10 +130,10 @@ class MyDynamicMplCanvas(MyMplCanvas):
         # plt.savefig('testplot.png')
 
     def XYaxit(self,x,y):
-        print('x_sec:',x,'xunit:',self.xunit)
+        # print('x_sec:',x,'xunit:',self.xunit)
         # pdb.set_trace()
         x = self.sec2HourOrMin(x)
-        print('x_min:',x)
+        # print('x_min:',x)
         if x:
             self.xpoint = x
             self.ypoint = y

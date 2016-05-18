@@ -13,6 +13,7 @@ class ModelPump(ModelCore):
     secondCurrentSignal = pyqtSignal(object)
     plotPower = pyqtSignal(object)
     beginPlot = pyqtSignal()
+    updatePowerShow = pyqtSignal(object)
 
     def __init__(self):
         super(ModelPump, self).__init__()
@@ -75,7 +76,7 @@ class ModelPump(ModelCore):
                 if (self.startRecord == True) and (self.saveStop == False):
                     # hexdata = data.hex()
                     self.save2sql(self.currentValue,powerDataAndOriginal[1])
-                    self.powerStatus(self.currentValue)
+                # self.powerStatus(self.currentValue)
             # dlst.append(powerDataAndOriginal)
 
 #old agrithm
@@ -293,8 +294,12 @@ class ModelPump(ModelCore):
             self.showPowerData = [logNumber,
             currentPower, averagePower, variancePower,
             maxPower, minPower]
-            print('power show',self.showPowerData)
+            self.emitPowerShow()
 
+
+    def emitPowerShow(self):
+        self.updatePowerShow.emit(self.showPowerData)
+        # print('power show',self.showPowerData)
 
 class TempDetector(object):
     """
@@ -305,7 +310,7 @@ C50-MC   | 20℃        | 0.59775          | 0.000747
 给出的temp实际上是电阻值单位kΩ，
 给出的功率power实际上是电压值单位为V
     """
-    def __init__(self, detect = 'B05-SMC'):
+    def __init__(self, detect = 'C50-MC'):
         super(TempDetector, self).__init__()
         para = {
         'B01-SMC': [20,50.3,0.088],

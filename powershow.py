@@ -13,16 +13,15 @@ class PowerShow(QWidget):
         self.setGeometry(100,100,100,100)
         self.setMinimumSize(100, 100)
         # self.show()
+        self.pter = QPainter(self)
         self.powerList = ['0W','0W','0W','0W','0W']
-        self.text = '功率方差:'+self.powerList[0]+\
-        '\n平均功率:'+self.powerList[1]+\
-        '\n最大功率:'+self.powerList[2]+\
-        '\n最小功率:'+self.powerList[3]+'\n'
-        self.textshow = self.powerList[4]
 
     def paintEvent(self,event):
-        pter = QPainter(self)
+        pter = self.pter
+        self.text = '功率方差:'+self.powerList[0]+'\n平均功率:'+self.powerList[1]+'\n最大功率:'+self.powerList[2]+'\n最小功率:'+self.powerList[3]+'\n'
+        self.textshow = self.powerList[4]
         pter.begin(self)
+        print('PowerShowlist',self.text ,'\n',self.textshow)
         pter.setPen(QPen(Qt.black,0.1))
         pter.setBrush(QBrush(QColor(125,185,222)))
         pter.drawRoundedRect(event.rect(), 10, 10)
@@ -49,6 +48,13 @@ class PowerShow(QWidget):
         qp.setPen(Qt.white)
         qp.setFont(QFont('微软雅黑', 8))
         qp.drawText(event.rect(), Qt.RightToLeft, '实时：')
+
+    def updateFigure(self):
+        self.update()
+
+    def __Power2str(self):
+        pitems = self.powerList
+        for p in pitems[1:3]+pitems[4:6]:
 
 
 if __name__ == '__main__':

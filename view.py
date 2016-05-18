@@ -138,8 +138,8 @@ class View(QWidget):
         cmdBox = QVBoxLayout()
         # cmdBox.addWidget(self.cmd_edit)
         # cmdBox.addWidget(cmd_btn)
-        pshow = PowerShow()
-        cmdBox.addWidget(pshow)
+        self.powerShow = PowerShow()
+        cmdBox.addWidget(self.powerShow)
 # >>>>>>> a45e80ec77a4a8729fa4205165faae001fd09cab
         cmdBox.addWidget(self.editer)
         # cmd_btn.setMaximumSize(300,400)
@@ -580,6 +580,10 @@ class View(QWidget):
 #==============================================================================
 # Get, set
 #==============================================================================
+
+    def setPowerShowList(self,lst):
+        self.powerShow.powerList = lst
+        self.powerShow.updateFigure()
 
     def set_queue(self, queue):
         self.queue = queue
