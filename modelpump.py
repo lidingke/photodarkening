@@ -31,7 +31,7 @@ class ModelPump(ModelCore):
         self.MFilterLen = 5
         self.powerDataList =collections.deque( maxlen=5)
         self.powerDataNum = 0
-        self.showPowerData = [0]
+        self.showPowerData = {'logNumber':0}
 
     def coreMsgProcess(self,data):
         '''input message analysis and manage
@@ -63,6 +63,7 @@ class ModelPump(ModelCore):
             # dlst = self.powerDataList
             powerDataAndOriginal = [self.getPowerData(data),HexSplit.fun(data)]
             #
+            '''
             deque = self.powerDataList
             deque.append(powerDataAndOriginal)
             if len(deque) == 5:
@@ -71,12 +72,19 @@ class ModelPump(ModelCore):
                 self.currentValue = sum(lst[1:4])/3
                 ti1 = time.time() -self.ti0
                 self.currentTime = ti1
-                # self.currentValue = self.tmPower
                 self.emitPlot()
                 if (self.startRecord == True) and (self.saveStop == False):
-                    # hexdata = data.hex()
                     self.save2sql(self.currentValue,powerDataAndOriginal[1])
-                # self.powerStatus(self.currentValue)
+                '''
+            self.currentValue = powerDataAndOriginal[0]
+            ti1 = time.time() -self.ti0
+            self.currentTime = ti1
+            self.emitPlot()
+            if (self.startRecord == True) and (self.saveStop == False):
+                self.save2sql(powerDataAndOriginal[0],powerDataAndOriginal[1])
+
+
+            self.powerStatus(self.currentValue)
             # dlst.append(powerDataAndOriginal)
 
 #old agrithm
@@ -270,15 +278,22 @@ class ModelPump(ModelCore):
 
     def powerStatus(self,data ):
         lst = self.showPowerData
-        logNumber = lst[0] +1
+        logNumber = lst['logNumber'] +1
         if logNumber < 2:
-            self.showPowerData = [logNumber, data, data, 0, data, data]
+            # self.showPowerData = [logNumber, data, data, 0, data, data]
+            self.showPowerData = {
+            'logNumber':logNumber,
+            'currentPower':data,
+            'averagePower':data,
+            'variancePower':0,
+            'maxPower':data,
+            'minPower':data}
         else:
-            currentPower = lst[1]
-            averagePower = lst[2]
-            variancePower = lst[3]
-            maxPower = lst[4]
-            minPower = lst[5]
+            currentPower = lst['currentPower']
+            averagePower = lst['averagePower']
+            variancePower = lst['variancePower']
+            maxPower = lst['maxPower']
+            minPower = lst['minPower']
 
             currentPower = data
             variancePower = \
@@ -291,9 +306,12 @@ class ModelPump(ModelCore):
             if data < minPower:
                 minPower = data
 
-            self.showPowerData = [logNumber,
-            currentPower, averagePower, variancePower,
-            maxPower, minPower]
+            self.showPowerData = {'logNumber':logNumber,
+            'currentPower':currentPower,
+            'averagePower':averagePower,
+            'variancePower':variancePower,
+            'maxPower':maxPower,
+            'minPower':minPower}
             self.emitPowerShow()
 
 

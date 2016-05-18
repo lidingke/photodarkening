@@ -14,12 +14,20 @@ class PowerShow(QWidget):
         self.setMinimumSize(100, 100)
         # self.show()
         self.pter = QPainter(self)
-        self.powerList = ['0W','0W','0W','0W','0W']
+        self.powerList = {'logNumber':0,
+            'currentPower':0,
+            'averagePower':0,
+            'variancePower':0,
+            'maxPower':0,
+            'minPower':0}
 
     def paintEvent(self,event):
         pter = self.pter
-        self.text = '功率方差:'+self.powerList[0]+'\n平均功率:'+self.powerList[1]+'\n最大功率:'+self.powerList[2]+'\n最小功率:'+self.powerList[3]+'\n'
-        self.textshow = self.powerList[4]
+        self.text = '最大功率:'+self.__Power2str(self.powerList['maxPower'])+'\n\
+最小功率:'+self.__Power2str(self.powerList['minPower'])+'\n\
+平均功率:'+self.__Power2str(self.powerList['averagePower'])+'\n\
+功率方差:'+str(round(self.powerList['variancePower'],2))+'\n'
+        self.textshow = self.__Power2str(self.powerList['currentPower'])
         pter.begin(self)
         print('PowerShowlist',self.text ,'\n',self.textshow)
         pter.setPen(QPen(Qt.black,0.1))
@@ -28,20 +36,21 @@ class PowerShow(QWidget):
         pter.translate(10,10)
         self.drawPowerText(event,pter)
         # pter.drawRoundedRect(20,20, 210, 160,50,50)
-        pter.translate(120,10)
-        self.drawPowerCurrentText(event, pter)
-        pter.translate(0,-8)
+        pter.translate(130,2)
         self.drawPowershishiText(event, pter)
+        pter.translate(-5,20)
+        self.drawPowerCurrentText(event, pter)
+
         pter.end()
 
     def drawPowerText(self,event,qp):
         qp.setPen(Qt.white)
-        qp.setFont(QFont('微软雅黑', 12))
+        qp.setFont(QFont('微软雅黑', 10))
         qp.drawText(event.rect(), Qt.RightToLeft, self.text)
 
     def drawPowerCurrentText(self,event,qp):
         qp.setPen(Qt.white)
-        qp.setFont(QFont('微软雅黑', 40))
+        qp.setFont(QFont('微软雅黑', 25))
         qp.drawText(event.rect(), Qt.RightToLeft, self.textshow)
 
     def drawPowershishiText(self,event,qp):
@@ -52,9 +61,11 @@ class PowerShow(QWidget):
     def updateFigure(self):
         self.update()
 
-    def __Power2str(self):
-        pitems = self.powerList
-        for p in pitems[1:3]+pitems[4:6]:
+    def __Power2str(self,data):
+        if data > 0.1:
+            return str(round(data,2))+'W'
+        else:
+            return str(round(data*1000,2)) + 'mW'
 
 
 if __name__ == '__main__':
