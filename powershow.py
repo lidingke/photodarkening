@@ -29,7 +29,7 @@ class PowerShow(QWidget):
 功率方差:'+str(round(self.powerList['variancePower'],2))+'\n'
         self.textshow = self.__Power2str(self.powerList['currentPower'])
         pter.begin(self)
-        print('PowerShowlist',self.text ,'\n',self.textshow)
+        # print('PowerShowlist',self.text ,'\n',self.textshow)
         pter.setPen(QPen(Qt.black,0.1))
         pter.setBrush(QBrush(QColor(125,185,222)))
         pter.drawRoundedRect(event.rect(), 10, 10)

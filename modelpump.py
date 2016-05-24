@@ -13,7 +13,7 @@ class ModelPump(ModelCore):
     """docstring for ModelPump"""
     firstCurrentSignal = pyqtSignal(object)
     secondCurrentSignal = pyqtSignal(object)
-    plotPower = pyqtSignal(object)
+    plotPower = pyqtSignal(object,object)
     beginPlot = pyqtSignal()
     updatePowerShow = pyqtSignal(object)
 
@@ -35,15 +35,22 @@ class ModelPump(ModelCore):
         self.powerDataNum = 0
         self.showPowerData = {'logNumber':0}
         #datapackage
-        self.logTimeStep = 60
+        self.logTimeStep = 1
         # self.stepDataPackage = list()
         self.dataGetDict = {'dataGet':[]}
         # self.startPackageTime = time.time()
-        self.datasaveTick = DataSaveTick(60,self.dataGetDict)
+        # print and database
+        self.datasaveTick = DataSaveTick(self.logTimeStep,self.dataGetDict)
         self.datasaveTick.start()
-        #singnal
+        # origin database
+        '''
+        self.datasaveTick = DataBaseSaveTick(self.logTimeStep,self.dataGetDict)
+        self.datasaveTick.start()
+        '''
+        #signal
         self.datasaveTick.resultEmite.connect(self.powerDataProcess)
-        # datasaveTick.result.connect(self.powerDataProcess)
+
+
 
 
     def coreMsgProcess(self,data):
@@ -134,24 +141,24 @@ class ModelPump(ModelCore):
             #     dlst.clear()
 
 
-    def getPowerData(self,data):
-        # print('十六进制温度：',data[1:3],'电压：',data[5:7],'length',len(data))
-        self.heat = int().from_bytes(data[1:3],'little')/100
-        # self.firstPower = int().from_bytes(data[3:5],'little')
-        # self.firstCurrent = int().from_bytes(data[5:7],'little')
-        self.getPower = int().from_bytes(data[5:7],'little')
-        # if self.getPower > 65200:#some times error number from slave ,most of them higher them 65200
-        #     self.printShow('收到功率乱码')
-        #     self.getPower = int().from_bytes(data[-7:-5],'little')
-        # print('十进制温度：',self.heat,'电压：',self.getPower)
-        if self.heat <100:
-            self.lastTemp = self.heat
-        if self.getPower <65200:
-            self.lastPower = self.getPower
-        self.getPower = (self.getPower/4096)*3#！！！！！这里也改了注意！！！！！！！！！
-        self.tmPower = self.tempdetector.getPower(self.heat,self.getPower)
-        self.printShow('温度:',self.heat,'℃','  功率:',round(self.tmPower,4),'W')
-        return self.tmPower
+    # def getPowerData(self,data):
+    #     # print('十六进制温度：',data[1:3],'电压：',data[5:7],'length',len(data))
+    #     self.heat = int().from_bytes(data[1:3],'little')/100
+    #     # self.firstPower = int().from_bytes(data[3:5],'little')
+    #     # self.firstCurrent = int().from_bytes(data[5:7],'little')
+    #     self.getPower = int().from_bytes(data[5:7],'little')
+    #     # if self.getPower > 65200:#some times error number from slave ,most of them higher them 65200
+    #     #     self.printShow('收到功率乱码')
+    #     #     self.getPower = int().from_bytes(data[-7:-5],'little')
+    #     # print('十进制温度：',self.heat,'电压：',self.getPower)
+    #     if self.heat <100:
+    #         self.lastTemp = self.heat
+    #     if self.getPower <65200:
+    #         self.lastPower = self.getPower
+    #     self.getPower = (self.getPower/4096)*3#！！！！！这里也改了注意！！！！！！！！！
+    #     self.tmPower = self.tempdetector.getPower(self.heat,self.getPower)
+    #     self.printShow('温度:',self.heat,'℃','  功率:',round(self.tmPower,4),'W')
+    #     return self.tmPower
 
     def creatPlot(self,tableName):
         data = self.datahand.getTableData(tableName)
@@ -250,10 +257,15 @@ class ModelPump(ModelCore):
         self.write(valuemsg)
 
     def powerDataProcess(self,data ):
-        # newtime = time.time()
+        '''get power result and sent it to view
+        '''
+        newtime = time.time()
         if self.startRecord == True:
             threading.Thread(target = self.save2sql , args = (data,'',),daemon = True).start()
-
+        self.currentTime = newtime
+        self.currentValue = data
+        self.emitPlot(newtime - self.ti0,data)
+        self.powerStatus(self.currentValue)
 
     def emitFirstCurrent(self):
         self.firstCurrentSignal.emit(self.firstcurrent)
@@ -272,8 +284,8 @@ class ModelPump(ModelCore):
         gotTime = time.time()
         self.cValue.emit([gotTime,value])
 
-    def emitPlot(self):
-        self.plotPower.emit([self.currentTime,self.currentValue])
+    def emitPlot(self,newtime,power):
+        self.plotPower.emit(newtime,power)
 
 
     def getcurrentValue(self):
@@ -385,7 +397,8 @@ C50-MC   | 20℃        | 0.59775          | 0.000747
         #Z=Z0+（T-T0）*Zc
         sensitivity = init_sen +(temp-stand_temp)*correct_sen
         #Φ = U/Z
-        power = voltage*1000/sensitivity
+        voltage = (voltage*1000-8.977)/346.34
+        power = voltage/sensitivity
         #voltage 为探测器输出电压，单位是V，sensitivity 为探测器的灵敏度，单位是mV/W
         return power
 
@@ -449,7 +462,7 @@ class DataSaveTick(threading.Thread,QObject):
         datalist.sort()
         dataLen = len(datalist)
         powerresult = sum(datalist[1:dataLen-1])/(dataLen - 2)
-        print(powerresult)
+        # print(powerresult)
         self.emitPower(powerresult)
 
 
@@ -458,3 +471,55 @@ class DataSaveTick(threading.Thread,QObject):
         self.resultEmite.emit(powerresult)
 
 
+class DataBaseSaveTick(threading.Thread,QObject):
+    """docstring for DataBaseSaveTick
+    need a input dict which hold the dataqueue,
+    pass the list to process and return a new list to get new data
+    """
+    # resultEmite = pyqtSignal(object)
+
+    def __init__(self,ticktime,dataGetDict):
+        threading.Thread.__init__(self)
+        QObject.__init__(self)
+        super(DataBaseSaveTick, self).__init__()
+        # self.arg = arg
+        self.tick = ticktime
+        self.dataGet = dataGetDict
+        # self.detector = TempDetector()
+        self.datahand = DataHand()
+        # print('tick start')
+
+    def run(self):
+        '''rewrite this run() for a clock
+        pass datalist to proccess per steptime
+        '''
+        while True:
+            # pass
+            getlist = self.dataGet['dataGet']
+            # print('listget?',getlist)
+            if getlist:
+                # powerdata = []
+                print('单位时间',len(getlist),getlist.pop())
+                # self.factory(getlist)
+                self.datahand.save2SqlAll('test123', getlist)
+                # self.datahand.save2SqlAll('test123', getlist)
+                self.dataGet['dataGet'] = []
+            time.sleep(self.tick)
+
+    # def factory(self,getlist):
+    #     datalist = []
+    #     for x in getlist:
+    #         # pass
+    #         power = self.detector.hex2power(x[1])
+    #         # datalist.append([power,x[0],x[1]])
+    #         datalist.append(power)
+    #     datalist.sort()
+    #     dataLen = len(datalist)
+    #     powerresult = sum(datalist[1:dataLen-1])/(dataLen - 2)
+    #     print(powerresult)
+    #     self.emitPower(powerresult)
+
+
+    # def emitPower(self,powerresult):
+    #     # pass
+    #     self.resultEmite.emit(powerresult)

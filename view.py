@@ -654,9 +654,9 @@ class View(QWidget):
         self.process_incoming()
         self.update()
 
-    def updataFigure(self,valulist):
+    def updataFigure(self,newtime,power):
         # self.setCurrentValue(currentValue, timeValue)
-        self.painter.XYaxit(valulist[0],valulist[1])
+        self.painter.XYaxit(newtime,power)
         self.painter.update_figure()
 
         # print('update?')
