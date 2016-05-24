@@ -93,7 +93,7 @@ class ModelCore(threading.Thread, QObject):
                 data = self.analysisbit()
                 if data :
                     self.coreMsgProcess(data)
-                    print(HexSplit.fun(data.hex()))
+                    # print(HexSplit.fun(data.hex()))
             time.sleep(self.timeout)
 
 
@@ -290,7 +290,7 @@ class ModelCore(threading.Thread, QObject):
                     # print('tick ',tick)
                     if databit == b'\xA9':
                         if tick == 12:
-                            print('接收位数第',tick)
+                            # print('接收位数第',tick)
                             # databit = self.readbit(self.ser)
                             data = b''.join(bitlist)
                             # self.printShow('received:',b'\x9A' + data +b'\xA9',text = False)

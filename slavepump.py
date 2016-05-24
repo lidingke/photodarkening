@@ -64,11 +64,11 @@ class Slave(object):
             #print(currentmsg)
             cp1,cp2,cp3,cp4 = self.rdcreate(8,12,1),self.rdcreate(),self.rdcreate(20,60,1,head = 'little'),self.rdcreate(3,6,1)
             currentmsg = b'\x9A'+ cp1 +cp2 + cp3 + cp4 +b'\xFF\xFF'+b'\xA9'
-            print('发功：',currentmsg)
+            # print('发功：',currentmsg)
             # pdb.set_trace()
             # print('发送电流：',currentmsg,': ',int().from_bytes(cb1,'big'),int().from_bytes(cb2,'big'),int().from_bytes(cb3,'big'),int().from_bytes(cb4,'big')
             ser.write(currentmsg)
-            sleep(1)
+            sleep(0.02)
 
 
     def bigPowerSend(self,ser):

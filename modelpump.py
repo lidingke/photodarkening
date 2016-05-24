@@ -6,6 +6,8 @@ from database import DataHand
 import pdb
 from toolkit import HexSplit
 import collections
+# from dataSaveTick import DataSaveTick
+import queue
 
 class ModelPump(ModelCore):
     """docstring for ModelPump"""
@@ -25,13 +27,24 @@ class ModelPump(ModelCore):
         self.startRecord = False# set start record statues
         self.datahand = DataHand('data\\powerdata.db')
         self.datahand.username = self.username
-        self.saveStop = False
+        # self.saveStop = False
         self.lastPower = 1
         self.lastTemp = 1
         self.MFilterLen = 5
         self.powerDataList =collections.deque( maxlen=5)
         self.powerDataNum = 0
         self.showPowerData = {'logNumber':0}
+        #datapackage
+        self.logTimeStep = 60
+        # self.stepDataPackage = list()
+        self.dataGetDict = {'dataGet':[]}
+        # self.startPackageTime = time.time()
+        self.datasaveTick = DataSaveTick(60,self.dataGetDict)
+        self.datasaveTick.start()
+        #singnal
+        self.datasaveTick.resultEmite.connect(self.powerDataProcess)
+        # datasaveTick.result.connect(self.powerDataProcess)
+
 
     def coreMsgProcess(self,data):
         '''input message analysis and manage
@@ -60,9 +73,24 @@ class ModelPump(ModelCore):
                     secondcurrent = int().from_bytes(data[3:5],'big')
                     self.printShow('getsecondcurrent:',secondcurrent)
         elif data[0:1] == b'\x9A':
-            # dlst = self.powerDataList
+            self.dataGetDict['dataGet'].append([time.time(),data])
+            # print('dataGet',len(self.dataGetDict['dataGet']),type(self.dataGetDict['dataGet']))
+            # try:
+            #     tnew = self.startPackageTime
+            # except NameError:
+            #     self.startPackageTime = time.time()
+
+            # # tnew = self.startPackageTime
+            # if tnew > time.time():
+
+            # else:
+            #     tnew = tnew +60
+            #     self.stepDataPackage = list()
+            # # dlst = self.powerDataList
+            '''
             powerDataAndOriginal = [self.getPowerData(data),HexSplit.fun(data)]
             #
+            '''
             '''
             deque = self.powerDataList
             deque.append(powerDataAndOriginal)
@@ -75,7 +103,8 @@ class ModelPump(ModelCore):
                 self.emitPlot()
                 if (self.startRecord == True) and (self.saveStop == False):
                     self.save2sql(self.currentValue,powerDataAndOriginal[1])
-                '''
+            '''
+            '''
             self.currentValue = powerDataAndOriginal[0]
             ti1 = time.time() -self.ti0
             self.currentTime = ti1
@@ -86,7 +115,7 @@ class ModelPump(ModelCore):
 
             self.powerStatus(self.currentValue)
             # dlst.append(powerDataAndOriginal)
-
+                '''
 #old agrithm
             #if self.powerDataNum != self.MFilterLen:
             #     self.powerDataNum = self.powerDataNum +1
@@ -220,6 +249,11 @@ class ModelPump(ModelCore):
         self.printShow('setfirstcurrent',valuemsg,'v',value)
         self.write(valuemsg)
 
+    def powerDataProcess(self,data ):
+        # newtime = time.time()
+        if self.startRecord == True:
+            threading.Thread(target = self.save2sql , args = (data,'',),daemon = True).start()
+
 
     def emitFirstCurrent(self):
         self.firstCurrentSignal.emit(self.firstcurrent)
@@ -249,12 +283,12 @@ class ModelPump(ModelCore):
         return self.currentTime
 
     def setSaveStop(self,isture):
-        self.saveStop = isture
+        self.startRecord = isture
 
 #plort start status
     def setBeginPlotTime(self):
         self.startRecord = True
-        self.saveStop = False
+        # self.saveStop = False
         # self.ti0 = time.time()
         print('get ti0:',self.ti0,'init tabel username',self.username)
         self.datahand.initSqltabel(self.ti0,self.username)
@@ -355,6 +389,13 @@ C50-MC   | 20℃        | 0.59775          | 0.000747
         #voltage 为探测器输出电压，单位是V，sensitivity 为探测器的灵敏度，单位是mV/W
         return power
 
+    def hex2power(self,data = b''):
+        heat = int().from_bytes(data[1:3],'little')/100
+        getPower = int().from_bytes(data[5:7],'little')
+        getPower = (getPower/4096)*3#！！！！！这里也改了注意！！！！！！！！！
+        tmPower = self.getPower(heat,getPower)
+        return tmPower
+
     # def fit(self,lit = 10):
     #     x = [90,    80,     70,   60,     56, 50, 40, 30, 20, 11,   8, 5.5, 4, 3.5, 2]
     #     y = [-18, -15.5, -14, -11.5, -10,  -8, -4,  1.5, 10, 20, 30, 40, 50, 60, 70]
@@ -364,3 +405,56 @@ C50-MC   | 20℃        | 0.59775          | 0.000747
     #     # y2 = [p(i) for i in x]
     #     # pyplot.plot(x,y2, hold = True)
     #     return p
+from    PyQt5.QtCore        import QObject
+
+class DataSaveTick(threading.Thread,QObject):
+    """docstring for DataSaveTick
+    need a input dict which hold the dataqueue,
+    pass the list to process and return a new list to get new data
+    """
+    resultEmite = pyqtSignal(object)
+
+    def __init__(self,ticktime,dataGetDict):
+        threading.Thread.__init__(self)
+        QObject.__init__(self)
+        super(DataSaveTick, self).__init__()
+        # self.arg = arg
+        self.tick = ticktime
+        self.dataGet = dataGetDict
+        self.detector = TempDetector()
+        # print('tick start')
+
+    def run(self):
+        '''rewrite this run() for a clock
+        pass datalist to proccess per steptime
+        '''
+        while True:
+            # pass
+            getlist = self.dataGet['dataGet']
+            # print('listget?',getlist)
+            if getlist:
+                # powerdata = []
+                print('单位时间',len(getlist),getlist.pop())
+                self.factory(getlist)
+                self.dataGet['dataGet'] = []
+            time.sleep(self.tick)
+
+    def factory(self,getlist):
+        datalist = []
+        for x in getlist:
+            # pass
+            power = self.detector.hex2power(x[1])
+            # datalist.append([power,x[0],x[1]])
+            datalist.append(power)
+        datalist.sort()
+        dataLen = len(datalist)
+        powerresult = sum(datalist[1:dataLen-1])/(dataLen - 2)
+        print(powerresult)
+        self.emitPower(powerresult)
+
+
+    def emitPower(self,powerresult):
+        # pass
+        self.resultEmite.emit(powerresult)
+
+

@@ -288,7 +288,7 @@ class PowerRecord(QWidget):
 
         self.stopTime = time.time()
         self.seButton.setEnabled(True)
-        self.stopSavePower.emit(True)
+        self.stopSavePower.emit(False)
         # self.seButton.setText('start')
         # self.timebegin = False
 
