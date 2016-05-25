@@ -1,6 +1,7 @@
 import sqlite3
 import time
 import logging
+import pdb
 
 class DataHand(object):
     """docstring for DataHand
@@ -32,6 +33,7 @@ class DataHand(object):
         return sqlTableName
 
     def save2Sql(self,sqlTableName,localTime,power,data):
+
         conn = sqlite3.connect(self.name)
         cursor = conn.cursor()
         try:
@@ -69,6 +71,40 @@ class DataHand(object):
     def createPlot(self,data):
         print('plot:',len(data))
 
+
+    def save2SqlAll(self,sqlTableName,datalist):
+        # pdb.set_trace()
+        print('start database log',self.name)
+        conn = sqlite3.connect(self.name)
+        cursor = conn.cursor()
+        try:
+            strEx='create table if not exists '+sqlTableName+\
+            ' (time float(17), power float(10), data varchar(10))'
+            cursor.execute(strEx)
+        except Exception as e:
+            raise e
+        for da in datalist:
+        #     pass
+        # while datalist:
+        #     # pass
+            # da = datalist.pop()
+            try:
+                strEx='insert into '+sqlTableName+' (time, power,data) values ('+str(da[0])+' , '+str(0)+', \''+da[1].hex()+'\')'
+                # print(strEx)
+                cursor.execute(strEx)
+            except sqlite3.OperationalError as e :
+                raise e
+
+                print('database is busy! data is not save')
+            except Exception as e:
+                logging.exception(e)
+                # self.closeConnect()
+                raise e
+        datalist.clear()
+        cursor.close()
+        conn.commit()
+        conn.close()
+        print('datasave done',self.name)
 
 
 

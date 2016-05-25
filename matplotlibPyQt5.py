@@ -50,7 +50,7 @@ class MyDynamicMplCanvas(MyMplCanvas):
         self.yMax = 1
         self.xpoint = 0
         self.ypoint = 0
-        self.timeState = datetime.time()
+        # self.timeState = datetime.time()
         self.timeStatesec = 0
         self.xunit = 'sec'
 
@@ -86,10 +86,12 @@ class MyDynamicMplCanvas(MyMplCanvas):
         # print('lg set ',bool_)
         self.isStartLog = bool_
 
-    def getLogTimeState(self,pydatetime ):
-        self.timeState = pydatetime
-        tp = pydatetime
-        self.timeStatesec = (tp.hour*60+tp.minute)*60+tp.second
+    def getLogTimeState(self,tp ):
+        # self.timeState = pydatetime
+        # tp = pydatetime
+        # self.timeStatesec = (tp.hour*60+tp.minute)*60+tp.second
+        self.timeStatesec = tp
+        print(self.timeStatesec,'timeStatesec')
         if self.timeStatesec>3600:
             self.xunit = 'hour'
             self.timended = (self.timeStatesec/3600)*1.2

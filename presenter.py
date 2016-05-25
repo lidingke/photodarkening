@@ -103,7 +103,7 @@ class Presenter:
         self.__view.powerRecord.stopSavePower.connect(self.pumpModel.setSaveStop)
         self.pumpModel.beginPlot.connect(self.__view.painter.clearPlotList)
         # self.__view.powerRecord.timeStateSignal.connect(self.)
-        print('model signals set?')
+        # print('model signals set?')
         self.__view.emitUsername.connect(self.pumpModel.setUsername)
         self.pumpModel.updatePowerShow.connect(self.__view.setPowerShowList)
     # def setSignals(self):
