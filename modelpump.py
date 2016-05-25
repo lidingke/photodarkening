@@ -230,9 +230,10 @@ class ModelPump(ModelCore):
 
 
     def writesecondPumpCurrent(self,value):
-        threading.Thread(target = self.threeTimesSpump, args = (value,)).start()
+        # threading.Thread(target = self.threeTimesSpump, args = (value,)).start()
         # self.printShow('frevalue:',value)
         # self.printShow('setsecondcurrent:',value,type(value),int(value))
+        self.sendthread123(int(value))
 
     def threeTimesSpump(self,value):
         value = int(value)
@@ -261,6 +262,7 @@ class ModelPump(ModelCore):
         '''
         newtime = time.time()
         if self.startRecord == True:
+            print('is startRecord', self.startRecord)
             threading.Thread(target = self.save2sql , args = (data,'',),daemon = True).start()
         self.currentTime = newtime
         self.currentValue = data
@@ -296,10 +298,11 @@ class ModelPump(ModelCore):
 
     def setSaveStop(self,isture):
         self.startRecord = isture
+        print('set startRecord:',self.startRecord)
 
 #plort start status
     def setBeginPlotTime(self):
-        self.startRecord = True
+        # self.startRecord = True
         # self.saveStop = False
         # self.ti0 = time.time()
         print('get ti0:',self.ti0,'init tabel username',self.username)
@@ -311,6 +314,20 @@ class ModelPump(ModelCore):
     def setStartTime(self,stime ):
         self.ti0 = stime
 
+#临时性改动
+    def sendthread123(self,value):
+        print('valueget',value)
+        threading.Thread(target = self.sendMsgDown, daemon = True,args = (value,)).start()
+
+    def sendMsgDown(self,value):
+        print('ser',self.ser)
+        # self.write(self.msgDictHex['opensecondpump'])
+        # time.sleep(10)
+        self.secondPumpCurrentMsg(value )
+        for x in range(1,60):
+            time.sleep(10)
+            self.secondPumpCurrentMsg(value - x)
+            # print('ssssssssssssend',value - x)
 
 #sqlite save
     def save2sql(self, power ,hexdata):
@@ -463,6 +480,7 @@ class DataSaveTick(threading.Thread,QObject):
         dataLen = len(datalist)
         powerresult = sum(datalist[1:dataLen-1])/(dataLen - 2)
         # print(powerresult)
+        getlist.clear()
         self.emitPower(powerresult)
 
 
