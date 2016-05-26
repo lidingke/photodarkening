@@ -22,8 +22,11 @@ class PdfCreater(object):
 
     def savePdf(self):
         pt = QPdfWriter(self.fileName)
-        pt.logicalDpiX
+        # pt.logicalDpiX
         pt.setPageSize(QPagedPaintDevice.A4)
+        # print('resolution',pt.resolution())
+        pt.setResolution(10000)
+        # print('resolution',pt.resolution())
 
         textDocument = QTextDocument()
         textDocument.setHtml(self.thtml)
@@ -77,7 +80,7 @@ class PdfContext(object):
       'minsingalpower': '2.68W',
       'averagesingalepower': '2.71W',
       'powerstable': '±1.1%',
-      'imgsrc':'recycle/Image/example.png'
+      'imgsrc':'plot.pdf'
 
       }
 
@@ -200,10 +203,11 @@ class PdfContext(object):
     <p>信号光功率最大值：'''+maxsignalpower+'''<br />
     信号光功率最小值：'''+minsingalpower+'''<br />
     信号光功率平均值：'''+averagesingalepower+'''<br />
-    功率稳定性：'''+powerstable+'''</p>
-    <img src="'''+imgsrc+'''">
+    功率稳定性：'''+powerstable+'''<br /></p>
+    <img src= "data/plot.svg">
     </body></html>
     '''
+        # print('img',imgsrc)
         return thtml
 
 

@@ -124,7 +124,7 @@ class MyDynamicMplCanvas(MyMplCanvas):
         # if self.xlist:
         #     # pyplot.plot(self.xlist, self.ylist)
         #     # pyplot.show()
-        self.fig.savefig("d.pdf", format = 'pdf')
+        self.fig.savefig("data\\plot.svg", format = 'svg')#data\
 
         # self.axes.plot(self.xlist, self.ylist, 'r')
         # import matplotlib.pyplot as plt

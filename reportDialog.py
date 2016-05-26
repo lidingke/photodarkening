@@ -13,8 +13,6 @@ class ReportDialog(QDialog):
         self.lastlog  = LastLog('data\\reportLast.pickle')
         self.setInitText()
 
-
-
     def setInitText(self):
         if self.pick == False:
             self.pick = self.lastlog.loadLast()
@@ -36,12 +34,12 @@ class ReportDialog(QDialog):
         # title1st = text.get('title1st','')
         temperature = text.get('temperature','')
         humidity = text.get('humidity','')
-        signalwavelength = text.get('signalwavelength','')
-        signalpulsewidth = text.get('signalpulsewidth','')
-        signalfrequence = text.get('signalfrequence','')
-        secondpulsepower = text.get('secondpulsepower','')
+        # signalwavelength = text.get('signalwavelength','')
+        # signalpulsewidth = text.get('signalpulsewidth','')
+        # signalfrequence = text.get('signalfrequence','')
+        # secondpulsepower = text.get('secondpulsepower','')
         fiberlength = text.get('fiberlength','')
-        timelong = text.get('timelong','')
+        # timelong = text.get('timelong','')
         self.ui.lineEditDate.setText(date)
         self.ui.lineEditWorker.setText(worker)
         self.ui.lineEditFibertype.setText(fibertype)
@@ -49,12 +47,12 @@ class ReportDialog(QDialog):
         self.ui.lineEditFiberNo.setText(fiberNo)
         self.ui.lineEditTemperature.setText(temperature)
         self.ui.lineEditHumidity.setText(humidity)
-        self.ui.lineEditSignalwavelength.setText(signalwavelength)
-        self.ui.lineEditSignalpulsewidth.setText(signalpulsewidth)
-        self.ui.lineEditSignalfrequence.setText(signalfrequence)
-        self.ui.lineEditSecondpulsepower.setText(secondpulsepower)
+        # self.ui.lineEditSignalwavelength.setText(signalwavelength)
+        # self.ui.lineEditSignalpulsewidth.setText(signalpulsewidth)
+        # self.ui.lineEditSignalfrequence.setText(signalfrequence)
+        # self.ui.lineEditSecondpulsepower.setText(secondpulsepower)
         self.ui.lineEditFiberlength.setText(fiberlength)
-        self.ui.lineEditTimelong.setText(timelong)
+        # self.ui.lineEditTimelong.setText(timelong)
         # self.ui.lineEdit
 
     def getAllcontext(self):
@@ -67,20 +65,20 @@ class ReportDialog(QDialog):
         # title1st = text.get('title1st','')
         text['temperature'] =self.ui.lineEditTemperature.text()
         text['humidity'] =self.ui.lineEditHumidity.text()
-        text['signalwavelength'] = self.ui.lineEditSignalwavelength.text()
-        text['signalpulsewidth',] = self.ui.lineEditSignalpulsewidth.text()
-        text['signalfrequence'] = self.ui.lineEditSignalfrequence.text()
-        text['secondpulsepower'] = self.ui.lineEditSecondpulsepower.text()
+        # text['signalwavelength'] = self.ui.lineEditSignalwavelength.text()
+        # text['signalpulsewidth',] = self.ui.lineEditSignalpulsewidth.text()
+        # text['signalfrequence'] = self.ui.lineEditSignalfrequence.text()
+        # text['secondpulsepower'] = self.ui.lineEditSecondpulsepower.text()
         text['fiberlength'] = self.ui.lineEditFiberlength.text()
-        text['timelong'] = self.ui.lineEditTimelong.text()
+        # text['timelong'] = self.ui.lineEditTimelong.text()
         # print(text)
         return text
 
 
     def closeEvent(self,event):
-        print('reWrite closeEvent')
+        # print('reWrite closeEvent')
         text = self.getAllcontext()
-        print(text['worker'])
+        # print(text['worker'])
         self.lastlog.saveLast(text)
 
 

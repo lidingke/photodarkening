@@ -10,11 +10,13 @@ import pdb
 import queue
 from pdfcreater import PdfCreater
 from ticker import Ticker
+from toolkit import WRpickle
 
 
 
 class PowerRecord(QWidget):
     """docstring for PowerRecord"""
+    '''在这里加个pick process'''
     beginTimeSignal = pyqtSignal(object)
     sqlTableName = pyqtSignal(object)
     stopSavePower = pyqtSignal(object)
@@ -23,6 +25,8 @@ class PowerRecord(QWidget):
 
     def __init__(self):
         super(PowerRecord, self).__init__()
+        self.wrpick = WRpickle('data\\reportLast.pickle')
+        # self.pickContext = self.wrpick.loadPick()
         self.startTime = 0
         self.stopTime = time.time()
         self.userID = ''
@@ -50,7 +54,7 @@ class PowerRecord(QWidget):
         self.seButton.buttonState = 'begin'
         self.seButton.clicked.connect(self.beginOendTime)
         self.timeEdit = QDateTimeEdit()
-        self.timeEdit.setDisplayFormat(' s : hh : mm ')
+        self.timeEdit.setDisplayFormat(' s : hh : mm')
         # self.timeEdit.setDate(QDate(2000,10,10))
         # print(self.timeEdit.text())
         self.ticker = Ticker()
@@ -79,40 +83,6 @@ class PowerRecord(QWidget):
 
 
 
-        # pdb.set_trace()
-        # self.itemSelect()
-        # self.timeEdit.setMaximumTime()
-        # self.hourlabel = QLabel('时')
-        # self.hourShow = QLCDNumber()
-        # self.minlabel = QLabel('分')
-        # self.minShow = QLCDNumber()
-        # self.seclabel = QLabel('秒')
-
-        # item.setText('kklong')
-        # item = QListWidgetItem()
-        # self.historylist.addItem(item)
-        # item = QListWidgetItem()
-        # self.historylist.addItem(item)
-        # self.historylist.setReadOnly(True)
-        # timebox = QHBoxLayout()
-
-        # timebox.addWidget(self.hourlabel)
-        # timebox.addWidget(self.hourShow)
-        # timebox.addWidget(self.minlabel)
-        # timebox.addWidget(self.minShow)
-        # timebox.addWidget(self.seclabel)
-
-        # self.printbutton.clicked.connect(self.getDbdata)
-
-        # timebox.addWidget()
-
-        # mainLayout.addWidget(, 0, 0)
-        # mainLayout.addLayout(timebox, 2, 0)
-
-        # mainLayout.addLayout(buttonLayout2, 2, 1)
-        # self.loadFile()
-
-        # self.setWindowTitle("Simple Address Book")
 
 ###
 
@@ -129,7 +99,6 @@ class PowerRecord(QWidget):
         self.startTimetic = pickget.get('begin')
         self.printUserID = pickget.get('userID')
         print('itemSelect:',self.itemNum, self.startTimetic,self.printUserID)
-
         self.itemChangeStatus = True
         # print(self.itemText)
 
@@ -139,11 +108,11 @@ class PowerRecord(QWidget):
             self.figGet.savePlotFig()
         rep = ReportDialog()
         rep.exec_()
-        '''
+
         printer = PdfCreater(self,)
         printer.saveToFile()
         printer.savePdf()
-       '''
+
         # if self.itemChangeStatus is False:
         #     self.itemText = self.historylist.item(0).text()
         # print('print:',self.itemText)
@@ -151,6 +120,87 @@ class PowerRecord(QWidget):
 
     def getNowFig(self,fig):
         self.figGet = fig
+
+
+    def NowContextGet(self):
+        #get last log
+        self.pickContext = self.wrpick.loadPick()
+        #get username
+        self.pickContext['worker'] = self.userID
+        #get plot from db
+        #get calc report
+        pass
+
+
+    def beginOendTime(self):
+        # self.ticker.run()
+        if self.seButton.buttonState == 'begin':
+            #记录起始时间
+            self.beginTime = time.time()
+            print('beginTime:',self.beginTime)
+            self.beginTimeSignal.emit(self.beginTime)
+            self.stopSavePower.emit(True)
+            #begin ticker
+            self.timeLong = self.timeEdit2time()
+            #send to plot
+            self.ticker.startTick(self.timeLong)
+            self.timeStateSignal.emit(self.timeLong)
+            self.logStateSignal.emit(True)
+            self.seButton.setText('stop')
+            self.seButton.buttonState = 'stop'
+        elif self.seButton.buttonState == 'stop':
+            self.ticker.stopTick()
+            self.seButton.setText('begin')
+            self.seButton.buttonState = 'begin'
+            self.stopSavePower.emit(False)
+
+    def tickerTimeOut(self):
+        print('time out')
+        self.seButton.setText('begin')
+        self.seButton.buttonState = 'begin'
+        self.stopSavePower.emit(False)
+
+    def timerSave(self):
+        beginTime =self.beginTime
+        continueTime = self.editTime
+        self.pick.append({'begin':beginTime,
+            'continue':continueTime,'userID':self.userID})
+        self.saveFile()
+        self.loadFile()
+        self.plantlist()
+
+        self.stopTime = time.time()
+        self.seButton.setEnabled(True)
+        self.stopSavePower.emit(False)
+        # self.seButton.setText('start')
+        # self.timebegin = False
+    def timeEdit2time(self):
+        timeStr = self.timeEdit.text()
+        timeSplit = timeStr.split(':')
+        date = int(timeSplit[0].strip())
+        hour = int(timeSplit[1].strip())
+        minute = int(timeSplit[2].strip())
+        return ((date*24+hour)*60+minute)*60
+
+    def update_GUI(self):
+        self.update()
+
+###
+# interface
+###
+
+    def getUserID(self):
+        return self.userID
+
+    def setUserID(self,userid):
+        self.userID = userid
+
+    def getPowerData(self):
+        return self.powerData
+
+    def setPowerData(self,data):
+        self.powerData.put(data)
+
 
 
     def getDbdata(self):
@@ -214,88 +264,39 @@ class PowerRecord(QWidget):
                 item.setText(textstr)
 
         # pdb.set_trace()
-        # self.historylist.clear()
-                # textstr.startTime = self.startTime
-            # textstr = x['start']+':'+x['stop']+':'+x['userID']
-            # print(textstr)
-            # for x in range(1,self.itemShowNum):
-            #     pass
-            # pdb.set_trace()
-            # self.historylist.appendPlainText(textstr)
-                # self.plaintlist.append(textstr)
-            # if len(self.texlist) > 3:
-            #     return
-    '''
-    def beginOendTime(self):
-        timeState = self.timeEdit.text()
-        if self.seButton.buttonState == 'begin' and timeState != '0:00':
-            #记录起始时间
-            self.beginTime = time.time()
-            print('beginTime:',self.beginTime)
-            self.beginTimeSignal.emit(self.beginTime)
-            # self.emitBeginTime()
-            #设置时长
-            self.editTime = self.timeEdit.time()
-            self.timeStateSignal.emit(self.editTime.toPyTime())
-            self.logStateSignal.emit(True)
-            print('editTime:',self.editTime,'toPyTime',self.editTime.toPyTime())
-            self.timebegin = True
-            threading.Thread(target=self.timerStep,daemon = True).start()
-            self.ledStartTime = time.clock()
-            self.seButton.setText('stop')
-            self.seButton.buttonState = 'stop'
-            self.timeStepPause = False
-            time.sleep(0.3)
-        elif self.seButton.buttonState == 'stop':
-            self.timebegin = False
-            self.seButton.setText('begin')
-            self.seButton.buttonState = 'begin'
-    '''
+        # self.itemSelect()
+        # self.timeEdit.setMaximumTime()
+        # self.hourlabel = QLabel('时')
+        # self.hourShow = QLCDNumber()
+        # self.minlabel = QLabel('分')
+        # self.minShow = QLCDNumber()
+        # self.seclabel = QLabel('秒')
 
+        # item.setText('kklong')
+        # item = QListWidgetItem()
+        # self.historylist.addItem(item)
+        # item = QListWidgetItem()
+        # self.historylist.addItem(item)
+        # self.historylist.setReadOnly(True)
+        # timebox = QHBoxLayout()
 
+        # timebox.addWidget(self.hourlabel)
+        # timebox.addWidget(self.hourShow)
+        # timebox.addWidget(self.minlabel)
+        # timebox.addWidget(self.minShow)
+        # timebox.addWidget(self.seclabel)
 
-    def beginOendTime(self):
-        # self.ticker.run()
-        if self.seButton.buttonState == 'begin':
-            #记录起始时间
-            self.beginTime = time.time()
-            print('beginTime:',self.beginTime)
-            self.beginTimeSignal.emit(self.beginTime)
-            self.stopSavePower.emit(True)
-            #begin ticker
-            self.timeLong = self.timeEdit2time()
-            #send to plot
-            self.ticker.startTick(self.timeLong)
-            self.timeStateSignal.emit(self.timeLong)
-            self.logStateSignal.emit(True)
-            self.seButton.setText('stop')
-            self.seButton.buttonState = 'stop'
-        elif self.seButton.buttonState == 'stop':
-            self.ticker.stopTick()
-            self.seButton.setText('begin')
-            self.seButton.buttonState = 'begin'
-            self.stopSavePower.emit(False)
+        # self.printbutton.clicked.connect(self.getDbdata)
 
-    def tickerTimeOut(self):
-        print('time out')
-        self.seButton.setText('begin')
-        self.seButton.buttonState = 'begin'
-        self.stopSavePower.emit(False)
+        # timebox.addWidget()
 
-    def timerSave(self):
-        beginTime =self.beginTime
-        continueTime = self.editTime
-        self.pick.append({'begin':beginTime,
-            'continue':continueTime,'userID':self.userID})
-        self.saveFile()
-        self.loadFile()
-        self.plantlist()
+        # mainLayout.addWidget(, 0, 0)
+        # mainLayout.addLayout(timebox, 2, 0)
 
-        self.stopTime = time.time()
-        self.seButton.setEnabled(True)
-        self.stopSavePower.emit(False)
-        # self.seButton.setText('start')
-        # self.timebegin = False
+        # mainLayout.addLayout(buttonLayout2, 2, 1)
+        # self.loadFile()
+
+        # self.setWindowTitle("Simple Address Book")
 
     # def timerStep(self):
     #     threadStartTime = time.clock()
@@ -321,13 +322,7 @@ class PowerRecord(QWidget):
     #         time.sleep(0.3)
 
 
-    def timeEdit2time(self):
-        timeStr = self.timeEdit.text()
-        timeSplit = timeStr.split(':')
-        date = int(timeSplit[0].strip())
-        hour = int(timeSplit[1].strip())
-        minute = int(timeSplit[2].strip())
-        return ((date*24+hour)*60+minute)*60
+
 
     # def startOrStop(self):
     #     buttonState = self.seButton.text()
@@ -373,25 +368,47 @@ class PowerRecord(QWidget):
     #         self.ticker.display(timestr)
     #         self.update_GUI()
     #         time.sleep(1)
+        # pdb.set_trace()
+        # self.historylist.clear()
+                # textstr.startTime = self.startTime
+            # textstr = x['start']+':'+x['stop']+':'+x['userID']
+            # print(textstr)
+            # for x in range(1,self.itemShowNum):
+            #     pass
+            # pdb.set_trace()
+            # self.historylist.appendPlainText(textstr)
+                # self.plaintlist.append(textstr)
+            # if len(self.texlist) > 3:
+            #     return
+    '''
+    def beginOendTime(self):
+        timeState = self.timeEdit.text()
+        if self.seButton.buttonState == 'begin' and timeState != '0:00':
+            #记录起始时间
+            self.beginTime = time.time()
+            print('beginTime:',self.beginTime)
+            self.beginTimeSignal.emit(self.beginTime)
+            # self.emitBeginTime()
+            #设置时长
+            self.editTime = self.timeEdit.time()
+            self.timeStateSignal.emit(self.editTime.toPyTime())
+            self.logStateSignal.emit(True)
+            print('editTime:',self.editTime,'toPyTime',self.editTime.toPyTime())
+            self.timebegin = True
+            threading.Thread(target=self.timerStep,daemon = True).start()
+            self.ledStartTime = time.clock()
+            self.seButton.setText('stop')
+            self.seButton.buttonState = 'stop'
+            self.timeStepPause = False
+            time.sleep(0.3)
+        elif self.seButton.buttonState == 'stop':
+            self.timebegin = False
+            self.seButton.setText('begin')
+            self.seButton.buttonState = 'begin'
+    '''
 
-    def update_GUI(self):
-        self.update()
 
-###
-# interface
-###
 
-    def getUserID(self):
-        return self.userID
-
-    def setUserID(self,userid):
-        self.userID = userid
-
-    def getPowerData(self):
-        return self.powerData
-
-    def setPowerData(self,data):
-        self.powerData.put(data)
 
 
 ###

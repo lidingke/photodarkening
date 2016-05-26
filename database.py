@@ -7,7 +7,7 @@ class DataHand(object):
     """docstring for DataHand
     table: 'TM'+dateNow+'US'+self.username
     """
-    def __init__(self, name = 'data\\data.db'):
+    def __init__(self, name = 'data\\powerdata.db'):
         super(DataHand, self).__init__()
         self.name = name
         logging.basicConfig(filename = 'data\\databaselog.txt', filemode = 'a',
@@ -52,6 +52,14 @@ class DataHand(object):
         cursor.close()
         conn.commit()
         conn.close()
+
+    def getTable(self):
+        con = sqlite3.connect(self.name)
+        cursor = con.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tableLst=cursor.fetchall()
+        return tableLst
+
 
     def getTableData(self,tableName):
         conn = sqlite3.connect(self.name)

@@ -262,7 +262,7 @@ class ModelPump(ModelCore):
         '''
         newtime = time.time()
         if self.startRecord == True:
-            print('is startRecord', self.startRecord)
+            # print('is startRecord', self.startRecord)
             threading.Thread(target = self.save2sql , args = (data,'',),daemon = True).start()
         self.currentTime = newtime
         self.currentValue = data
@@ -298,7 +298,7 @@ class ModelPump(ModelCore):
 
     def setSaveStop(self,isture):
         self.startRecord = isture
-        print('set startRecord:',self.startRecord)
+        # print('set startRecord:',self.startRecord)
 
 #plort start status
     def setBeginPlotTime(self):
