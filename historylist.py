@@ -14,6 +14,8 @@ class HistoryList(QListWidget):
         self.nowtable = 0
         self.itemSelectionChanged.connect(self.itemSelect)
         self.table = []
+        self.setCurrentRow(1)
+        self.getTable()
 
     def getTable(self):
         table = self.datahand.getTable()
@@ -29,9 +31,6 @@ class HistoryList(QListWidget):
 
     def itemSelect(self):
         self.itemText = self.currentItem().text()
-        # pdb.set_trace()
-
-
         self.itemIndex = self.table[-1-int(self.currentRow())][0]
         print(self.itemText,self.itemIndex)
         self.itemSelectedEmit.emit(self.itemIndex)

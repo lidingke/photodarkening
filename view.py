@@ -217,6 +217,7 @@ class View(QWidget):
         self.powerRecord.getNowFig(self.painter)
         self.powerRecord.timeStateSignal.connect(self.painter.getLogTimeState)
         self.powerRecord.logStateSignal.connect(self.painter.getStartLog)
+        self.powerRecord.plotlist.connect(self.painter.XYaxitList)
         self.powerRecordBox.addWidget(self.powerRecord)
 #
 #port set

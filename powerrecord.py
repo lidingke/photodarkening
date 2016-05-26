@@ -11,7 +11,8 @@ import queue
 from pdfcreater import PdfCreater
 from ticker import Ticker
 from toolkit import WRpickle
-
+from historylist import HistoryList
+from database import DataHand
 
 
 class PowerRecord(QWidget):
@@ -22,11 +23,14 @@ class PowerRecord(QWidget):
     stopSavePower = pyqtSignal(object)
     timeStateSignal = pyqtSignal(object)
     logStateSignal = pyqtSignal(object)
+    plotlist = pyqtSignal(object,object,object)
+    # plotlistbegin = pyqtSignal(object)
 
     def __init__(self):
         super(PowerRecord, self).__init__()
         self.wrpick = WRpickle('data\\reportLast.pickle')
         # self.pickContext = self.wrpick.loadPick()
+        self.datahand = DataHand()
         self.startTime = 0
         self.stopTime = time.time()
         self.userID = ''
@@ -38,9 +42,9 @@ class PowerRecord(QWidget):
         self.pdfItem = dict()
         self.figGet = None
         self.timebegin = True
-        self.loadFile()
+        # self.loadFile()
         self.UI_init()
-        self.plantlist()
+        # self.plantlist()
         # with open('template.qss') as t:
         #     self.setStyleSheet(t.read())
         # self.initItemText()
@@ -62,12 +66,13 @@ class PowerRecord(QWidget):
         self.ticker.timeOut.connect(self.tickerTimeOut)
         # self.ticker.setNumDigits(10)
         # self.ticker.display('00:00:00')
-        self.historylist = QListWidget()
-        self.historylist.setCurrentRow(1)
-        for x in range(0,self.itemShowNum):
-            item = QListWidgetItem()
-            self.historylist.addItem(item)
-        self.historylist.itemSelectionChanged.connect(self.itemSelect)
+        self.historylist = HistoryList()
+        self.historylist.itemSelectedEmit.connect(self.itemSelectionChanged)
+        # self.historylist.setCurrentRow(1)
+        # for x in range(0,self.itemShowNum):
+        #     item = QListWidgetItem()
+        #     self.historylist.addItem(item)
+        # self.historylist.itemSelectionChanged.connect(self.itemSelect)
         buttonarea = QVBoxLayout()
         self.printbutton = QPushButton('print')
         self.printbutton.clicked.connect(self.printPDF)
@@ -88,8 +93,8 @@ class PowerRecord(QWidget):
 
 ###
 
-    def initItemText(self):
-        self.itemText = self.historylist.item(0).text()
+    # def initItemText(self):
+    #     self.itemText = self.historylist.item(0).text()
 
     def itemSelect(self):
         self.itemText = self.historylist.currentItem().text()
@@ -102,8 +107,17 @@ class PowerRecord(QWidget):
         self.itemChangeStatus = True
         # print(self.itemText)
 
+    def itemSelectionChanged(self,item):
+        print('getitem',item)
+        self.tableName = item
+        self.sqlTableName.emit(self.tableName)
+        temp = item.split('US')
+        self.userID = temp[1]
+        self.timeTick = temp[2:]
+        self.NowContextGet()
+
     def printPDF(self):
-        self.getDbdata()
+        # self.getDbdata()
         if self.figGet:
             self.figGet.savePlotFig()
         rep = ReportDialog()
@@ -128,8 +142,18 @@ class PowerRecord(QWidget):
         #get username
         self.pickContext['worker'] = self.userID
         #get plot from db
+        plotdata = self.datahand.getTableData(self.tableName)
+        time_ = []
+        power = []
+        for x in plotdata:
+            time_.append(x[0])
+            power.append(x[1])
+        self.plotlist.emit(False,time_,power)
         #get calc report
         pass
+
+    # def plotTable():
+    #     pass
 
 
     def beginOendTime(self):
@@ -160,20 +184,7 @@ class PowerRecord(QWidget):
         self.seButton.buttonState = 'begin'
         self.stopSavePower.emit(False)
 
-    def timerSave(self):
-        beginTime =self.beginTime
-        continueTime = self.editTime
-        self.pick.append({'begin':beginTime,
-            'continue':continueTime,'userID':self.userID})
-        self.saveFile()
-        self.loadFile()
-        self.plantlist()
 
-        self.stopTime = time.time()
-        self.seButton.setEnabled(True)
-        self.stopSavePower.emit(False)
-        # self.seButton.setText('start')
-        # self.timebegin = False
     def timeEdit2time(self):
         timeStr = self.timeEdit.text()
         timeSplit = timeStr.split(':')
@@ -218,6 +229,20 @@ class PowerRecord(QWidget):
         tableName='TM'+localTime+'US'+username
         self.sqlTableName.emit(tableName)
 
+    def timerSave(self):
+        beginTime =self.beginTime
+        continueTime = self.editTime
+        self.pick.append({'begin':beginTime,
+            'continue':continueTime,'userID':self.userID})
+        self.saveFile()
+        self.loadFile()
+        self.plantlist()
+
+        self.stopTime = time.time()
+        self.seButton.setEnabled(True)
+        self.stopSavePower.emit(False)
+        # self.seButton.setText('start')
+        # self.timebegin = False
 
     def loadFile(self):
         try:

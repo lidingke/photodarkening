@@ -53,6 +53,7 @@ class MyDynamicMplCanvas(MyMplCanvas):
         # self.timeState = datetime.time()
         self.timeStatesec = 0
         self.xunit = 'sec'
+        self.isPloting = True
 
     def compute_initial_figure(self):
         self.axes.plot([0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5], 'r')
@@ -132,15 +133,27 @@ class MyDynamicMplCanvas(MyMplCanvas):
         # plt.savefig('testplot.png')
 
     def XYaxit(self,x,y):
+        if self.isPloting:
         # print('x_sec:',x,'xunit:',self.xunit)
         # pdb.set_trace()
-        x = self.sec2HourOrMin(x)
-        # print('x_min:',x)
-        if x:
-            self.xpoint = x
-            self.ypoint = y
-            self.xlist.append(x)
-            self.ylist.append(y)
+            x = self.sec2HourOrMin(x)
+            # print('x_min:',x)
+            if x:
+                self.xpoint = x
+                self.ypoint = y
+                self.xlist.append(x)
+                self.ylist.append(y)
+
+    def XYaxitList(self,is_,x,y):
+        self.isPloting = is_
+        print('getplot ',is_)
+        self.xlist = x
+        self.ylist = y
+        self.axes.plot(self.xlist, self.ylist, 'r')
+        if self.ylist[-1] < 1:
+            self.axes.set_ylim(0,1)
+        self.draw()
+        self.update_figure()
 
     def sec2HourOrMin(self,x):
         if self.xunit == 'sec':
@@ -151,6 +164,9 @@ class MyDynamicMplCanvas(MyMplCanvas):
             return x/3600
         else:
             return x
+
+    # def setisPloting(self,is_):
+    #     self.isPloting = is_
 
     # def pydatetime2xlim(self,pdt ):
     #     if self.xunit == 'sec':

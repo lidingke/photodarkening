@@ -78,6 +78,7 @@ class DataHand(object):
 
     def createPlot(self,data):
         print('plot:',len(data))
+        #what's this
 
 
     def save2SqlAll(self,sqlTableName,datalist):
