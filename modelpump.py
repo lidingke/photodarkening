@@ -14,7 +14,7 @@ class ModelPump(ModelCore):
     firstCurrentSignal = pyqtSignal(object)
     secondCurrentSignal = pyqtSignal(object)
     plotPower = pyqtSignal(object,object)
-    beginPlot = pyqtSignal()
+    beginPlot = pyqtSignal(object)
     updatePowerShow = pyqtSignal(object)
 
     def __init__(self):
@@ -171,10 +171,10 @@ class ModelPump(ModelCore):
         threading.Thread(target=self.openAll).start()
 
     def openAll(self):
-        '''
+        # '''
         self.write(self.msgDictHex['openfirstpump'])
         time.sleep(0.3)
-        '''
+        # '''
         self.write(self.msgDictHex['opensecondpump'])
         '''
         time.sleep(0.3)
@@ -230,10 +230,10 @@ class ModelPump(ModelCore):
 
 
     def writesecondPumpCurrent(self,value):
-        # threading.Thread(target = self.threeTimesSpump, args = (value,)).start()
+        threading.Thread(target = self.threeTimesSpump, args = (value,)).start()
         # self.printShow('frevalue:',value)
         # self.printShow('setsecondcurrent:',value,type(value),int(value))
-        self.sendthread123(int(value))
+        # self.sendthread123(int(value))
 
     def threeTimesSpump(self,value):
         value = int(value)
@@ -307,7 +307,7 @@ class ModelPump(ModelCore):
         # self.ti0 = time.time()
         print('get ti0:',self.ti0,'init tabel username',self.username)
         self.datahand.initSqltabel(self.ti0,self.username)
-        self.beginPlot.emit()
+        self.beginPlot.emit(True)
         # self.currentTime.clear()
         # self.currentValue.clear()
 
@@ -448,6 +448,7 @@ class DataSaveTick(threading.Thread,QObject):
         threading.Thread.__init__(self)
         QObject.__init__(self)
         super(DataSaveTick, self).__init__()
+        self.daemon = True
         # self.arg = arg
         self.tick = ticktime
         self.dataGet = dataGetDict
@@ -464,7 +465,7 @@ class DataSaveTick(threading.Thread,QObject):
             # print('listget?',getlist)
             if getlist:
                 # powerdata = []
-                print('单位时间',len(getlist),getlist.pop())
+                # print('单位时间',len(getlist),getlist.pop())
                 self.factory(getlist)
                 self.dataGet['dataGet'] = []
             time.sleep(self.tick)
@@ -502,6 +503,7 @@ class DataBaseSaveTick(threading.Thread,QObject):
         super(DataBaseSaveTick, self).__init__()
         # self.arg = arg
         self.tick = ticktime
+        self.daemon = True
         self.dataGet = dataGetDict
         # self.detector = TempDetector()
         self.datahand = DataHand()

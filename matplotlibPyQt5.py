@@ -143,6 +143,7 @@ class MyDynamicMplCanvas(MyMplCanvas):
                 self.ypoint = y
                 self.xlist.append(x)
                 self.ylist.append(y)
+        self.update_figure()
 
     def XYaxitList(self,is_,x,y):
         self.isPloting = is_
@@ -150,10 +151,10 @@ class MyDynamicMplCanvas(MyMplCanvas):
         self.xlist = x
         self.ylist = y
         self.axes.plot(self.xlist, self.ylist, 'r')
-        if self.ylist[-1] < 1:
-            self.axes.set_ylim(0,1)
+        # if self.ylist[-1] < 1:
+        #     self.axes.set_ylim(0,1)
         self.draw()
-        self.update_figure()
+
 
     def sec2HourOrMin(self,x):
         if self.xunit == 'sec':
@@ -165,8 +166,8 @@ class MyDynamicMplCanvas(MyMplCanvas):
         else:
             return x
 
-    # def setisPloting(self,is_):
-    #     self.isPloting = is_
+    def setisPloting(self,is_):
+        self.isPloting = is_
 
     # def pydatetime2xlim(self,pdt ):
     #     if self.xunit == 'sec':
@@ -178,9 +179,10 @@ class MyDynamicMplCanvas(MyMplCanvas):
     #     else:
     #         return pdt
 
-    def clearPlotList(self):
+    def clearPlotList(self,is_):
         self.xlist.clear()
         self.ylist.clear()
+        self.isPloting = is_
 
 class ApplicationWindow(QMainWindow):
     def __init__(self):

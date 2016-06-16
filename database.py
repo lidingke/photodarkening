@@ -38,7 +38,7 @@ class DataHand(object):
         cursor = conn.cursor()
         try:
             strEx='insert into '+sqlTableName+'(time, power,data) values ('+str(localTime)+' , '+str(power)+', \''+data+'\')'
-            print(strEx)
+            # print(strEx)
             cursor.execute(strEx)
 
         except sqlite3.OperationalError as e :

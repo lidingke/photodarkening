@@ -2,21 +2,26 @@
 from PyQt5.QtWidgets import QDialog
 from UI.reportDialogUI import Ui_Dialog
 from lastlog import LastLog
+from PyQt5.QtCore import pyqtSignal
 
 class ReportDialog(QDialog):
-    """docstring for reportDialog"""
-    def __init__(self,pick = False):
+    result = pyqtSignal(object)
+    """docstring f or reportDialog"""
+    def __init__(self,father):
         super(ReportDialog, self).__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
-        self.pick = pick
+        self.pick = father.pickContext
+        self.father = father
         self.lastlog  = LastLog('data\\reportLast.pickle')
         self.setInitText()
 
     def setInitText(self):
         if self.pick == False:
             self.pick = self.lastlog.loadLast()
-            self.setAllContext(self.pick)
+        self.setAllContext(self.pick)
+        # else:
+
 
     # def saveLast(self,text):
     #     # if self.pick == False:
@@ -78,6 +83,8 @@ class ReportDialog(QDialog):
     def closeEvent(self,event):
         # print('reWrite closeEvent')
         text = self.getAllcontext()
+        self.father.pickContext.update(text)
+        # self.result.emit(text)
         # print(text['worker'])
         self.lastlog.saveLast(text)
 

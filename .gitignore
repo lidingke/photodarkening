@@ -11,3 +11,5 @@
 data
 *.pickle
 *.pyc
+.idea
+*.pyc

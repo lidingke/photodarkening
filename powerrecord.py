@@ -13,6 +13,7 @@ from ticker import Ticker
 from toolkit import WRpickle
 from historylist import HistoryList
 from database import DataHand
+import numpy
 
 
 class PowerRecord(QWidget):
@@ -29,7 +30,7 @@ class PowerRecord(QWidget):
     def __init__(self):
         super(PowerRecord, self).__init__()
         self.wrpick = WRpickle('data\\reportLast.pickle')
-        # self.pickContext = self.wrpick.loadPick()
+        self.pickContext = self.wrpick.loadPick()
         self.datahand = DataHand()
         self.startTime = 0
         self.stopTime = time.time()
@@ -39,7 +40,7 @@ class PowerRecord(QWidget):
         self.itemShowNum = 4
         self.itemChangeStatus = False
         self.timeStepPause = False
-        self.pdfItem = dict()
+        # self.pdfItem = dict()
         self.figGet = None
         self.timebegin = True
         # self.loadFile()
@@ -75,7 +76,7 @@ class PowerRecord(QWidget):
         # self.historylist.itemSelectionChanged.connect(self.itemSelect)
         buttonarea = QVBoxLayout()
         self.printbutton = QPushButton('print')
-        self.printbutton.clicked.connect(self.printPDF)
+        self.printbutton.clicked.connect(self.printReport)
         buttonarea.addWidget(self.seButton)
         buttonarea.addWidget(self.timeEdit)
         buttonarea.addWidget(self.printbutton)
@@ -109,34 +110,13 @@ class PowerRecord(QWidget):
 
     def itemSelectionChanged(self,item):
         print('getitem',item)
+        #get nowtable
         self.tableName = item
         self.sqlTableName.emit(self.tableName)
         temp = item.split('US')
         self.userID = temp[1]
         self.timeTick = temp[2:]
-        self.NowContextGet()
-
-    def printPDF(self):
-        # self.getDbdata()
-        if self.figGet:
-            self.figGet.savePlotFig()
-        rep = ReportDialog()
-        rep.exec_()
-
-        printer = PdfCreater(self,)
-        printer.saveToFile()
-        printer.savePdf()
-
-        # if self.itemChangeStatus is False:
-        #     self.itemText = self.historylist.item(0).text()
-        # print('print:',self.itemText)
-        # self.pdfItem['']
-
-    def getNowFig(self,fig):
-        self.figGet = fig
-
-
-    def NowContextGet(self):
+        # self.NowContextGet()
         #get last log
         self.pickContext = self.wrpick.loadPick()
         #get username
@@ -150,9 +130,49 @@ class PowerRecord(QWidget):
             power.append(x[1])
         self.plotlist.emit(False,time_,power)
         #get calc report
-        pass
+        if time_:
+            # pass
+            self.pickContext['timelong'] = time_[-1]-time_[0]
+            self.pickContext['maxsignalpower'] = max(power)
+            self.pickContext['minsingalpower'] = min(power)
+            self.pickContext['averagesingalepower'] = numpy.mean(power)
+            self.pickContext['powerstable'] = numpy.std(power)
+        else:
+            self.pickContext['timelong'] = 0
+            self.pickContext['maxsignalpower'] = 0
+            self.pickContext['minsingalpower'] = 0
+            self.pickContext['averagesingalepower'] = 0
+            self.pickContext['powerstable'] = 0
+        print('PowerRecord change')
+        self.wrpick.savePick(self.pickContext)
 
-    # def plotTable():
+    def printReport(self):
+        # self.getDbdata()
+        if self.figGet:
+            self.figGet.savePlotFig()
+        rep = ReportDialog(self)
+        # print(rep)
+
+        rep.exec_()
+        print('pickContext',self.pickContext)
+        printer = PdfCreater(self,)
+        self.sqlTableName.connect(printer.getDBData)
+        printer.saveToFile()
+        # printer.savePdf()
+
+        # if self.itemChangeStatus is False:
+        #     self.itemText = self.historylist.item(0).text()
+        # print('print:',self.itemText)
+        # self.pdfItem['']
+
+    def getNowFig(self,fig):
+        self.figGet = fig
+
+
+    # def NowContextGet(self):
+
+
+    # # def plotTable():
     #     pass
 
 

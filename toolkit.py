@@ -15,6 +15,7 @@ class WRpickle(object):
     def loadPick(self):
         with open(self.pickname,'rb') as f:
             self.pick = pickle.load(f)
+            # print('load',self.pick)
         return self.pick
 
     def savePick(self,pick):
@@ -67,20 +68,7 @@ class HexSplit(object):
     def fun(c):
         if type(c) != bytes:
             return
-        xhex = c.hex()
-        xlist = list()
-        t=0
-        for x in xhex:
-            if t == 1:
-                xlist.append(x+' ')
-                t = 0
-            else:
-                xlist.append(x)
-                t = t+1
-            # print(t)
-
-        xstr = ''.join(xlist)
-        return xstr
+        return " ".join("{:02x}".format(x) for x in c)
 
 
 
@@ -96,4 +84,5 @@ if __name__ == '__main__':
     # p.start()
 
     x = b'\x01\x02\x0e'
+    # x =
     print(HexSplit.fun(x))

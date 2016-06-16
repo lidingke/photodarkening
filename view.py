@@ -180,12 +180,13 @@ class View(QWidget):
         gbox2.setStyleSheet("QGroupBox{border:None;}")
         self.portUI = PortGBUI()
         self.portUI.setupUi(gbox2)
-        self.portUI.widget.setGeometry(QRect( 0, 0, 450,200))
+        # self.portUI.widget.setGeometry(QRect( 0, 0, 450,200))
         gbox3 = QGroupBox()
         gbox3.setStyleSheet("QGroupBox{border:None;}")
         self.pumpUI = PumpUI()
         self.pumpUI.setupUi(gbox3)
-        self.pumpUI.widget.setGeometry(QRect( 0, 0, 400,200))
+        self.pumpUI.groupBox.setTitle(' ')
+        # self.pumpUI.widget.setGeometry(QRect( 0, 0, 400,200))
         gbox4 = QGroupBox()
         gbox4.setStyleSheet("QGroupBox{border:None;}")
         gbox5 = QGroupBox()
@@ -212,7 +213,7 @@ class View(QWidget):
         userbox = UserView()
         userbox.usersignal.connect(self.setUser)
         self.useBox.addWidget(userbox)
-        self.useBox.addStretch()
+        # self.useBox.addStretch()
         self.powerRecord = PowerRecord()
         self.powerRecord.getNowFig(self.painter)
         self.powerRecord.timeStateSignal.connect(self.painter.getLogTimeState)
@@ -359,7 +360,6 @@ class View(QWidget):
         self.setSeedCurrent = self.pumpUI.currentSpin
         self.setSeedCurrent.setValue(self.initSeedCurrent)
         self.openAll = self.pumpUI.sourceOpen
-        print('is openall button')
         self.sendfirst = self.pumpUI.firstPumpSet
         self.sendfirst.clicked.connect(self.emitFirstPumpCurrent)
         self.sendsecond = self.pumpUI.secondPumpSet
@@ -374,8 +374,8 @@ class View(QWidget):
         self.pumpUI.secondpumpSpin.setSingleStep(500)
 
 
-        self.pumpUI.firstPumpSet.setDisabled(True)
-        self.pumpUI.sourceSet.setDisabled(True)
+        # self.pumpUI.firstPumpSet.setDisabled(True)
+        # self.pumpUI.sourceSet.setDisabled(True)
 
         # self.setSecondpump.setSingleStep(50)
         # self.setFirstpump.setSingleStep(50)

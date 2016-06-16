@@ -3,18 +3,18 @@ import  queue
 #from    time                import sleep
 import time
 import logging
-from    sys                 import exit
+# from    sys                 import exit
 import pickle
-import sqlite3
+# import sqlite3
 import pdb
 # PyQt5 imports
 from    PyQt5.QtCore        import pyqtSignal
 from    PyQt5.QtCore        import QObject
-from    PyQt5.QtCore        import QTime
+# from    PyQt5.QtCore        import QTime
 # PySerial imports
 import  serial
 
-from toolkit import HexSplit
+# from toolkit import HexSplit
 # from    serial.serialutil   import SerialException
 # class Singleton(type):
 #     """docstring for Singleton"""
@@ -146,12 +146,11 @@ class ModelCore(threading.Thread, QObject):
                     printlist.append(str(x))
                     textlist.append(str(x))
                 elif type(x) == bytes:
-                    if nobyte == True:
-                        textlist.append('\ '+x.hex())
-                        printlist.append('\ '+x.hex())
-                    elif nobyte == False:
-                        textlist.append(':'+str(x))
-                    printlist.append(':'+str(x))
+                    # print(x)
+                    # pdb.set_trace()
+                    xhex = " ".join("{:02x}".format(c) for c in x)
+                    textlist.append(xhex)
+                    printlist.append(xhex)
                 else:
                     printlist.append(str(x))
                     textlist.append(str(x))
