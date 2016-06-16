@@ -16,8 +16,9 @@ from queue              import Queue
 from functools        import partial
 import time
 import pdb
-from UI.portUI import Ui_GroupBox as PortGBUI
+from UI.portGBUI import Ui_GroupBox as PortGBUI
 from UI.pumpUI import Ui_GroupBox as PumpUI
+# from UI.powerUI import Ui_Form as PowerUI
 # from portGBUI import Ui_GroupBox as PortGBUI
 from matplotlibPyQt5 import MyDynamicMplCanvas
 
@@ -120,23 +121,36 @@ class View(QWidget):
         cmdEnterAction.triggered.connect(self.emit_send_data)
         self.cmd_edit = QLineEdit()
         self.cmd_edit.addAction(cmdEnterAction)
-        self.editer = QPlainTextEdit()
-        self.editer.setReadOnly(True)
         cmdBox = QVBoxLayout()
         # cmdBox.addWidget(self.cmd_edit)
         # cmdBox.addWidget(cmd_btn)
-        pshow = PowerShow()
-        cmdBox.addWidget(pshow)
+        # self.powerShow = PowerUI()
+        # self.powerShow.setupUi(QWidget())
+        # print('type',type(self.powerShow))
+        # cmdBox.addWidget(self.powerShow.widget)
+
+#message box
+        self.editer = QPlainTextEdit()
+        self.editer.setReadOnly(True)
+# <<<<<<< HEAD
+        self.editer.setMaximumSize(300,2000)
+# =======
+        cmdBox = QVBoxLayout()
+        # cmdBox.addWidget(self.cmd_edit)
+        # cmdBox.addWidget(cmd_btn)
+        self.powerShow = PowerShow()
+        cmdBox.addWidget(self.powerShow)
+# >>>>>>> a45e80ec77a4a8729fa4205165faae001fd09cab
         cmdBox.addWidget(self.editer)
-        self.editer.setMaximumSize(300,1000)
-        cmd_btn.setMaximumSize(300,400)
-        self.cmd_edit.setMaximumSize(300,100)
+        # cmd_btn.setMaximumSize(300,400)
+        # self.cmd_edit.setMaximumSize(300,100)
 
 ###
 #paint area use matplotlib
 ###
         self.paintwidget = QWidget(self)
         self.painter = MyDynamicMplCanvas(self.paintwidget, width=5, height=4, dpi=100)
+        # self.showBox.addLayout(self.powerShowUI())
         self.showBox.addLayout(cmdBox)
         self.showBox.addWidget(self.painter)
         self.toolBoxUI()
@@ -166,12 +180,13 @@ class View(QWidget):
         gbox2.setStyleSheet("QGroupBox{border:None;}")
         self.portUI = PortGBUI()
         self.portUI.setupUi(gbox2)
-        self.portUI.widget.setGeometry(QRect( 0, 0, 450,200))
+        # self.portUI.widget.setGeometry(QRect( 0, 0, 450,200))
         gbox3 = QGroupBox()
         gbox3.setStyleSheet("QGroupBox{border:None;}")
         self.pumpUI = PumpUI()
         self.pumpUI.setupUi(gbox3)
-        self.pumpUI.widget.setGeometry(QRect( 0, 0, 400,200))
+        self.pumpUI.groupBox.setTitle(' ')
+        # self.pumpUI.widget.setGeometry(QRect( 0, 0, 400,200))
         gbox4 = QGroupBox()
         gbox4.setStyleSheet("QGroupBox{border:None;}")
         gbox5 = QGroupBox()
@@ -198,11 +213,12 @@ class View(QWidget):
         userbox = UserView()
         userbox.usersignal.connect(self.setUser)
         self.useBox.addWidget(userbox)
-        self.useBox.addStretch()
+        # self.useBox.addStretch()
         self.powerRecord = PowerRecord()
         self.powerRecord.getNowFig(self.painter)
         self.powerRecord.timeStateSignal.connect(self.painter.getLogTimeState)
         self.powerRecord.logStateSignal.connect(self.painter.getStartLog)
+        self.powerRecord.plotlist.connect(self.painter.XYaxitList)
         self.powerRecordBox.addWidget(self.powerRecord)
 #
 #port set
@@ -216,6 +232,13 @@ class View(QWidget):
         # self.portUI.baundrateTemp.addItems(menuItem)
 #source port set
         #source
+        portItem = ['com1','com2','com3','com4',
+            'com5','com6','com7','com8','com9',
+            'com10','com11','com12','com13',
+            'com14','com15','com16','com17',
+            'com18','com19','com20']
+        self.portUI.portSource.addItems(portItem)
+        self.portUI.portPump.addItems(portItem)
         self.setPortButton = self.portUI.openportSource
         self.closePortButton = self.portUI.closeportSource
         self.baundrateMenu = self.portUI.baundrateSource
@@ -228,7 +251,9 @@ class View(QWidget):
             self.baundrateMenu.setCurrentIndex(4)
         portindex = self.lastpick.get('srcPort',False)
         if baudindex is not False :
-            self.portEdit.setText(portindex)
+            self.portEdit.setCurrentIndex(portindex)
+        else:
+            self.portEdit.setCurrentIndex(1)
 
         baudindex = self.lastpick.get('pumpBaud',False)
         if baudindex is not False :
@@ -237,7 +262,9 @@ class View(QWidget):
             self.portUI.baundratePump.setCurrentIndex(4)
         portindex = self.lastpick.get('pumpPort',False)
         if baudindex is not False :
-            self.portUI.portPump.setText(portindex)
+            self.portUI.portPump.setCurrentIndex(portindex)
+        else:
+            self.portUI.portPump.setCurrentIndex(2)
 
         # baudindex = self.lastpick.get('tempBaud',False)
         # if baudindex is not False :
@@ -247,6 +274,15 @@ class View(QWidget):
         # portindex = self.lastpick.get('tempPort',False)
         # if baudindex is not False :
         #     self.portUI.portTemp.setText(portindex)
+
+    # def powerShowUI(self):
+    #     self.powerText = QLabel()
+    #     powerTextBox = QGroupBox()
+    #     powerTextBox.setStyleSheet("QGroupBox{background:blue;}")
+    #     # self.powe
+    #     layout = QGridLayout(powerTextBox)
+    #     layout.addWidget(self.powerText)
+    #     return layout
 
 
 
@@ -338,8 +374,8 @@ class View(QWidget):
         self.pumpUI.secondpumpSpin.setSingleStep(500)
 
 
-        self.pumpUI.firstPumpSet.setDisabled(True)
-        self.pumpUI.sourceSet.setDisabled(True)
+        # self.pumpUI.firstPumpSet.setDisabled(True)
+        # self.pumpUI.sourceSet.setDisabled(True)
 
         # self.setSecondpump.setSingleStep(50)
         # self.setFirstpump.setSingleStep(50)
@@ -546,6 +582,10 @@ class View(QWidget):
 # Get, set
 #==============================================================================
 
+    def setPowerShowList(self,lst):
+        self.powerShow.powerList = lst
+        self.powerShow.updateFigure()
+
     def set_queue(self, queue):
         self.queue = queue
 
@@ -560,16 +600,16 @@ class View(QWidget):
         self.portEdit.insert(value)
 
     def getSrcPort(self):
-        self.lastpick['srcPort'] = self.portEdit.text()
-        return self.portEdit.text()
+        self.lastpick['srcPort'] = self.portEdit.currentIndex()
+        return self.portEdit.currentText()
 
     def getSrcBaudrate(self):
         self.lastpick['srcBaud'] = self.baundrateMenu.currentIndex()
         return self.baundrateMenu.currentText()[:-5]
 
     def getPumpPort(self):
-        self.lastpick['pumpPort'] = self.portUI.portPump.text()
-        return self.portUI.portPump.text()
+        self.lastpick['pumpPort'] = self.portUI.portPump.currentIndex()
+        return self.portUI.portPump.currentText()
 
     def getPumpBaudrate(self):
         self.lastpick['pumpBaud'] = self.portUI.baundratePump.currentIndex()
@@ -615,9 +655,9 @@ class View(QWidget):
         self.process_incoming()
         self.update()
 
-    def updataFigure(self,valulist):
+    def updataFigure(self,newtime,power):
         # self.setCurrentValue(currentValue, timeValue)
-        self.painter.XYaxit(valulist[0],valulist[1])
+        self.painter.XYaxit(newtime,power)
         self.painter.update_figure()
 
         # print('update?')

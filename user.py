@@ -10,6 +10,7 @@ import pdb
 from PyQt5.QtWidgets import QDialog
 from UI.registerUI import Ui_Dialog
 from PyQt5.QtWidgets import QApplication
+from UI.userUI import Ui_Form as userUI
 # from PyQt5.uic import loadUiType
 # form_class, base_class = loadUiType('Registerview.ui')
 
@@ -40,14 +41,20 @@ class Register(QDialog):
         self.password1 = self.ui.password.text()
         self.password2 = self.ui.passwordagain.text()
         self.types = self.ui.level.currentText()
-        if self.password1 is not self.password2:
+        # print(self.password1.strip(),'\n',self.password2.strip())
+        if self.password1.strip() != self.password2.strip():
             self.ui.msgtext.setText('密码不相等')
             return
+        self.ui.msgtext.setText('保存用户')
         us = User()
-        us.setUser(self.name, self.password, self.types)
+        us.setUser(self.name, self.password1.strip(), self.types)
         usm = UserManager()
-        usm.loadUsers()
-        usm.insertUser(us.getName, us)
+        # pdb.set_trace()
+        if us.getName() in usm.users.keys():
+            self.ui.msgtext.setText('用户已存在')
+            return
+        # usm.loadUsers()
+        usm.insertUser(us.getName(), us)
         usm.saveUsers()
 
     def passwdDetector(self):
@@ -64,13 +71,16 @@ class Register(QDialog):
                 # if (x.isdigit() or x.isalpha() ) is True:
                 #     print('zhimushuz:',x.isdigit() ,x.isalpha(),x)
                 if x.isalpha() or x.isdigit():
-                    print('alpha or digit:')
+                    # print('alpha or digit:')
+                    pass
+                elif x == ' ':
+                    self.ui.msgtext.setText('密码不能包含空格')
                 else:
                     self.ui.msgtext.setText('密码必须为字母或数字')
 
 
 
-class UserView(QWidget):
+class UserView(QWidget,userUI):
     """docstring for UserView"""
 
     usersignal = pyqtSignal(object)
@@ -82,32 +92,36 @@ class UserView(QWidget):
 
 
     def UI_init(self):
-        mainLayout = QGridLayout()
-        namelabel = QLabel('user')
-        self.nameIput = QLineEdit()
-        passlabel = QLabel('password')
-        self.passwordIput = QLineEdit()
+        self.setupUi(self)
+        # mainLayout = QGridLayout()
+        # namelabel = QLabel('user')
+        # self.nameIput = QLineEdit()
+        # passlabel = QLabel('password')
+        # self.passwordIput = QLineEdit()
         self.passwordIput.setEchoMode(QLineEdit.Password)
-        self.login= QPushButton('login')
+        # self.login= QPushButton('login')
         self.login.status = 'login'
         self.login.clicked.connect(self.loginfun)
         # self.logout = QPushButton('logout')
         # self.logout.clicked.connect(self.logoutfun)
-
-        self.register = QPushButton('register')
+        try:
+            self.register = self.register_2
+        except:
+            pass
+        # self.register = QPushButton('register')
         self.register.setEnabled(True)
 
         self.register.clicked.connect(self.registerfun)
-        mainLayout.addWidget(namelabel, 0, 0)
-        mainLayout.addWidget(passlabel, 0, 1)
-        mainLayout.addWidget(self.nameIput, 1, 0)
-        mainLayout.addWidget(self.passwordIput, 1, 1)
-        mainLayout.addWidget(self.login, 2, 0)
-        # mainLayout.addWidget(self.logout, 2, 1)
-        mainLayout.addWidget(self.register, 2, 1)
+        # mainLayout.addWidget(namelabel, 0, 0)
+        # mainLayout.addWidget(passlabel, 0, 1)
+        # mainLayout.addWidget(self.nameIput, 1, 0)
+        # mainLayout.addWidget(self.passwordIput, 1, 1)
+        # mainLayout.addWidget(self.login, 2, 0)
+        # # mainLayout.addWidget(self.logout, 2, 1)
+        # mainLayout.addWidget(self.register, 2, 1)
         # mainLayout.addWidget(self.save, 3, 1)
 
-        self.setLayout(mainLayout)
+        # self.setLayout(mainLayout)
 
     def loginfun(self):
         if self.login.status == 'login':
@@ -151,6 +165,7 @@ class UserManager(object):
         self.users = dict()
         # self.us = User()
         # self.loadUsers()
+        self.loadUsers()
 
     def saveUsers(self):
         print('save a user.pickle len = ',len(self.users))
@@ -160,7 +175,7 @@ class UserManager(object):
     def loadUsers(self):
         with open('data\\user.pickle', 'rb') as f:
             self.users = pickle.load(f)
-        print(self.users)
+        # print(self.users)
 
     def findUser(self,name):
         return self.users.get(name,User())
@@ -212,7 +227,7 @@ class User(object):
             raise TypeError('value is not str')
         # value = self.hashkey1+value +self.hashkey2
         newvalue = self.__MD5value(value)
-        print(newvalue)
+        # print(newvalue)
         if newvalue == self.password:
             return True
         else:

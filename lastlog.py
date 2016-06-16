@@ -2,6 +2,7 @@ import pickle
 from toolkit import WRpickle
 # import WRpickle
 # from re import findall
+import pdb
 
 class LastLog(WRpickle):
     """docstring for LastLog"""
@@ -114,5 +115,9 @@ class MsgSet(object):
 
 
 if __name__ == '__main__':
-    ms = MsgSet()
-    ms.msgProccess()
+    pc = LastLog()
+    pick = pc.loadLast()
+    print(pick)
+    pdb.set_trace()
+    pass
+
