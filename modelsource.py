@@ -13,7 +13,6 @@ class ModelSource(ModelCore):
     def __init__(self):
         super(ModelSource, self).__init__()
         # print('is ModelSource __init__?')
-        pass
 
     def coreMsgProcess(self,data):
         '''

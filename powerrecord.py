@@ -9,6 +9,7 @@ import pickle
 import pdb
 import queue
 from pdfcreater import PdfCreater
+from singleton import PickContext
 from ticker import Ticker
 from toolkit import WRpickle
 from historylist import HistoryList
@@ -18,7 +19,7 @@ import numpy
 
 class PowerRecord(QWidget):
     """docstring for PowerRecord"""
-    '''在这里加个pick process'''
+
     beginTimeSignal = pyqtSignal(object)
     sqlTableName = pyqtSignal(object)
     stopSavePower = pyqtSignal(object)
@@ -29,8 +30,9 @@ class PowerRecord(QWidget):
 
     def __init__(self):
         super(PowerRecord, self).__init__()
-        self.wrpick = WRpickle('data\\reportLast.pickle')
-        self.pickContext = self.wrpick.loadPick()
+        # self.wrpick = WRpickle('data\\reportLast.pickle')
+        # self.pickContext = self.wrpick.loadPick()
+        self.pickContext = PickContext()
         self.datahand = DataHand()
         self.startTime = 0
         self.stopTime = time.time()
@@ -88,25 +90,16 @@ class PowerRecord(QWidget):
         self.setLayout(mainLayout)
 
 
-
-
-###
-
-###
-
-    # def initItemText(self):
-    #     self.itemText = self.historylist.item(0).text()
-
-    def itemSelect(self):
-        self.itemText = self.historylist.currentItem().text()
-        self.itemNum = self.historylist.currentRow()
-        # print(self.itemNum)
-        pickget = self.pick[-self.itemNum-1]
-        self.startTimetic = pickget.get('begin')
-        self.printUserID = pickget.get('userID')
-        print('itemSelect:',self.itemNum, self.startTimetic,self.printUserID)
-        self.itemChangeStatus = True
-        # print(self.itemText)
+    # def itemSelect(self):
+    #     self.itemText = self.historylist.currentItem().text()
+    #     self.itemNum = self.historylist.currentRow()
+    #     # print(self.itemNum)
+    #     pickget = self.pick[-self.itemNum-1]
+    #     self.startTimetic = pickget.get('begin')
+    #     self.printUserID = pickget.get('userID')
+    #     print('itemSelect:',self.itemNum, self.startTimetic,self.printUserID)
+    #     self.itemChangeStatus = True
+    #     # print(self.itemText)
 
     def itemSelectionChanged(self,item):
         print('getitem',item)
@@ -118,7 +111,7 @@ class PowerRecord(QWidget):
         self.timeTick = temp[2:]
         # self.NowContextGet()
         #get last log
-        self.pickContext = self.wrpick.loadPick()
+        self.pickContext = PickContext()
         #get username
         self.pickContext['worker'] = self.userID
         #get plot from db
@@ -131,20 +124,19 @@ class PowerRecord(QWidget):
         self.plotlist.emit(False,time_,power)
         #get calc report
         if time_:
-            # pass
-            self.pickContext['timelong'] = time_[-1]-time_[0]
-            self.pickContext['maxsignalpower'] = max(power)
-            self.pickContext['minsingalpower'] = min(power)
-            self.pickContext['averagesingalepower'] = numpy.mean(power)
-            self.pickContext['powerstable'] = numpy.std(power)
+            self.pickContext['timelong'] = str(int(time_[-1]-time_[0]))+'秒'
+            self.pickContext['maxsignalpower'] = self.__Power2str(max(power))
+            self.pickContext['minsingalpower'] = self.__Power2str(min(power))
+            self.pickContext['averagesingalepower'] = self.__Power2str(numpy.mean(power))
+            self.pickContext['powerstable'] = self.__Power2str(numpy.std(power))
         else:
-            self.pickContext['timelong'] = 0
-            self.pickContext['maxsignalpower'] = 0
-            self.pickContext['minsingalpower'] = 0
-            self.pickContext['averagesingalepower'] = 0
-            self.pickContext['powerstable'] = 0
+            self.pickContext['timelong'] = '0'
+            self.pickContext['maxsignalpower'] = '0'
+            self.pickContext['minsingalpower'] = '0'
+            self.pickContext['averagesingalepower'] = '0'
+            self.pickContext['powerstable'] = '0'
         print('PowerRecord change')
-        self.wrpick.savePick(self.pickContext)
+        self.pickContext.save_pick_file()
 
     def printReport(self):
         # self.getDbdata()
@@ -154,7 +146,7 @@ class PowerRecord(QWidget):
         # print(rep)
 
         rep.exec_()
-        print('pickContext',self.pickContext)
+        print('pickContext',self.pickContext.pickContext)
         printer = PdfCreater(self,)
         self.sqlTableName.connect(printer.getDBData)
         printer.saveToFile()
@@ -307,6 +299,12 @@ class PowerRecord(QWidget):
             if i < self.itemShowNum:
                 item = self.historylist.item(self.itemShowNum-i-1)
                 item.setText(textstr)
+
+    def __Power2str(self,data):
+        if data > 0.1:
+            return str(round(data,2))+'W'
+        else:
+            return str(round(data*1000,2)) + 'mW'
 
         # pdb.set_trace()
         # self.itemSelect()

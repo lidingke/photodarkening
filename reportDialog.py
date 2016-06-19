@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QDialog
 from UI.reportDialogUI import Ui_Dialog
 from lastlog import LastLog
 from PyQt5.QtCore import pyqtSignal
+from singleton import PickContext
 
 class ReportDialog(QDialog):
     result = pyqtSignal(object)
@@ -11,16 +12,18 @@ class ReportDialog(QDialog):
         super(ReportDialog, self).__init__()
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
-        self.pick = father.pickContext
+        # self.pick = father.pickContext
+        self.pick = PickContext()
         self.father = father
-        self.lastlog  = LastLog('data\\reportLast.pickle')
-        self.setInitText()
-
-    def setInitText(self):
-        if self.pick == False:
-            self.pick = self.lastlog.loadLast()
+        # self.lastlog  = LastLog('data\\reportLast.pickle')
+        # self.setInitText()
         self.setAllContext(self.pick)
-        # else:
+
+    # def setInitText(self):
+    #     if self.pick == False:
+    #         self.pick = self.lastlog.loadLast()
+
+    #     # else:
 
 
     # def saveLast(self,text):
@@ -83,10 +86,11 @@ class ReportDialog(QDialog):
     def closeEvent(self,event):
         # print('reWrite closeEvent')
         text = self.getAllcontext()
-        self.father.pickContext.update(text)
+        self.pick.update(text)
         # self.result.emit(text)
         # print(text['worker'])
-        self.lastlog.saveLast(text)
+        # self.lastlog.saveLast(text)
+        self.pick.save_pick_file()
 
 
 
