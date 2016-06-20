@@ -62,6 +62,7 @@ class MyDynamicMplCanvas(MyMplCanvas):
     def update_figure(self):
         # Build a list of 4 random integers between 0 and 10 (both inclusive)
         # l = [random.randint(0, 10) for i in range(4)]
+        # print('is updatefigure ?')
         if self.ylist:
             try:
                 hugeNumAvoid = abs(self.ylist[-1]/self.lasty)
@@ -109,23 +110,23 @@ class MyDynamicMplCanvas(MyMplCanvas):
             # if self.timeState.hour > 0:
             xlimit = self.timended
             self.axes.set_xlim(0,xlimit)
-            print('setsec ',self.timeStatesec,'timended:',self.timended)
+            # print('setsec ',self.timeStatesec,'timended:',self.timended)
             # print('xunit',self.xunit)
             if self.ylist[-1] < 1:
                 self.axes.set_ylim(0,1)
             else:
                 self.axes.set_ylim(0,self.ypoint*1.5)
+            self.axes.set_xlabel('Time')
+            self.axes.set_ylabel('Power')
+            self.axes.grid(True)
             self.draw()
 
     def savePlotFig(self):
-        pass
-        threading.Thread(target = self.savefigThread,daemon = True).start()
+        def savefigThread(self):
+            self.fig.savefig("data\\plot.svg", format = 'svg')#data\
+        threading.Thread(target = savefigThread,daemon = True).start()
 
-    def savefigThread(self):
-        # if self.xlist:
-        #     # pyplot.plot(self.xlist, self.ylist)
-        #     # pyplot.show()
-        self.fig.savefig("data\\plot.svg", format = 'svg')#data\
+
 
         # self.axes.plot(self.xlist, self.ylist, 'r')
         # import matplotlib.pyplot as plt

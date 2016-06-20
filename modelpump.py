@@ -311,8 +311,9 @@ class ModelPump(ModelCore):
         # self.currentTime.clear()
         # self.currentValue.clear()
 
-    def setStartTime(self,stime ):
-        self.ti0 = stime
+    def setStartTime(self,begintime, steptime ):
+        self.ti0 = begintime
+        self.datasaveTick.tick = steptime
 
 #临时性改动
     def sendthread123(self,value):

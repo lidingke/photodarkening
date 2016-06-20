@@ -27,8 +27,8 @@ class HistoryList(QListWidget):
             xsplit = x[0].split('US')
             timetick = xsplit[0][2:]
             username = xsplit[1]
-            timeShow = time.strftime('%Y:%m:%d:%H:%M:%S',
-                time.gmtime(int(timetick)))
+            timeShow = time.strftime('%Y:%m:%d||%H:%M:%S',
+                time.localtime(int(timetick)))
             item = QListWidgetItem('时间:{}用户:{}'.format(timeShow,username))
             item.tableName = x[0]
             self.addItem(item)

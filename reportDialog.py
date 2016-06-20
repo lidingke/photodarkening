@@ -1,5 +1,6 @@
 
 from PyQt5.QtWidgets import QDialog
+from PyQt5.QtCore import Qt
 from UI.reportDialogUI import Ui_Dialog
 from lastlog import LastLog
 from PyQt5.QtCore import pyqtSignal
@@ -10,6 +11,7 @@ class ReportDialog(QDialog):
     """docstring f or reportDialog"""
     def __init__(self,father):
         super(ReportDialog, self).__init__()
+        # self.setWindowFlags(Qt.Dialog|Qt.WindowCloseButtonHint|Qt.WindowContextHelpButtonHint)
         self.ui = Ui_Dialog()
         self.ui.setupUi(self)
         # self.pick = father.pickContext
@@ -18,6 +20,11 @@ class ReportDialog(QDialog):
         # self.lastlog  = LastLog('data\\reportLast.pickle')
         # self.setInitText()
         self.setAllContext(self.pick)
+        self.ui.saveButton.clicked.connect(self.closeButton)
+        self.ui.cancelButton.clicked.connect(self.cancelButton)
+        self.saveOrcancel = 'cancel'
+        self.setWindowTitle('信息填写')
+
 
     # def setInitText(self):
     #     if self.pick == False:
@@ -82,20 +89,31 @@ class ReportDialog(QDialog):
         # print(text)
         return text
 
-
-    def closeEvent(self,event):
-        # print('reWrite closeEvent')
+    def closeButton(self):
         text = self.getAllcontext()
         self.pick.update(text)
-        # self.result.emit(text)
-        # print(text['worker'])
-        # self.lastlog.saveLast(text)
         self.pick.save_pick_file()
+        # print('closeEvent error?')
+        self.saveOrcancel = 'save'
+        self.close()
+
+    def cancelButton(self):
+        self.saveOrcancel = 'cancel'
+        self.close()
+
+    # def closeEvent(self,event):
+    #     pass
+        # print('reWrite closeEvent')
+        # text = self.getAllcontext()
+        # self.pick.update(text)
+        # # self.result.emit(text)
+        # # print(text['worker'])
+        # # self.lastlog.saveLast(text)
+        # self.pick.save_pick_file()
 
 
 
 if __name__ == '__main__':
-    from pdfcreater import PdfContext
     pcontext = PdfContext()
     last = LastLog()
     pick = last.loadLast()

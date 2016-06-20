@@ -216,7 +216,8 @@ class PickContext(MetaDict):
     h2 {
         border-bottom: 1px solid #eee;
         padding-bottom: 0.3em;
-        padding-left: 8px;
+        margin-left: 30px;
+        padding-left: 20px;
         font-size: 40px;
         font-weight: bold;
         color: #2EA9DF;
@@ -224,9 +225,9 @@ class PickContext(MetaDict):
     }
 
     p {
-        padding-left: 8px;
-        margin-left: 45px;
-        font-size: 20px;
+        padding-left: 20px;
+        /*margin-left: 45px;
+        font-size: 20px;*/
     }
 
     img {
@@ -261,6 +262,7 @@ class PickContext(MetaDict):
         <br /> 信号光功率最小值：'''+minsingalpower+'''
         <br /> 信号光功率平均值：'''+averagesingalepower+'''
         <br /> 功率稳定性：'''+powerstable+'''
+        <br />
     </p>
     <img src= "data/plot.svg">
 </body>

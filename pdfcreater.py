@@ -100,8 +100,8 @@ class PdfCreater(object):
         try:
             out_file = open(str(fileName), 'wb')
         except IOError:
-            QMessageBox.information(self, "Unable to open file",
-                    "There was an error opening \"%s\"" % fileName)
+            QMessageBox.information(self.parent, "无法打开文件",
+                    "在打开文件 \"%s\" 时出错，新文件未生成" % fileName)
             return
         out_file.close()
         # self.thtml = PdfContext(parentWidget.pickContext).thtmlGet()
