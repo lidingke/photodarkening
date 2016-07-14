@@ -58,11 +58,11 @@ class PowerRecord(QWidget,RecodUI):
         # self.timer.timeout.connect(self.update())
         # self.timer.start(100)
 
-    def UI_init(self):
-        # self.ui = RecodUI()
+    def _setupUi(self):
         self.setupUi(self)
-        # pdb.set_trace()
 
+    def UI_init(self):
+        self._setupUi()
         self.seButton = self.logButton
         self.seButton.buttonState = 'begin'
         self.seButton.clicked.connect(self.beginOendTime)

@@ -3,7 +3,7 @@
 
 # from time import sleep
 # from model import Model
-# from modelsource import ModelSource
+from modelsource import ModelSource
 from modelpump import ModelPump
 # from modeltemp import ModelTemp
 from functools        import partial
@@ -19,7 +19,7 @@ class Presenter:
         self.__view.show()
         self.guard = portGard()
         self.__view.set_queue(self.guard.getQueue())
-        # self.__view.startSrcModel.connect(self.startSrcModel)
+        self.__view.startSrcModel.connect(self.startSrcModel)
         self.__view.startPumpModel.connect(self.startPumpModel)
         # self.__view.startTempModel.connect(self.startTempModel)
         self.__view.update_gui()
@@ -36,20 +36,20 @@ class Presenter:
 
 
 
-    # def startSrcModel(self,started):
-    #     if started == True:
-    #         return
-    #     self.srcModel = ModelSource()
-    #     self.guard.getmodels(self.srcModel)
-    #     self.srcModel.set_queue(self.guard.getQueue())
-    #     self.srcModel.begin()
-    #     self.srcModel.start()
-    #     self.setSourceSignals()
-    #     # self.__view.set_queue(self.srcModel.get_queue())
-    #     # self.__view.enablePortSet()
-    #     # self.__view.setCurrentValue(self.srcModel.getcurrentValueList(),self.srcModel.getcurrentTimeList())
-    #     # self.srcModel.initPort(self.__view.getPort(),self.__view.getBaudrate())
-    #     # self.__view.set_port(self.srcModel.get_port())
+    def startSrcModel(self,started):
+        if started == True:
+            return
+        self.srcModel = ModelSource()
+        self.guard.getmodels(self.srcModel)
+        self.srcModel.set_queue(self.guard.getQueue())
+        self.srcModel.begin()
+        self.srcModel.start()
+        self.setSourceSignals()
+        # self.__view.set_queue(self.srcModel.get_queue())
+        # self.__view.enablePortSet()
+        # self.__view.setCurrentValue(self.srcModel.getcurrentValueList(),self.srcModel.getcurrentTimeList())
+        # self.srcModel.initPort(self.__view.getPort(),self.__view.getBaudrate())
+        # self.__view.set_port(self.srcModel.get_port())
 
     def startPumpModel(self,started):
         if started == True:
@@ -75,19 +75,17 @@ class Presenter:
     #     # self.__view.set_end_cmd(self.end_cmd)
     #     # self.__view.enablePortSet()
 
-    # def setSourceSignals(self):
-    #     self.__view.portUI.openportSource.clicked.connect(partial(self.setSrcPort,self.srcModel))
-    #     self.__view.portUI.closeportSource.clicked.connect(partial(self.closePort,self.srcModel))
-    #     self.srcModel.seedCurrentSignal.connect(self.__view.seedCurrentSet)
-    #     self.srcModel.seedPulseSignal.connect(self.__view.seedPulseSet)
-    #     self.srcModel.seedFrequeceSignal.connect(self.__view.seedFrequeceSet)
-    #     self.__view.seedPulseFreChanged.connect(self.srcModel.setSeed)
-    #     self.__view.openAll.clicked.connect(self.srcModel.openAllThread)
-    #     self.__view.closeAll.clicked.connect(self.srcModel.closeAll)
+    def setSourceSignals(self):
+        self.__view.portUI.openportSource.clicked.connect(partial(self.setSrcPort,self.srcModel))
+        self.__view.portUI.closeportSource.clicked.connect(partial(self.closePort,self.srcModel))
+        self.srcModel.seedCurrentSignal.connect(self.__view.seedCurrentSet)
+        self.srcModel.seedPulseSignal.connect(self.__view.seedPulseSet)
+        self.srcModel.seedFrequeceSignal.connect(self.__view.seedFrequeceSet)
+        self.__view.seedPulseFreChanged.connect(self.srcModel.setSeed)
+        self.__view.openAll.clicked.connect(self.srcModel.openAllThread)
+        self.__view.closeAll.clicked.connect(self.srcModel.closeAll)
 
     def setPumpSignals(self):
-        pass
-        """
         self.__view.portUI.openportPump.clicked.connect(partial(self.setPumpPort,self.pumpModel))
         self.__view.portUI.closeportPump.clicked.connect(partial(self.closePort,self.pumpModel))
         self.pumpModel.firstCurrentSignal.connect(self.__view.firstCurrentSet)
@@ -96,15 +94,18 @@ class Presenter:
         self.__view.secondPumpChanged.connect(self.pumpModel.writesecondPumpCurrent)
         self.__view.openAll.clicked.connect(self.pumpModel.openAllThread)
         self.__view.closeAll.clicked.connect(self.pumpModel.closeAll)
+        # self.__view.portUI.openportTemp.clicked.connect(partial(self.setPumpPort,self.pumpModel))
+        # self.__view.portUI.closeportTemp.clicked.connect(partial(self.closePort,self.pumpModel))
         self.pumpModel.plotPower.connect(self.__view.updataFigure)
         self.__view.powerRecord.beginTimeSignal.connect(self.pumpModel.setStartTime)
         self.__view.powerRecord.seButton.clicked.connect(self.pumpModel.setBeginPlotTime)
         self.__view.powerRecord.sqlTableName.connect(self.pumpModel.creatPlot)
         self.__view.powerRecord.stopSavePower.connect(self.pumpModel.setSaveStop)
         self.pumpModel.beginPlot.connect(self.__view.painter.clearPlotList)
+        # self.__view.powerRecord.timeStateSignal.connect(self.)
+        # print('model signals set?')
         self.__view.emitUsername.connect(self.pumpModel.setUsername)
         self.pumpModel.updatePowerShow.connect(self.__view.setPowerShowList)
-        """
     # def setSignals(self):
     #     # self.__view.send_data.connect(self.srcModel.write)
     #     self.__view.powerRecord.beginTimeSignal.connect(self.srcModel.setStartTime)
@@ -128,28 +129,28 @@ class Presenter:
     # def closeModel(self):
     #     self.end_cmd()
 
-    # def setSrcPort(self,model):
-    #     newPort = self.__view.getSrcPort()
-    #     newBaud = self.__view.getSrcBaudrate()
-    #     oldPort = model.get_port()
-    #     oldBaud = model.get_br()
-    #     #isPortOpen = self.srcModel.isPortOpen()
-    #     if newPort != oldPort:
-    #         print('portnewold:',newPort,oldPort)
-    #         model.set_port(newPort)
-    #     # if newBaud is not oldBaud:
-    #         model.set_br(newBaud)
-    #         model.reSetPort()
-    #     if model.isPortOpen():
-    #         self.__view.afterOpenPort()
-    #     else:
-    #         print('reopenport')
-    #         model.set_port(newPort)
-    #     # if newBaud is not oldBaud:
-    #         model.set_br(newBaud)
-    #         model.reSetPort()
-    #         if model.isPortOpen():
-    #             self.__view.afterOpenPort()
+    def setSrcPort(self,model):
+        newPort = self.__view.getSrcPort()
+        newBaud = self.__view.getSrcBaudrate()
+        oldPort = model.get_port()
+        oldBaud = model.get_br()
+        #isPortOpen = self.srcModel.isPortOpen()
+        if newPort != oldPort:
+            print('portnewold:',newPort,oldPort)
+            model.set_port(newPort)
+        # if newBaud is not oldBaud:
+            model.set_br(newBaud)
+            model.reSetPort()
+        if model.isPortOpen():
+            self.__view.afterOpenPort()
+        else:
+            print('reopenport')
+            model.set_port(newPort)
+        # if newBaud is not oldBaud:
+            model.set_br(newBaud)
+            model.reSetPort()
+            if model.isPortOpen():
+                self.__view.afterOpenPort()
 
     def setPumpPort(self,model):
         newPort = self.__view.getPumpPort()

@@ -13,6 +13,7 @@ class Ui_Form(object):
         Form.setObjectName("Form")
         Form.setEnabled(True)
         Form.resize(536, 264)
+        Form.setWindowTitle("")
         self.widget = QtWidgets.QWidget(Form)
         self.widget.setGeometry(QtCore.QRect(12, 12, 192, 106))
         self.widget.setObjectName("widget")
@@ -64,7 +65,6 @@ class Ui_Form(object):
 
     def retranslateUi(self, Form):
         _translate = QtCore.QCoreApplication.translate
-        Form.setWindowTitle(_translate("Form", "Form"))
         self.label.setText(_translate("Form", "记录时长："))
         self.stepEdit.setSuffix(_translate("Form", "秒"))
         self.logButton.setText(_translate("Form", "开始"))

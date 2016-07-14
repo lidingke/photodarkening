@@ -4,16 +4,13 @@ from PyQt5.QtCore import Qt
 
 class PowerShow(QWidget):
     """docstring for PowerShow"""
-    def __init__(self):
+    def __init__(self,):
         super(PowerShow, self).__init__()
-        # self.arg = arg
-
         self.setPalette(QPalette(QColor(239,246,250)))
         self.setAutoFillBackground(True)
         self.setGeometry(100,100,100,100)
         self.setMinimumSize(100, 100)
-        # self.show()
-        self.pter = QPainter(self)
+        self.pter = QPainter()
         self.powerList = {'logNumber':0,
             'currentPower':0,
             'averagePower':0,
@@ -40,7 +37,6 @@ class PowerShow(QWidget):
         self.drawPowershishiText(event, pter)
         pter.translate(-5,20)
         self.drawPowerCurrentText(event, pter)
-
         pter.end()
 
     def drawPowerText(self,event,qp):

@@ -1,8 +1,9 @@
 #qt tool
 from PyQt5.QtWidgets    import (QWidget, QVBoxLayout,
     QHBoxLayout, QPlainTextEdit, QApplication, QLineEdit)
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QObject, pyqtSignal
 #python tool
+from queue              import Queue
 import sys
 sys.path.append("..")
 import pdb
@@ -10,92 +11,101 @@ import pdb
 from matplotlibPyQt5 import MyDynamicMplCanvas
 from powershow import PowerShow
 from UI.tabboxUI import Ui_Form as TabBoxUI
-from user import UserView
+from user import UserView ,Register
 
 class View(QWidget):
     """build from photodarker view"""
+    startPumpModel = pyqtSignal(object)
+
     def __init__(self,):
         super(View, self).__init__()
+        QWidget.__init__(self)
         # self.arg = arg
         self.__initUI()
+        self.queue      = Queue()
 
 
     def __initUI(self):
-        self.tabBoxUI = QWidget()
-        tabboxtemp = TabBoxUI()
-        tabboxtemp.setupUi(self.tabBoxUI)
+        self.tabBoxUI = TabBoxUI()
+        self.tabBoxUI.setupUi(self)
 
-        self.setWindowState(Qt.WindowMaximized)
-        self.editer = QPlainTextEdit()
-        self.editer.setReadOnly(True)
-        paintwidget = QWidget()
-        self.painter = MyDynamicMplCanvas(paintwidget, width=5, height=4, dpi=100)
-
-        self.powerShow1 = PowerShow()
-        self.powerShow2 = PowerShow()
-        cmdBox = QVBoxLayout()
-        cmdBox.addWidget(self.powerShow1)
-        cmdBox.addWidget(self.powerShow2)
-        cmdBox.addWidget(self.editer)
-        showBox = QHBoxLayout()
-        showBox.addLayout(cmdBox)
-        showBox.addWidget(self.painter)
-        self.mainBox = QVBoxLayout()
-        self.mainBox.addWidget(self.tabBoxUI)
-        # self.mainBox.addLayout(showBox)
-        # pdb.set_trace()
-        self.setLayout(self.mainBox)
-        self.setWindowTitle("光子暗化平台软件")
         self.__initUserUI()
+        self.__initMatplotUI()
+        self.__initPowerShow()
+        self.__initLog()
 
     def __initUserUI(self):
-        # self.tabBoxUI.passwordIput
-        myUserUI(self.tabBoxUI)
-        # userbox.usersignal.connect()
+        self.myUserUI = MyUserUI(self.tabBoxUI)
+
+    def __initMatplotUI(self):
+        # pdb.set_trace()
+        # paintwidget = QWidget()
+
+        matplot = self.tabBoxUI.matplot
+        self.painter = MyDynamicMplCanvas(matplot, width=5, height=4, dpi=100)
+        # self.tabBoxUI.mainLayout.replaceWidget(matplot,self.painter)
+
+    def __initPowerShow(self):
+        self.powerShow1 = PowerShow()
+        self.powerShow2 = PowerShow()
+        self.tabBoxUI.cmdLayout.addWidget(self.powerShow1)
+        self.tabBoxUI.cmdLayout.addWidget(self.powerShow2)
+        self.tabBoxUI.cmdLayout.addWidget(QPlainTextEdit())
+        # self.tabBoxUI.mainLayout.setLayout(self.tabBoxUI.cmdLayout)
+
+    def __initLog(self):
+        self.powerLog = PowerLog(self.tabBoxUI)
+
+
+    def __setUser(self,value):
+        pass
+
+
+    def set_queue(self, queue):
+        self.queue = queue
 
 
 
-class myUserUI(UserView):
+class MyUserUI(UserView,QObject):
     """docstring for myUserUI"""
     def __init__(self,father):
         self.father = father
-        super(myUserUI, self).__init__()
-
-
+        super(MyUserUI, self).__init__()
+        QObject.__init__(self)
 
     def UI_init(self):
-        pdb.set_trace()
         self.passwordIput = self.father.passwordIput
         self.login = self.father.login
-        self.register = self.father.register
-
+        self.register = self.father.userRegister
+        self.nameIput = self.father.userName
         self.passwordIput.setEchoMode(QLineEdit.Password)
         self.login.status = 'login'
         self.login.clicked.connect(self.loginfun)
-        try:
-            self.register = self.register_2
-        except:
-            pass
-        self.register.setEnabled(True)
         self.register.clicked.connect(self.registerfun)
 
+from powerrecord import PowerRecord
+class PowerLog(PowerRecord, QObject):
+    """docstring for PowerLog"""
+    def __init__(self, father):
+        self.father = father
+        super (PowerLog, self).__init__()
+        # self.arg = arg
+
+
+    def _setupUi(self):
+        self.logButton = self.father.logButton
+        self.stepEdit = self.father.stepEdit
+        self.printButton = self.father.printButton
+        self.timeEdit = self.father.timeEdit
+        self.gridLayout = self.father.logGridLayout
+        self.gridLayout_2 = self.father.historyGridLayout
+        self.ticker = self.father.ticker
+        # self.ticker = self
+        # pass
 
 
 if __name__ == '__main__':
     app         = QApplication(sys.argv)
-    # pt = QPalette()
-    # pt.setColor(QPalette.Background , QColor(239,246,250))
-    # # pt.setColor(QPalette.Button, QColor(239,246,250))
-    # pt.setColor(QPalette.ButtonText, QColor(34,39,42))
-    # # pt.setColor(QPalette.WindowText, QColor(34,39,42))
-    # pt.setColor(QPalette.Highlight, QColor(74,149,184))
-    # app.setPalette(pt)
-    font = app.font()
-    font.setPointSize(10)
-    font.setFamily('微软雅黑')
-
-    app.setFont(font)
-
     gui         = View()
 
     gui.show()

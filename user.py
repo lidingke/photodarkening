@@ -124,6 +124,7 @@ class UserView(QWidget,userUI):
         # self.setLayout(mainLayout)
 
     def loginfun(self):
+
         if self.login.status == 'login':
 
             name = self.nameIput.text()
@@ -145,6 +146,7 @@ class UserView(QWidget,userUI):
     #     pass
 
     def registerfun(self):
+        print("in to loginfun")
         re = Register()
         re.pass2father.connect(self.getsignal)
         re.exec_()
