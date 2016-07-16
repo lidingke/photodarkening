@@ -2,7 +2,7 @@
 # coding=utf-8
 
 import sys
-
+sys.path.append("..")
 # Library imports
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QPalette
@@ -11,7 +11,7 @@ from PyQt5.QtGui import QColor
 # Local imports
 from    view        import View
 from    presenter   import Presenter
-from user import User
+
 
 
 if __name__ == '__main__':

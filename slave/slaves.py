@@ -1,7 +1,10 @@
 import serial
 # from serial.tools import list_ports
 import re
-from modelcore import ModelCore
+import sys
+sys.path.append("..")
+# import slave
+from slave.model import Model
 import threading
 import random
 from time import sleep
@@ -15,7 +18,7 @@ class Slave(object):
         #self.arg = arg
         self.currentSendLive = True
         self.running = True
-        self.port = 'com15'
+        self.port = 'com13'
         self.br = 9600
 
     def __init__slaveStatus(self):
@@ -62,39 +65,15 @@ class Slave(object):
         #currentmsg = self.sendmsg['sendplot']
         while True:
             #print(currentmsg)
-            cp1,cp2,cp3,cp4 = self.rdcreate(8,12,1),self.rdcreate(),self.rdcreate(20,60,1,head = 'little'),self.rdcreate(3,6,1)
-            currentmsg = b'\x9A'+ cp1 +cp2 + cp3 + cp4 +b'\xFF\xFF'+b'\xA9'
-            # print('发功：',currentmsg)
-            # pdb.set_trace()
-            # print('发送电流：',currentmsg,': ',int().from_bytes(cb1,'big'),int().from_bytes(cb2,'big'),int().from_bytes(cb3,'big'),int().from_bytes(cb4,'big')
-            ser.write(currentmsg)
-            sleep(0.02)
-
-
-    def bigPowerSend(self,ser):
-        #currentmsg = self.sendmsg['sendplot']
-        while True:
-            #print(currentmsg)
-            cp1,cp2,cp3,cp4 = self.rdcreate(8,12,1),self.rdcreate(),self.rdcreate(2,1000,1,head = 'little'),self.rdcreate(3,6,1)
-            currentmsg = b'\x9A'+ cp1 +cp2 + cp3 + cp4 +b'\xFF\xFF'+b'\xA9'
+            cp1,cp2,cp3,cp4 = self.rdcreate(8,12,1),self.rdcreate(),self.rdcreate(),self.rdcreate(3,6,1)
+            currentmsg = b'\x9A'+ cp1 + cp2 + cp3 + cp4 +b'\xA9'
             print('发功：',currentmsg)
             # pdb.set_trace()
             # print('发送电流：',currentmsg,': ',int().from_bytes(cb1,'big'),int().from_bytes(cb2,'big'),int().from_bytes(cb3,'big'),int().from_bytes(cb4,'big')
             ser.write(currentmsg)
-            sleep(10)
+            sleep(3)
 
-    def errorSend(self,ser):
-        errorlist = [
-        b'\x9A\xA9',
-        b'\x9A\xA9\x9A\xA9\x9A\xA9\x9A\xA9\x9A\xA9',
-        b'\x9A\x01\x01\x03\x08\x9A\xA9',
-        b'\x9A\x23\x90\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xA9'
-        ]
-        while True:
-            for x in errorlist:
-                print('send error msg')
-                ser.write(x)
-                sleep(10)
+
 
 
     def process(self):
@@ -119,7 +98,7 @@ class Slave(object):
 
         # port_list = list(list_ports.comports())
 
-        model = ModelCore()
+        model = Model()
         model.set_port(self.port)
         self.ser = serial.Serial(self.port, self.br, timeout=120)
         #model.begin()
@@ -150,11 +129,7 @@ class Slave(object):
         #开个线程随机发送信号
         #threading.Thread(target=Slave.randomSend,args=(self,ser,)).start()
         # 开个线程发功
-        threading.Thread(target=self.powerSend,args=(ser,)).start()
-        # 开个线程发噪声
-        threading.Thread(target=self.bigPowerSend,args=(ser,)).start()
-        #开个线程发error信息
-        threading.Thread(target=self.errorSend,args=(ser,)).start()
+        # threading.Thread(target=Slave.powerSend,args=(self,ser,)).start()
         while True:
             sertext = model.analysisbit()
             #sertext=ser.read(7)
@@ -168,9 +143,9 @@ class Slave(object):
 
         ser.close()
 
-    def rdcreate(self,a = 2, b =10 ,c =100 , head = 'big'):
+    def rdcreate(self,a = 2, b =10 ,c =100):
         cb = int(random.uniform(a,b)*c)
-        cb = cb.to_bytes(2,head)
+        cb = cb.to_bytes(2,'big')
         return cb
 
     def msganalysis(self,sertext):
@@ -238,7 +213,6 @@ class Slave(object):
                         print(serstr,value)
                     elif serstr == 'setfirstcurrent':
                         print(serstr,value)
-                        print('晓光说不要发送一级的电流，还不快关掉！！！')
                         self.firstcurrent = value
                     elif serstr == 'setsecondcurrent':
                         print(serstr,value)

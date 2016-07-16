@@ -13,3 +13,6 @@ data
 *.pyc
 .idea
 *.pyc
+UI/__pycache__/
+*.pdf
+*.html

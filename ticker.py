@@ -26,7 +26,7 @@ class Ticker(QLCDNumber,threading.Thread):
             # print(time.clock())
             if self.startStatus:
                 timeStep = time.clock() -self.startTime
-                gmTimeStep = time.gmtime(timeStep)
+                gmTimeStep = time.localtime(timeStep)
                 timestr = time.strftime('%H:%M:%S', gmTimeStep)
                 self.display(timestr)
                 if self.timeLimit != -1:

@@ -6,7 +6,7 @@ from PyQt5.QtWidgets    import (QWidget, QLabel, QLineEdit,
     QPushButton, QPlainTextEdit, QCheckBox, QVBoxLayout,
     QHBoxLayout, QGridLayout, QComboBox, QMessageBox,
     QSpinBox, QSpacerItem, QTabWidget, QGroupBox, QAction)
-
+from PyQt5.QtCore import Qt
 from PyQt5.QtCore       import (QTimer, pyqtSignal, Qt, QPointF,QRect)
 
 # from PyQt5.QtGui import (QColor, QFont, QPainter, QPalette, QPen, QBrush)
@@ -108,6 +108,7 @@ class View(QWidget):
 
         self.mainBox = QVBoxLayout(self)#使用垂直布局类
         self.showBox = QHBoxLayout()
+        self.setWindowState(Qt.WindowMaximized)
 ###
 #command area: push button, plain text edit and line edit
 ###

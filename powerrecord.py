@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import (QTimeEdit,QDateTimeEdit , QGridLayout, QHBoxLayout, QPushButton,
-    QVBoxLayout,QWidget,QLCDNumber,QListWidget,QListWidgetItem)
-from PyQt5.QtCore import (QTime, QDateTime, QDate ,pyqtSignal)
+    QVBoxLayout,QWidget,QLCDNumber,QListWidget,QListWidgetItem,QFormLayout, QMessageBox)
+from PyQt5.QtCore import (QTime, QDateTime, QDate ,pyqtSignal, Qt)
+
 
 from reportDialog import ReportDialog
 import time
@@ -9,17 +10,19 @@ import pickle
 import pdb
 import queue
 from pdfcreater import PdfCreater
+from singleton import PickContext
 from ticker import Ticker
+from UI.recordUI import Ui_Form as RecodUI
 from toolkit import WRpickle
 from historylist import HistoryList
 from database import DataHand
 import numpy
 
 
-class PowerRecord(QWidget):
+class PowerRecord(QWidget,RecodUI):
     """docstring for PowerRecord"""
-    '''在这里加个pick process'''
-    beginTimeSignal = pyqtSignal(object)
+
+    beginTimeSignal = pyqtSignal(object,object)
     sqlTableName = pyqtSignal(object)
     stopSavePower = pyqtSignal(object)
     timeStateSignal = pyqtSignal(object)
@@ -29,8 +32,9 @@ class PowerRecord(QWidget):
 
     def __init__(self):
         super(PowerRecord, self).__init__()
-        self.wrpick = WRpickle('data\\reportLast.pickle')
-        self.pickContext = self.wrpick.loadPick()
+        # self.wrpick = WRpickle('data\\reportLast.pickle')
+        # self.pickContext = self.wrpick.loadPick()
+        self.pickContext = PickContext()
         self.datahand = DataHand()
         self.startTime = 0
         self.stopTime = time.time()
@@ -55,58 +59,61 @@ class PowerRecord(QWidget):
         # self.timer.start(100)
 
     def UI_init(self):
-        self.seButton = QPushButton('begin')
+        # self.ui = RecodUI()
+        self.setupUi(self)
+        # pdb.set_trace()
+
+        self.seButton = self.logButton
         self.seButton.buttonState = 'begin'
         self.seButton.clicked.connect(self.beginOendTime)
-        self.timeEdit = QDateTimeEdit()
+        # self.timeEdit = self.timeEdit
         self.timeEdit.setDisplayFormat(' s : hh : mm')
         # self.timeEdit.setDate(QDate(2000,10,10))
         # print(self.timeEdit.text())
+        self.ticker.hide()
         self.ticker = Ticker()
+        self.gridLayout.addWidget(self.ticker, 3, 1, 1, 1)
+        # self.formLayout.setWidget(3, QFormLayout.FieldRole, self.ticker)
         self.ticker.start()
         self.ticker.timeOut.connect(self.tickerTimeOut)
         # self.ticker.setNumDigits(10)
         # self.ticker.display('00:00:00')
-        self.historylist = HistoryList()
-        self.historylist.itemSelectedEmit.connect(self.itemSelectionChanged)
-        # self.historylist.setCurrentRow(1)
+        self.historyEdit = HistoryList()
+        self.gridLayout_2.addWidget(self.historyEdit, 1, 0, 1, 2)
+        self.historyEdit.itemSelectedEmit.connect(self.itemSelectionChanged)
+        self.historyEdit.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.printButton.clicked.connect(self.printReport)
+        # self.stepEdit.setValidator(QValidator(0.01,1000))
+        # self.historyEdit.setCurrentRow(1)
         # for x in range(0,self.itemShowNum):
         #     item = QListWidgetItem()
-        #     self.historylist.addItem(item)
-        # self.historylist.itemSelectionChanged.connect(self.itemSelect)
-        buttonarea = QVBoxLayout()
-        self.printbutton = QPushButton('print')
-        self.printbutton.clicked.connect(self.printReport)
-        buttonarea.addWidget(self.seButton)
-        buttonarea.addWidget(self.timeEdit)
-        buttonarea.addWidget(self.printbutton)
-        buttonarea.addStretch()
-        buttonarea.addWidget(self.ticker)
-        mainLayout = QGridLayout()
-        mainLayout.addWidget(self.historylist, 0,1)
-        mainLayout.addLayout(buttonarea, 0, 0)
-        self.setLayout(mainLayout)
+        #     self.historyEdit.addItem(item)
+        # self.historyEdit.itemSelectionChanged.connect(self.itemSelect)
+        # buttonarea = QVBoxLayout()
+        # self.printButton = self.printButton
+
+        # buttonarea.addWidget(self.seButton)
+        # buttonarea.addWidget(self.timeEdit)
+        # buttonarea.addWidget(self.printButton)
+        # buttonarea.addStretch()
+        # buttonarea.addWidget(self.ticker)
+        # mainLayout = QGridLayout()
+        # mainLayout.addWidget(self.historyEdit, 0,1)
+        # mainLayout.addLayout(buttonarea, 0, 0)
+        # self.setLayout(mainLayout)
+        # self.setLayout(self)
 
 
-
-
-###
-
-###
-
-    # def initItemText(self):
-    #     self.itemText = self.historylist.item(0).text()
-
-    def itemSelect(self):
-        self.itemText = self.historylist.currentItem().text()
-        self.itemNum = self.historylist.currentRow()
-        # print(self.itemNum)
-        pickget = self.pick[-self.itemNum-1]
-        self.startTimetic = pickget.get('begin')
-        self.printUserID = pickget.get('userID')
-        print('itemSelect:',self.itemNum, self.startTimetic,self.printUserID)
-        self.itemChangeStatus = True
-        # print(self.itemText)
+    # def itemSelect(self):
+    #     self.itemText = self.historyEdit.currentItem().text()
+    #     self.itemNum = self.historyEdit.currentRow()
+    #     # print(self.itemNum)
+    #     pickget = self.pick[-self.itemNum-1]
+    #     self.startTimetic = pickget.get('begin')
+    #     self.printUserID = pickget.get('userID')
+    #     print('itemSelect:',self.itemNum, self.startTimetic,self.printUserID)
+    #     self.itemChangeStatus = True
+    #     # print(self.itemText)
 
     def itemSelectionChanged(self,item):
         print('getitem',item)
@@ -118,7 +125,7 @@ class PowerRecord(QWidget):
         self.timeTick = temp[2:]
         # self.NowContextGet()
         #get last log
-        self.pickContext = self.wrpick.loadPick()
+        self.pickContext = PickContext()
         #get username
         self.pickContext['worker'] = self.userID
         #get plot from db
@@ -131,37 +138,36 @@ class PowerRecord(QWidget):
         self.plotlist.emit(False,time_,power)
         #get calc report
         if time_:
-            # pass
-            self.pickContext['timelong'] = time_[-1]-time_[0]
-            self.pickContext['maxsignalpower'] = max(power)
-            self.pickContext['minsingalpower'] = min(power)
-            self.pickContext['averagesingalepower'] = numpy.mean(power)
-            self.pickContext['powerstable'] = numpy.std(power)
+            self.pickContext['timelong'] = str(int(time_[-1]-time_[0]))+'秒'
+            self.pickContext['maxsignalpower'] = self.__Power2str(max(power))
+            self.pickContext['minsingalpower'] = self.__Power2str(min(power))
+            self.pickContext['averagesingalepower'] = self.__Power2str(numpy.mean(power))
+            self.pickContext['powerstable'] = self.__Power2str(numpy.std(power))
         else:
-            self.pickContext['timelong'] = 0
-            self.pickContext['maxsignalpower'] = 0
-            self.pickContext['minsingalpower'] = 0
-            self.pickContext['averagesingalepower'] = 0
-            self.pickContext['powerstable'] = 0
+            self.pickContext['timelong'] = '0'
+            self.pickContext['maxsignalpower'] = '0'
+            self.pickContext['minsingalpower'] = '0'
+            self.pickContext['averagesingalepower'] = '0'
+            self.pickContext['powerstable'] = '0'
         print('PowerRecord change')
-        self.wrpick.savePick(self.pickContext)
+        self.pickContext.save_pick_file()
 
     def printReport(self):
         # self.getDbdata()
         if self.figGet:
             self.figGet.savePlotFig()
         rep = ReportDialog(self)
-        # print(rep)
-
+        # print('rep',rep)
         rep.exec_()
-        print('pickContext',self.pickContext)
-        printer = PdfCreater(self,)
-        self.sqlTableName.connect(printer.getDBData)
-        printer.saveToFile()
+        if rep.saveOrcancel == 'save':
+            print('pickContext',self.pickContext.pickContext)
+            printer = PdfCreater(self,)
+            self.sqlTableName.connect(printer.getDBData)
+            printer.saveToFile()
         # printer.savePdf()
 
         # if self.itemChangeStatus is False:
-        #     self.itemText = self.historylist.item(0).text()
+        #     self.itemText = self.historyEdit.item(0).text()
         # print('print:',self.itemText)
         # self.pdfItem['']
 
@@ -179,28 +185,41 @@ class PowerRecord(QWidget):
     def beginOendTime(self):
         # self.ticker.run()
         if self.seButton.buttonState == 'begin':
-            #记录起始时间
-            self.beginTime = time.time()
-            print('beginTime:',self.beginTime)
-            self.beginTimeSignal.emit(self.beginTime)
-            self.stopSavePower.emit(True)
-            #begin ticker
             self.timeLong = self.timeEdit2time()
-            #send to plot
-            self.ticker.startTick(self.timeLong)
-            self.timeStateSignal.emit(self.timeLong)
-            self.logStateSignal.emit(True)
-            self.seButton.setText('stop')
-            self.seButton.buttonState = 'stop'
+            # pdb.set_trace()
+            print('stepEdit',self.stepEdit.text()[:-1])
+            self.timeStep = int(self.stepEdit.text()[:-1])
+            if self.timeLong < self.timeStep:
+                QMessageBox.information(self, "设置错误","记录时长要比记录步长大")
+                return
+            else:
+            #记录起始时间
+                self.beginTime = time.time()
+                print('beginTime:',self.beginTime)
+                self.beginTimeSignal.emit(self.beginTime, self.timeStep)
+                self.stopSavePower.emit(True)
+                self.ticker.startTick(self.timeLong)
+                self.timeStateSignal.emit(self.timeLong)
+                self.logStateSignal.emit(True)
+
+                self.seButton.setText('停止')
+                self.seButton.buttonState = 'stop'
         elif self.seButton.buttonState == 'stop':
             self.ticker.stopTick()
-            self.seButton.setText('begin')
+            self.seButton.setText('开始')
             self.seButton.buttonState = 'begin'
             self.stopSavePower.emit(False)
 
+    # def isStartSave(self,):
+    #     if self.timeLong < int(self.stepEdit.text())
+    #         QMessageBox.information(self, "设置错误",
+    #         "记录时长要比记录步长大")
+    #     return False
+    # return True
+
     def tickerTimeOut(self):
         print('time out')
-        self.seButton.setText('begin')
+        self.seButton.setText('开始')
         self.seButton.buttonState = 'begin'
         self.stopSavePower.emit(False)
 
@@ -236,7 +255,7 @@ class PowerRecord(QWidget):
 
     def getDbdata(self):
         if self.itemChangeStatus is False:
-            self.itemText = self.historylist.item(0).text()
+            self.itemText = self.historyEdit.item(0).text()
             self.itemNum = 0
             pickget = self.pick[-self.itemNum-1]
             self.startTimetic = pickget.get('begin')
@@ -297,16 +316,22 @@ class PowerRecord(QWidget):
         for i,x in enumerate(textlist):
             if x.get('start',False) is not False:
                 pass
-                starttime = time.strftime('%H:%M:%S',time.gmtime(x.get('start')))
-                stoptime = time.strftime('%H:%M:%S',time.gmtime(x.get('stop')))
+                starttime = time.strftime('%H:%M:%S',time.localtime(x.get('start')))
+                stoptime = time.strftime('%H:%M:%S',time.localtime(x.get('stop')))
                 textstr = 'start:'+starttime+', stop:'+stoptime+', user:'+x.get('userID')
             elif x.get('begin',False) is not False:
-                begin = time.strftime('%H:%M:%S',time.gmtime(x.get('begin')))
+                begin = time.strftime('%H:%M:%S',time.localtime(x.get('begin')))
                 con = x.get('continue').toString()
                 textstr = 'begin:' + begin + ', cont:' + con + ', user:'+x.get('userID')
             if i < self.itemShowNum:
-                item = self.historylist.item(self.itemShowNum-i-1)
+                item = self.historyEdit.item(self.itemShowNum-i-1)
                 item.setText(textstr)
+
+    def __Power2str(self,data):
+        if data > 0.1:
+            return str(round(data,2))+'W'
+        else:
+            return str(round(data*1000,2)) + 'mW'
 
         # pdb.set_trace()
         # self.itemSelect()
@@ -319,10 +344,10 @@ class PowerRecord(QWidget):
 
         # item.setText('kklong')
         # item = QListWidgetItem()
-        # self.historylist.addItem(item)
+        # self.historyEdit.addItem(item)
         # item = QListWidgetItem()
-        # self.historylist.addItem(item)
-        # self.historylist.setReadOnly(True)
+        # self.historyEdit.addItem(item)
+        # self.historyEdit.setReadOnly(True)
         # timebox = QHBoxLayout()
 
         # timebox.addWidget(self.hourlabel)
@@ -331,7 +356,7 @@ class PowerRecord(QWidget):
         # timebox.addWidget(self.minShow)
         # timebox.addWidget(self.seclabel)
 
-        # self.printbutton.clicked.connect(self.getDbdata)
+        # self.printButton.clicked.connect(self.getDbdata)
 
         # timebox.addWidget()
 
@@ -347,7 +372,7 @@ class PowerRecord(QWidget):
     #     threadStartTime = time.clock()
     #     while self.timebegin:
     #         timeStep = time.clock() - threadStartTime
-    #         gmTimeStep = time.gmtime(timeStep)
+    #         gmTimeStep = time.localtime(timeStep)
     #         # print(timeStep)
     #         timestr = time.strftime('%H:%M:%S', gmTimeStep)
     #         # print(timestr)
@@ -390,7 +415,7 @@ class PowerRecord(QWidget):
     #         self.seButton.setText('start')
     #         self.timebegin = False
     #         # print(timeStep)
-        # beginTime = time.strftime('%H:%M:%S', time.gmtime(self.beginTime) )
+        # beginTime = time.strftime('%H:%M:%S', time.localtime(self.beginTime) )
 
         # pdb.set_trace()
         # continueTime = 1
@@ -408,20 +433,20 @@ class PowerRecord(QWidget):
     #     while self.timebegin:
     #         timeStep = time.clock() - threadStartTime
     #         # print(timeStep)
-    #         timestr = time.strftime('%H:%M:%S',time.gmtime(timeStep))
+    #         timestr = time.strftime('%H:%M:%S',time.localtime(timeStep))
     #         # print(timestr)
     #         self.ticker.display(timestr)
     #         self.update_GUI()
     #         time.sleep(1)
         # pdb.set_trace()
-        # self.historylist.clear()
+        # self.historyEdit.clear()
                 # textstr.startTime = self.startTime
             # textstr = x['start']+':'+x['stop']+':'+x['userID']
             # print(textstr)
             # for x in range(1,self.itemShowNum):
             #     pass
             # pdb.set_trace()
-            # self.historylist.appendPlainText(textstr)
+            # self.historyEdit.appendPlainText(textstr)
                 # self.plaintlist.append(textstr)
             # if len(self.texlist) > 3:
             #     return
