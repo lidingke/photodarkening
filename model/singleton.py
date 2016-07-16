@@ -1,6 +1,6 @@
 
 from collections import MutableMapping
-from toolkit import WRpickle
+from model.toolkit import WRpickle
 
 
 class MetaDict(MutableMapping):

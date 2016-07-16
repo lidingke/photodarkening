@@ -1,4 +1,7 @@
 import pickle
+import sys
+from view.user import User
+print('path',sys.path)
 
 class WRpickle(object):
     """docstring for WRpickle
@@ -14,6 +17,7 @@ class WRpickle(object):
 
     def loadPick(self):
         with open(self.pickname,'rb') as f:
+            print('f',f)
             self.pick = pickle.load(f)
             # print('load',self.pick)
         return self.pick

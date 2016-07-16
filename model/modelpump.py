@@ -1,10 +1,10 @@
-from modelcore import ModelCore
+from model.modelcore import ModelCore
 from PyQt5.QtCore import pyqtSignal
 import threading
 import time
-from database import DataHand
+from model.database import DataHand
 import pdb
-from toolkit import HexSplit
+from model.toolkit import HexSplit
 import collections
 # from dataSaveTick import DataSaveTick
 import queue
