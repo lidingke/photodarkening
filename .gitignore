@@ -16,3 +16,4 @@ data
 UI/__pycache__/
 *.pdf
 *.html
+build

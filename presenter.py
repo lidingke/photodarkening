@@ -3,17 +3,20 @@
 
 # from time import sleep
 # from model import Model
+<<<<<<< HEAD
 # from modelsource import ModelSource
 from modelpump import ModelPump
+=======
+from model.modelsource import ModelSource
+from model.modelpump import ModelPump
+>>>>>>> 147d7cd378f5938df49e817d03989076a4e8bb01
 # from modeltemp import ModelTemp
 from functools        import partial
-from toolkit import portGard
+from model.toolkit import portGard
 
 class Presenter:
 
     def __init__(self, view):
-# 线程只能start一次。
-# 为了避免多次start新线程，在初始化时就开好线程，程序结束时关闭
 
         self.__view = view
         self.__view.show()

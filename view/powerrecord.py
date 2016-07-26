@@ -1,22 +1,25 @@
+# PyQt lib
 from PyQt5.QtWidgets import (QTimeEdit,QDateTimeEdit , QGridLayout, QHBoxLayout, QPushButton,
     QVBoxLayout,QWidget,QLCDNumber,QListWidget,QListWidgetItem,QFormLayout, QMessageBox)
 from PyQt5.QtCore import (QTime, QDateTime, QDate ,pyqtSignal, Qt)
-
-
-from reportDialog import ReportDialog
+#py lib
 import time
 import threading
 import pickle
 import pdb
 import queue
-from pdfcreater import PdfCreater
-from singleton import PickContext
-from ticker import Ticker
-from UI.recordUI import Ui_Form as RecodUI
-from toolkit import WRpickle
-from historylist import HistoryList
-from database import DataHand
 import numpy
+# view
+from view.pdfcreater import PdfCreater
+from view.reportDialog import ReportDialog
+from view.ticker import Ticker
+from view.historylist import HistoryList
+#UI
+from UI.recordUI import Ui_Form as RecodUI
+#model
+from model.toolkit import WRpickle
+from model.singleton import PickContext
+from model.database import DataHand
 
 
 class PowerRecord(QWidget,RecodUI):
