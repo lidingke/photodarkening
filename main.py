@@ -9,7 +9,7 @@ from PyQt5.QtGui import QPalette
 from PyQt5.QtGui import QColor
 
 # Local imports
-from    view        import View
+from    view.view        import View
 from    presenter   import Presenter
 
 

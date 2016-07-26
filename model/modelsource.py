@@ -1,4 +1,4 @@
-from modelcore import ModelCore
+from model.modelcore import ModelCore
 from PyQt5.QtCore import pyqtSignal,QObject
 import time
 import threading
