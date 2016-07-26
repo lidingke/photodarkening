@@ -1,7 +1,6 @@
 import pickle
 import sys
-from view.user import User
-print('path',sys.path)
+# from view.user import User
 
 class WRpickle(object):
     """docstring for WRpickle
@@ -10,15 +9,21 @@ class WRpickle(object):
     def __init__(self, arg):
         super(WRpickle, self).__init__()
         self.pickname = arg
-        try:
-            self.pick = self.loadPick()
-        except Exception as e:
-            raise e
+        # try:
+        #     self.pick = self.loadPick()
+        # except Exception as e:
+        #     # raise e
+        #     pass
 
     def loadPick(self):
         with open(self.pickname,'rb') as f:
-            print('f',f)
-            self.pick = pickle.load(f)
+            # print('f',f)
+            try:
+                self.pick = pickle.load(f)
+            except Exception as e:
+                # raise e
+                pass
+
             # print('load',self.pick)
         return self.pick
 
@@ -74,7 +79,30 @@ class HexSplit(object):
             return
         return " ".join("{:02x}".format(x) for x in c)
 
+from collections import MutableMapping
 
+class MetaDict(MutableMapping):
+    """A dictionary that applies an arbitrary key-altering
+       function before accessing the keys"""
+
+    def __init__(self, *args, **kwargs):
+        self.store = dict()
+        self.update(dict(*args, **kwargs))  # use the free update to set keys
+
+    def __getitem__(self, key):
+        return self.store[key]
+
+    def __setitem__(self, key, value):
+        self.store[key] = value
+
+    def __delitem__(self, key):
+        del self.store[key]
+
+    def __iter__(self):
+        return iter(self.store)
+
+    def __len__(self):
+        return len(self.store)
 
 if __name__ == '__main__':
     # m = ModelPump()

@@ -7,9 +7,9 @@ import hashlib
 import pickle
 import pdb
 # from regest import Register
-from PyQt5.QtWidgets import QDialog
+from PyQt5.QtWidgets import QDialog, QApplication
+# from model.toolkit import MetaDict
 from UI.registerUI import Ui_Dialog
-from PyQt5.QtWidgets import QApplication
 from UI.userUI import Ui_Form as userUI
 # from PyQt5.uic import loadUiType
 # form_class, base_class = loadUiType('Registerview.ui')
@@ -187,7 +187,6 @@ class UserManager(object):
     def delUser(self,name):
         self.users.pop(name)
 
-
 class User(object):
     """docstring for User"""
     def __init__(self,name = False):
@@ -200,6 +199,18 @@ class User(object):
         self.hashkey2 = 'CFOY'
         self.leveldict = {
         'master':1,'worker':2,'user':3,'guest':4}
+
+    def __set__(self,data):
+        self.setName(data[0])
+        self.setPassword(data[1])
+        try:
+            self.setLevel(data[2])
+        except Exception:
+            self.setLevel('user')
+
+    def __get__(self):
+        return self.getUser()
+
 
     def setName(self,value):
         if self.name is False:
@@ -261,6 +272,10 @@ class User(object):
     def getUser(self):
         us = (self.name,self.password,self.types)
         return us
+
+
+
+
 
 if __name__ == '__main__':
     import sys

@@ -79,6 +79,7 @@ class View(QWidget):
         self.last = LastLog()
         self.lastpick = self.last.loadLast()
         uslast = self.lastpick.get('user',False)
+        print('uslast',uslast)
         if uslast is False:
             self.user = User()
         else:
