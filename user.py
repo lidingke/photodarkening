@@ -32,6 +32,8 @@ class Register(QDialog):
         self.ui.msgtext.setText('')
         self.ui.password.textChanged.connect(self.passwdDetector)
         self.ui.passwordagain.textChanged.connect(self.passwdDetector)
+        self.ui.password.setEchoMode(QLineEdit.Password)
+        self.ui.passwordagain.setEchoMode(QLineEdit.Password)
 
         # self.passwdSignal1.connect(self.password1)
         # self.passwdSignal2.connect(self.password2)
