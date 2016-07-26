@@ -20,8 +20,8 @@ from UI.portGBUI import Ui_GroupBox as PortGBUI
 from UI.pumpUI import Ui_GroupBox as PumpUI
 # from UI.powerUI import Ui_Form as PowerUI
 # from portGBUI import Ui_GroupBox as PortGBUI
-from view.matplotlibPyQt5 import MyDynamicMplCanvas
 
+from view.matplotlibPyQt5 import MyDynamicMplCanvas
 from view.powershow import PowerShow
 from view.powerrecord import PowerRecord
 from view.user import UserView
