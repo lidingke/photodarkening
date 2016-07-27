@@ -10,6 +10,7 @@ import pdb
 
 from UI.portGBUI import Ui_GroupBox as PortGBUI
 from UI.pumpUI import Ui_GroupBox as PumpUI
+from UI.tabboxUI import Ui_Form as TabBoxUI
 # from UI.powerUI import Ui_Form as PowerUI
 # from portGBUI import Ui_GroupBox as PortGBUI
 
@@ -23,7 +24,8 @@ from model.lastlog import LastLog
 class View(QWidget):
     """build from photodarker view"""
     startPumpModel = pyqtSignal(object)
-
+    setBaundrateSignal = pyqtSignal(object)
+    setPortSignal = pyqtSignal(object)
 
 
 
@@ -60,6 +62,8 @@ class View(QWidget):
             'com14','com15','com16','com17',
             'com18','com19','com20']
         self.tabBoxUI.portPump.addItems(portItem)
+        self.tabBoxUI.baundratePump.currentIndexChanged.connect(self.setBaundrate)
+        self.tabBoxUI.portPump.currentIndexChanged.connect(self.setPort)
 
     def __initMatplotUI(self):
         # pdb.set_trace()
@@ -98,6 +102,12 @@ class View(QWidget):
     def set_end_cmd(self, end_cmd):
         self.end_cmd = end_cmd
 
+    def setBaundrate(self):
+        self.setBaundrateSignal.emit(self.tabBoxUI.baundratePump.currentText()[:-5])
+
+    def setPort(self):
+        self.setPortSignal.emit(self.tabBoxUI.portPump.currentText())
+
     def update_gui(self):
         # self.process_incoming()
         self.update()
@@ -120,7 +130,7 @@ class MyUserUI(UserView,QObject):
         self.login.clicked.connect(self.loginfun)
         self.register.clicked.connect(self.registerfun)
 
-from powerrecord import PowerRecord
+from view.powerrecord import PowerRecord
 class PowerLog(PowerRecord, QObject):
     """docstring for PowerLog"""
     def __init__(self, father):

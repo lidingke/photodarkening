@@ -3,13 +3,9 @@
 
 # from time import sleep
 # from model import Model
-<<<<<<< HEAD
-# from modelsource import ModelSource
-from modelpump import ModelPump
-=======
+
 from model.modelsource import ModelSource
 from model.modelpump import ModelPump
->>>>>>> 147d7cd378f5938df49e817d03989076a4e8bb01
 # from modeltemp import ModelTemp
 from functools        import partial
 from model.toolkit import portGard
@@ -21,9 +17,12 @@ class Presenter:
         self.__view = view
         self.__view.show()
         self.guard = portGard()
+        self.pumpModel = False
         self.__view.set_queue(self.guard.getQueue())
         # self.__view.startSrcModel.connect(self.startSrcModel)
-        self.__view.startPumpModel.connect(self.startPumpModel)
+        self.__view.openportPump.clicked.connect(self.startPumpModel)
+
+        # self.__view.startPumpModel.connect(self.startPumpModel)
         # self.__view.startTempModel.connect(self.startTempModel)
         self.__view.update_gui()
         self.__view.set_end_cmd(self.end_cmd)
@@ -54,10 +53,9 @@ class Presenter:
     #     # self.srcModel.initPort(self.__view.getPort(),self.__view.getBaudrate())
     #     # self.__view.set_port(self.srcModel.get_port())
 
-    def startPumpModel(self,started):
-        if started == True:
-            return
-        self.pumpModel = ModelPump()
+    def startPumpModel(self):
+        if self.pumpModel == False and self.pumpModel.is_alive() == False:
+            self.pumpModel = ModelPump()
         self.guard.getmodels(self.pumpModel)
         self.pumpModel.set_queue(self.guard.getQueue())
         self.pumpModel.begin()
@@ -89,7 +87,11 @@ class Presenter:
     #     self.__view.closeAll.clicked.connect(self.srcModel.closeAll)
 
     def setPumpSignals(self):
-        pass
+        #Port part
+        self.__view.closeportPump.clicked.connect(self.pumpModel.closeportPump)
+        self.__view.setbaundratePump.connect(self.pumpModel.baundrateIndexChange)
+        self.__view.setportPump.connect(self.pumpModel.portPump)
+
         """
         self.__view.portUI.openportPump.clicked.connect(partial(self.setPumpPort,self.pumpModel))
         self.__view.portUI.closeportPump.clicked.connect(partial(self.closePort,self.pumpModel))

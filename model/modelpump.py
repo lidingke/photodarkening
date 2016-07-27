@@ -16,3 +16,12 @@ class ModelPump(ModelCore):
         super(ModelPump, self).__init__()
         # self.arg = arg
 
+
+    def closePortPump(self):
+        self.closePort()
+
+    def baundrateIndexChanged(self,baudrate):
+        self.set_br(int(baudrate))
+
+    def portPump(self,port):
+        self.set_port(port)
