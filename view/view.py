@@ -24,9 +24,8 @@ from model.lastlog import LastLog
 class View(QWidget):
     """build from photodarker view"""
     startPumpModel = pyqtSignal(object)
-    setBaundrateSignal = pyqtSignal(object)
-    setPortSignal = pyqtSignal(object)
-
+    setBaundratePortSignal = pyqtSignal(object,object)
+    # setSignal = pyqtSignal(object)
 
 
     def __init__(self,):
@@ -62,13 +61,10 @@ class View(QWidget):
             'com14','com15','com16','com17',
             'com18','com19','com20']
         self.tabBoxUI.portPump.addItems(portItem)
-        self.tabBoxUI.baundratePump.currentIndexChanged.connect(self.setBaundrate)
-        self.tabBoxUI.portPump.currentIndexChanged.connect(self.setPort)
+        self.tabBoxUI.baundratePump.currentIndexChanged.connect(self.emitBaundratePort)
+        self.tabBoxUI.portPump.currentIndexChanged.connect(self.emitBaundratePort)
 
     def __initMatplotUI(self):
-        # pdb.set_trace()
-        # paintwidget = QWidget()
-
         matplot = self.tabBoxUI.matplot
         self.painter = MyDynamicMplCanvas(matplot, width=5, height=4, dpi=100)
         # self.tabBoxUI.mainLayout.replaceWidget(matplot,self.painter)
@@ -102,11 +98,17 @@ class View(QWidget):
     def set_end_cmd(self, end_cmd):
         self.end_cmd = end_cmd
 
-    def setBaundrate(self):
-        self.setBaundrateSignal.emit(self.tabBoxUI.baundratePump.currentText()[:-5])
+    def emitBaundratePort(self):
+        bp = self.getBaundratePort()
+        self.setBaundrateSignal.emit(bp[0],bp[1])
 
-    def setPort(self):
-        self.setPortSignal.emit(self.tabBoxUI.portPump.currentText())
+    def getBaundratePort(self):
+        port = self.tabBoxUI.portPump.currentText()
+        baundrate = self.tabBoxUI.baundratePump.currentText()[:-5]
+        return (port,baundrate)
+
+    # def setPort(self):
+    #     self.setPortSignal.emit()
 
     def update_gui(self):
         # self.process_incoming()

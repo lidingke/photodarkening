@@ -58,7 +58,6 @@ class portGard(threading.Thread):
         return self.msgQueue
 
     def run(self):
-
         while True:
             for x in self.modelList:
                 # print(x)

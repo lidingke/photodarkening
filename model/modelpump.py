@@ -17,11 +17,14 @@ class ModelPump(ModelCore):
         # self.arg = arg
 
 
-    def closePortPump(self):
-        self.closePort()
+    # def closePortPump(self):
+    #     self.closePort()
 
-    def baundrateIndexChanged(self,baudrate):
+    def setBaundratePort(self, port, baudrate):
+        print('ser', self.ser)
         self.set_br(int(baudrate))
-
-    def portPump(self,port):
         self.set_port(port)
+        print('ser', self.ser)
+
+    # def portPump(self,port):
+    #     self.set_port(port)
