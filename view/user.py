@@ -175,7 +175,7 @@ class UserManager(object):
     def loadUsers(self):
         with open('data\\user.pickle', 'rb') as f:
             self.users = pickle.load(f)
-        # print(self.users)
+        print(self.users)
 
     def findUser(self,name):
         return self.users.get(name,User())
