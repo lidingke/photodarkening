@@ -1,32 +1,14 @@
-#!/usr/bin/env python
 # coding=utf-8
-
-# From https://github.com/lidingke/photodarkening
-#  * branch            master     -> FETCH_HEAD
-# Auto-merging view/view.py
-# CONFLICT (content): Merge conflict in view/view.py
-# Auto-merging view/user.py
-# Auto-merging view/reportDialog.py
-# Auto-merging view/powerrecord.py
-# Auto-merging view/pdfcreater.py
-# Auto-merging view/historylist.py
-# Auto-merging presenter.py
-# CONFLICT (content): Merge conflict in presenter.py
-# Auto-merging model/toolkit.py
-# Auto-merging model/singleton.py
-# Auto-merging model/modelsource.py
-# Auto-merging model/modelpump.py
-# CONFLICT (content): Merge conflict in model/modelpump.py
-# Auto-merging model/lastlog.py
-# Automatic merge failed; fix conflicts and then commit the result.
 
 
 import sys
-sys.path.append("..")
+# sys.path.append("..")
+import pdb
 # Library imports
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QPalette
 from PyQt5.QtGui import QColor
+from PyQt5.QtCore import QCoreApplication
 
 # Local imports
 from    view.view        import View
@@ -35,6 +17,12 @@ from    presenter   import Presenter
 
 
 if __name__ == '__main__':
+
+    try:
+        QCoreApplication.setLibraryPaths(['C:\\Users\\lidingke\\Envs\\py34qt5\\Lib\\site-packages\\PyQt5\\plugins'])
+    except Exception as e:
+        pass
+    # pdb.set_trace()
     app         = QApplication(sys.argv)
     pt = QPalette()
     pt.setColor(QPalette.Background , QColor(239,246,250))

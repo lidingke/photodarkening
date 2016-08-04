@@ -1,10 +1,10 @@
-
-from PyQt5.QtWidgets import QDialog
-from PyQt5.QtCore import Qt
-from UI.reportDialogUI import Ui_Dialog
-from model.lastlog import LastLog
 from PyQt5.QtCore import pyqtSignal
-from model.singleton import PickContext
+from PyQt5.QtWidgets import QDialog
+
+from UI.reportDialogUI import Ui_Dialog
+from frame.singleton import PickContext
+from model.lastlog import LastLog
+
 
 class ReportDialog(QDialog):
     result = pyqtSignal(object)

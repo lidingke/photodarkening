@@ -1,12 +1,10 @@
 # PyQt lib
-from PyQt5.QtWidgets import (QTimeEdit,QDateTimeEdit , QGridLayout, QHBoxLayout, QPushButton,
-    QVBoxLayout,QWidget,QLCDNumber,QListWidget,QListWidgetItem,QFormLayout, QMessageBox)
-from PyQt5.QtCore import (QTime, QDateTime, QDate ,pyqtSignal, Qt)
+from PyQt5.QtCore import (pyqtSignal, Qt)
+from PyQt5.QtWidgets import (QWidget, QMessageBox)
+
 #py lib
 import time
-import threading
 import pickle
-import pdb
 import queue
 import numpy
 # view
@@ -17,8 +15,7 @@ from view.historylist import HistoryList
 #UI
 from UI.recordUI import Ui_Form as RecodUI
 #model
-from model.toolkit import WRpickle
-from model.singleton import PickContext
+from frame.singleton import PickContext
 from model.database import DataHand
 
 

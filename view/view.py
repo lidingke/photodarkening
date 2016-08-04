@@ -19,7 +19,9 @@ from view.powershow import PowerShow
 from view.powerrecord import PowerRecord
 from view.user import UserView
 from view.user import User
-from model.lastlog import LastLog
+# from model.lastlog import LastLog
+from frame.lastlog import LastLog
+# from frame
 
 class View(QWidget):
     """build from photodarker view"""
@@ -32,8 +34,11 @@ class View(QWidget):
         super(View, self).__init__()
         QWidget.__init__(self)
         # self.arg = arg
+
         self.__initUI()
         self.queue      = Queue()
+        # self.lastLog = LastLog()
+        self._setLastLog()
 
 
     def __initUI(self):
@@ -88,6 +93,25 @@ class View(QWidget):
     def __initLog(self):
         self.powerLog = PowerLog(self.tabBoxUI)
 
+    def _setLastLog(self):
+        self.lastLog = LastLog()
+        print('lastlog dict:', self.lastLog)
+        userName = self.lastLog.get('username','')
+        password = self.lastLog.get('password','')
+        baudIndex = self.lastLog.get('baud', 4)
+        portIndex = self.lastLog.get('port', 0)
+
+        self.tabBoxUI.userName.setText(userName)
+        self.tabBoxUI.passwordIput.setText(password)
+        self.tabBoxUI.baundratePump.setCurrentIndex(baudIndex)
+        self.tabBoxUI.portPump.setCurrentIndex(portIndex)
+
+    def lastLogSave(self):
+        self.lastLog['username'] = self.tabBoxUI.userName.text()
+        self.lastLog['password'] = self.tabBoxUI.passwordIput.text()
+        self.lastLog['baud'] = self.tabBoxUI.baundratePump.currentIndex()
+        self.lastLog['port'] = self.tabBoxUI.portPump.currentIndex()
+        self.lastLog.saveLast()
 
     def __setUser(self,value):
         pass
@@ -100,7 +124,7 @@ class View(QWidget):
 
     def emitBaundratePort(self):
         bp = self.getBaundratePort()
-        self.setBaundrateSignal.emit(bp[0],bp[1])
+        self.setBaundratePortSignal.emit(bp[0],bp[1])
 
     def getBaundratePort(self):
         port = self.tabBoxUI.portPump.currentText()
@@ -114,6 +138,11 @@ class View(QWidget):
         # self.process_incoming()
         self.update()
 
+    # def set_end_cmd(self,end_cmd):
+    def closeEvent(self, event):
+        self.lastLogSave()
+        print('last log ',self.lastLog)
+        QWidget.closeEvent(self, event)
 
 class MyUserUI(UserView,QObject):
     """docstring for myUserUI"""

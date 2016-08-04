@@ -26,8 +26,24 @@ class MetaDict(MutableMapping):
     def __len__(self):
         return len(self.store)
 
+    def __str__(self):
+        return  self.store.__str__()
 
-def singlenton(class_):
+class Singleton(type):
+        _instances = {}
+        def __call__(cls, *args, **kwargs):
+            if cls not in cls._instances:
+                cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+            return cls.__instances[cls]
+"""
+#python2
+class MyClass(BaseClass):
+        __metaclass__ = Singleton
+#python3
+class MyClass(BaseClass, metaclass = Singleton):
+"""
+
+def singleton(class_):
     instance = {}
     def getinstance(*args,**kwargs):
         if class_ not in instance:
@@ -36,7 +52,7 @@ def singlenton(class_):
     return getinstance
 
 
-@singlenton
+@singleton
 class PickContext(MetaDict):
     """docstring for PickContext"""
     def __init__(self, ):
