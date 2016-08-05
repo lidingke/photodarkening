@@ -21,7 +21,7 @@ from view.user import UserView
 from view.user import User
 # from model.lastlog import LastLog
 from frame.lastlog import LastLog
-# from frame
+
 
 class View(QWidget):
     """build from photodarker view"""
@@ -37,14 +37,12 @@ class View(QWidget):
 
         self.__initUI()
         self.queue      = Queue()
-        # self.lastLog = LastLog()
         self._setLastLog()
 
 
     def __initUI(self):
         self.tabBoxUI = TabBoxUI()
         self.tabBoxUI.setupUi(self)
-
         self.__initUserUI()
         self.__initPort()
         self.__initLog()
@@ -113,8 +111,8 @@ class View(QWidget):
         self.lastLog['port'] = self.tabBoxUI.portPump.currentIndex()
         self.lastLog.saveLast()
 
-    def __setUser(self,value):
-        pass
+    # def __setUser(self,value):
+    #     pass
 
     def set_queue(self, queue):
         self.queue = queue
