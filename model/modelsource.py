@@ -5,7 +5,7 @@ import threading
 
 class ModelSource(ModelCore):
     """docstring for ModelSource"""
-
+    seedSignal = pyqtSignal(object,object,object)
     seedCurrentSignal = pyqtSignal(object)
     seedPulseSignal = pyqtSignal(object)
     seedFrequeceSignal = pyqtSignal(object)
@@ -181,16 +181,17 @@ class ModelSource(ModelCore):
 #==============================================================================
 # Signals for view
 #==============================================================================
-    def emitSeedCurrent(self):
-        self.seedCurrentSignal.emit(self.seedcurrent)
+    # def emitSeedCurrent(self):
+    #     self.seedCurrentSignal.emit(self.seedcurrent)
 
-    def emitSeedPulse(self):
-        self.seedPulseSignal.emit(self.seedpulse)
+    # def emitSeedPulse(self):
+    #     self.seedPulseSignal.emit(self.seedpulse)
 
-    def emitSeedFrequece(self):
-        self.seedFrequeceSignal.emit(self.seedfrequece)
+    # def emitSeedFrequece(self):
+    #     self.seedFrequeceSignal.emit(self.seedfrequece)
 
     def emitStatus(self):
-        self.emitSeedCurrent()
-        self.emitSeedPulse()
-        self.emitSeedFrequece()
+        self.seedSignal.emit(self.seedcurrent, self.seedpulse, self.seedfrequece)
+        # self.emitSeedCurrent()
+        # self.emitSeedPulse()
+        # self.emitSeedFrequece()

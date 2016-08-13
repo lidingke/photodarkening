@@ -51,8 +51,6 @@ class ModelPump(ModelCore):
         self.datasaveTick.resultEmite.connect(self.powerDataProcess)
 
 
-
-
     def coreMsgProcess(self,data):
         '''input message analysis and manage
         '''

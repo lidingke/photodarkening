@@ -267,89 +267,6 @@ class View(QWidget):
         else:
             self.portUI.portPump.setCurrentIndex(2)
 
-        # baudindex = self.lastpick.get('tempBaud',False)
-        # if baudindex is not False :
-        #     self.portUI.baundrateTemp.setCurrentIndex(baudindex)
-        # else:
-        #     self.portUI.baundrateTemp.setCurrentIndex(4)
-        # portindex = self.lastpick.get('tempPort',False)
-        # if baudindex is not False :
-        #     self.portUI.portTemp.setText(portindex)
-
-    # def powerShowUI(self):
-    #     self.powerText = QLabel()
-    #     powerTextBox = QGroupBox()
-    #     powerTextBox.setStyleSheet("QGroupBox{background:blue;}")
-    #     # self.powe
-    #     layout = QGridLayout(powerTextBox)
-    #     layout.addWidget(self.powerText)
-    #     return layout
-
-
-
-        # ptUI = PortWidget()
-        # PtUI = PortUI()
-        # PtUI.setupUi(QWidget)
-        # print(dir(ptUI))
-        # self.setBox.addWidget(ptUI)
-        # print(ptUI.openportSource())
-        # pdb.set_trace()
-        # portBox = QGridLayout()
-        # self.baundrateMenu.addItems(self.menuItem)
-        # self.startButton = QPushButton('Start')
-        # self.menuItem = ['300 baud','1200 baud',
-        #     '2400 baud','4800 baud','9600 baud',
-        #     '19200 baud','38400 baud','57600 baud',
-        #     '115200 baud','230400 baud','250000 baud']
-        # self.portEdit.setEnabled(False)
-        # self.baundrateMenu.setEnabled(False)
-        # Set default baudrate 9600        # - Baudrate select
-        # self.closePortButton.setEnabled(False)
-        # # portBox.addWidget(self.setPortButton, 0, 0)
-        # # portBox.addWidget(self.closePortButton, 0, 1)
-        # self.startButton.setEnabled(True)
-        # self.setPortButton.setEnabled(False)
-        # baudLabel = QLabel('baud: ')
-        # # portBox.addWidget(baudLabel,1,0)
-        # # portBox.addWidget(self.baundrateMenu, 1, 1)
-        # #port select
-        # portLabel = QLabel('Port: ')
-        # portBox.addWidget(portLabel, 2, 0)
-        # portBox.addWidget(self.portEdit, 2, 1)
-
-        # self.startButton.setMinimumWidth(self.buttonMinimumWidth)
-        # self.setPortButton.setMinimumWidth(self.buttonMinimumWidth)
-        # self.closePortButton.setMinimumWidth(self.buttonMinimumWidth)
-        #self.portEdit.editingFinished.connect(self.changePort)
-        # portLB = QHBoxLayout()
-        # print(self.baundrateMenu.setCurrentIndex())
-        # pdb.set_trace()
-        # seedBox = QVBoxLayout()
-        # firstPumpBox = QVBoxLayout()
-        # secondPumpBox = QVBoxLayout()
-        # Command box
-        # self.pumpBox.addLayout(seedBox)
-        # self.pumpBox.addLayout(firstPumpBox)
-        # self.pumpBox.addLayout(secondPumpBox)
-        # self.pumpBox.addStretch()
-        #
-        # self.showBox.addLayout(cmdBox)
-        #self.startButton.setCheckable(True)
-        #self.startButton.clicked.connect(partial(self.emit_send_command,'openport'))
-        # portBox.addWidget(self.startButton, 0, 0)
-
-        #portBox.addLayout(portLB, 2, 1)
-        #portBox.addStretch()
-        #portSetBox.addLayout(stng_hbox)
-        #self.setBox.addLayout(portBox)
-        # cmd_btncr = QPushButton('sendcurrentcmd')
-        # cmd_btncr.clicked.connect(partial(self.emit_send_command,'sendcurrent'))
-        # cmdButtonBox.addWidget(cmd_btncr)
-        #seedBox项目
-        #self.openSeedButton.setDisabled(True)
-        # seedBox.addWidget(self.openSeedButton)
-        #self.etSeedPulseButton.clicked.connect(partial(self.emit_send_command,'setseed'))
-        # seedPluseBox.addWidget(self.seedPluseLabel)
 ###
 #pump set
 ###
@@ -374,117 +291,6 @@ class View(QWidget):
         self.pumpUI.secondpumpSpin.setMaximum(10000)
         self.pumpUI.secondpumpSpin.setSingleStep(500)
 
-
-        # self.pumpUI.firstPumpSet.setDisabled(True)
-        # self.pumpUI.sourceSet.setDisabled(True)
-
-        # self.setSecondpump.setSingleStep(50)
-        # self.setFirstpump.setSingleStep(50)
-        # self.setSeedCurrent.setSingleStep(50)
-        # self.setSeedFreValue.setSingleStep(50)
-        # self.setSeedPulse.setSingleStep(50)
-        # self.openSeedButton.setMinimumWidth(self.buttonMinimumWidth)
-        # self.openSeedButton.setEnabled(False)
-        # seedPluseBox = QHBoxLayout()
-        # self.seedPluseLabel = QLabel('setSeedPulse:')
-        # self.setSeedPulse.setMaximum(500)
-        # self.setSeedPulse.setEnabled(False)
-        # self.setSeedPulse.setSuffix('ms')
-        # seedPluseBox.addWidget(self.setSeedPulse)
-        # seedFreBox = QHBoxLayout()
-        # self.seedFreLabel = QLabel('setSeedFre:    ')
-        #self.setSeedButton.clicked.connect(partial(self.emit_send_command,'setSeedFre'))
-        # seedFreBox.addWidget(self.seedFreLabel)
-        # self.setSeedFreValue.setSuffix('kHz')
-        # self.setSeedFreValue.setMaximum(500)
-        # self.setSeedFreValue.setEnabled(False)
-        # seedcurrBox = QHBoxLayout()
-        # self.setSeedCurrentLabel = QLabel('setSeedCurrent:')
-
-        # self.openAll.setMinimumWidth(self.buttonMinimumWidth)
-        # self.openAll.setEnabled(False)
-        # self.openAll.hide(True)
-        # self.setSeedCurrent.setSuffix('mA')
-        # seedcurrBox.addWidget(self.setSeedCurrentLabel)
-        # seedcurrBox.addWidget(self.setSeedCurrent)
-        # amp select
-        # self.openSecondPump = QPushButton('opensecondpump')
-        # self.openSecondPump.setMinimumWidth(self.buttonMinimumWidth)
-        # self.openSecondPump.setEnabled(False)
-        # self.openSecondPump.clicked.connect(partial(self.emit_send_command,'opensecondpump'))
-
-        # self.setSeedCurrent.setMaximum(self.topSeedCurrent)
-        # self.setSeedCurrent.setEnabled(False)
-
-        # self.setFirstpump.setMaximum(self.topPumpCurrent)
-        # self.setFirstpump.setEnabled(False)
-        # self.sendsecond.setEnabled(False)
-        # self.setFirstpump.setSuffix('mA')
-        # self.sendfirst.setEnabled(False)
-
-        # self.setSecondpump.setSuffix('mA')
-
-
-        # self.closeAll.setEnabled(False)
-        # self.setFirstpump.setEnabled(False)
-        # self.setSecondpump.setEnabled(False)
-        # self.pumpBox.addWidget(self.openAll,0,0)
-        # self.pumpBox.addWidget(self.closeAll,1,0)
-        # self.pumpBox.addWidget(self.openSeedButton,2,0)
-        # self.pumpBox.addWidget(self.seedPluseLabel,0,1)
-        # self.pumpBox.addWidget(self.setSeedPulse,0,2)
-        # self.pumpBox.addWidget(self.seedFreLabel,1,1)
-        # self.pumpBox.addWidget(self.setSeedFreValue,1,2)
-        # self.pumpBox.addWidget(self.setSeedCurrentLabel,2,1)
-        # self.pumpBox.addWidget(self.setSeedCurrent,2,2)
-        # self.pumpBox.addWidget(self.sendfirst,0,3)
-        # self.pumpBox.addWidget(self.setFirstpump,0,4)
-        # self.pumpBox.addWidget(self.sendsecond,1,3)
-        # self.pumpBox.addWidget(self.setSecondpump,1,4)
-
-        #self.setSeedFreValue.valueChanged.connect(self.emitWriteSeedFre)
-        # seedFreBox.addWidget(self.setSeedFreValue)
-        # self.setFirstpump.valueChanged.connect(self.emitFirstPumpCurrent)
-        # self.setSecondpump.valueChanged.connect(self.emitSecondPumpCurrent)
-        # self.closeAll = QPushButton('setsecond')
-        # self.closeAll.clicked.connect(self.emitSecondPumpCurrent)
-        # seedcurrBox.addWidget(self.setSeedCurrent)
-        #self.setSeedPulse.setReadOnly(True)
-        #self.setSeedPulse.valueChanged.connect(self.emitWriteSeedPulse)
-        #seedBox.addWidget(self.setSeedPulse)
-        # seedBox.addLayout(seedPluseBox)
-        # seedBox.addLayout(seedFreBox)
-        # seedBox.addLayout(seedcurrBox)
-        #seedBox.addStretch()
-        # firstPumpLabel=QLabel('一级泵浦调节')
-        # secPumpLabel=QLabel('二级泵浦调节')
-        #.setEnabled(True)
-        #self.openAll.clicked.connect(partial(self.emit_send_command,'openAll'))
-        # firstPumpBox.addWidget(self.openAll)
-        # self.setSeedCurrentLabel = QLabel('setSeedCurrent:')
-        # firstPumpBox.addWidget(self.sendfirst)
-        # secondPumpBox.addWidget(self.closeAll)
-        # secondPumpBox.addWidget(self.sendsecond)
-        # firstPumpBox.addWidget(self.setFirstpump)
-        # secondPumpBox.addWidget(self.setSecondpump)
-        # allPumpBox = QGridLayout(QWidget)
-        # self.pumpBox = allPumpBox
-        # firstPumpBox.addStretch()
-        # secondPumpBox.addStretch()
-        #self.resize(250, 150)
-        #tool init
-        # widget1=QWidget()
-        # widget2=QWidget()
-        # #vboxMenu.addWidget(painter)
-        # vboxMenu = QHBoxLayout(gbox1)
-        # vboxMenu.addWidget(widget1)
-        # vboxShow = QHBoxLayout(gbox3)
-        # vboxShow.addWidget(widget2)
-
-    # def show_error(self, value):
-    #     msg = QMessageBox(
-    #             QMessageBox.NoIcon, 'Error occured.', value, QMessageBox.Ok)
-    #     msg.exec()
 
     def afterOpenModel(self):
         pass
@@ -558,18 +364,27 @@ class View(QWidget):
             self.canClosePort = False
         print(self.canClosePort)
 
-    def seedCurrentSet(self,value):
-        self.seedcurrent = value
-        # pdb.set_trace()
+    def seedSignalSet(self, seedcurrent, seedpulse, seedfrequece):
+        self.seedcurrent = seedcurrent
         self.setSeedCurrent.setValue(self.seedcurrent)
-
-    def seedPulseSet(self,value):
-        self.seedpulse = value
+        self.seedpulse = seedpulse
         self.setSeedPulse.setValue(self.seedpulse)
-
-    def seedFrequeceSet(self,value):
-        self.seedfrequece = value
+        self.seedfrequece = seedfrequece
         self.setSeedFreValue.setValue(self.seedfrequece)
+
+
+    # def seedCurrentSet(self,value):
+    #     self.seedcurrent = value
+    #     # pdb.set_trace()
+    #     self.setSeedCurrent.setValue(self.seedcurrent)
+
+    # def seedPulseSet(self,value):
+    #     self.seedpulse = value
+    #     self.setSeedPulse.setValue(self.seedpulse)
+
+    # def seedFrequeceSet(self,value):
+    #     self.seedfrequece = value
+    #     self.setSeedFreValue.setValue(self.seedfrequece)
 
     def firstCurrentSet(self,value):
         self.firstcurrent = value
