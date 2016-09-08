@@ -18,11 +18,12 @@ from    presenter   import Presenter
 
 if __name__ == '__main__':
 
-    try:
-        QCoreApplication.setLibraryPaths(['C:\\Users\\lidingke\\Envs\\py34qt5\\Lib\\site-packages\\PyQt5\\plugins'])
-    except Exception as e:
-        pass
+    # QCoreApplication.setLibraryPaths(['C:\\Users\\lidingke\\Envs\\py34qt5\\Lib\\site-packages\\PyQt5\\plugins'])
+
+    QCoreApplication.setLibraryPaths(['./plugins'])
     # pdb.set_trace()
+
+
     app         = QApplication(sys.argv)
     pt = QPalette()
     pt.setColor(QPalette.Background , QColor(239,246,250))

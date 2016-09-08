@@ -1,5 +1,7 @@
 import pickle
 import sys
+import pdb
+import json
 # from view.user import User
 
 class WRpickle(object):
@@ -9,11 +11,8 @@ class WRpickle(object):
     def __init__(self, arg):
         super(WRpickle, self).__init__()
         self.pickname = arg
-        # try:
-        #     self.pick = self.loadPick()
-        # except Exception as e:
-        #     # raise e
-        #     pass
+        self.pick = {}
+
 
     def loadPick(self):
         with open(self.pickname,'rb') as f:
@@ -23,7 +22,6 @@ class WRpickle(object):
             except Exception as e:
                 # raise e
                 pass
-
             # print('load',self.pick)
         return self.pick
 
@@ -36,6 +34,37 @@ class WRpickle(object):
         if type(key) is not str:
             raise TypeError('key must be a str')
         self.pick[key] = item
+
+
+
+class WriteReadJson(object):
+    """docstring for WriteReadJson"""
+    def __init__(self, dir_):
+        super(WriteReadJson, self).__init__()
+        self.dir_ = dir_
+        self.store = {}
+
+    def load(self):
+        with open(self.dir_,'rb') as f:
+            try:
+                bitFileRead2Str = f.read().decode('utf-8')
+                self.store = json.loads(bitFileRead2Str)
+            # except FileNotFoundError:
+
+            except Exception as e:
+                # raise e
+                print(e)
+                pdb.set_trace()
+
+        return self.store
+
+    def save(self , store):
+        with open(self.dir_,'wb') as f:
+            jsonBitBuffer = json.dumps(store).encode('utf-8')
+            # print('json', jsonBitBuffer)
+            f.write(jsonBitBuffer)
+
+
 
 
 import threading
@@ -114,6 +143,10 @@ if __name__ == '__main__':
     # p.getmodels(m)
     # p.start()
 
-    x = b'\x01\x02\x0e'
-    # x =
-    print(HexSplit.fun(x))
+    # x = b'\x01\x02\x0e'
+    # # x =
+    # print(HexSplit.fun(x))
+    wrj = WriteReadJson("test.json")
+    wrjdict = {'1':2,'2':'34'}
+    wrj.load()
+    wrj.save(wrjdict)

@@ -1,8 +1,15 @@
-from frame.lastlog import LastLog
+from slave.slavex import SlaveX
 
-l = LastLog()
-l[1] = 1
-l.pr()
-a = LastLog()
-a[2] = 2
-a.pr()
+
+
+# from frame.lastlog import LastLog
+
+# l = LastLog()
+# l[1] = 1
+# l.pr()
+# a = LastLog()
+# a[2] = 2
+# a.pr()
+if __name__ == '__main__':
+    s = SlaveX()
+    s.start()
