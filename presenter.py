@@ -12,7 +12,8 @@ from model.toolkit import portGard
 class Presenter:
 
     def __init__(self, view):
-
+        self.srcModel = False
+        self.pumpModel = False
         self.__view = view
         self.__view.show()
         self.guard = portGard()

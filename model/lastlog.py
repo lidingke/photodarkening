@@ -86,6 +86,10 @@ class MsgSet(object):
         # pumperror
         'pumperror':                               ' EB 90 02 FF FF FF FF 90 EB',
         }
+        self.msgDictHex = {}
+        for k,v in self.msgDictStr.items():
+            self.msgDictHex[k] = b''.fromhex(v)
+
 
     def msgProccess(self):
         msg = self.msg

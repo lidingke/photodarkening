@@ -17,9 +17,9 @@ class SerialModel(threading.Thread):
 
     def _setPort(self, port, baundrate):
         if port:
-            self.ser = serial.Serial(baudrate=baundrate, timeout=120)
+            self.ser = serial.Serial(port=port, baudrate=baundrate, timeout=120)
         else:
-            self.ser = serial.Serial(port = port, baudrate=baundrate, timeout=120)
+            self.ser = serial.Serial(baudrate=baundrate, timeout=120)
 
     def setPort(self, port, baundrate):
         try:
@@ -31,6 +31,7 @@ class SerialModel(threading.Thread):
     def _write(self, bitDatas):
         if self.ser and bitDatas:
             self.ser.write(bitDatas)
+
 
     def _readBit(self):
         if self.ser and self.ser.isOpen():
