@@ -3,6 +3,7 @@ from model.lastlog import MsgSet
 from slave.source import SlaveMode
 import random
 import threading
+import time
 
 def _onoff(func):
     def checker(self, data):
@@ -13,6 +14,7 @@ def _onoff(func):
                     print('first pump open')
                 elif data[3:5] == b'\x00\x00':
                     self.isFirstPumpOpen = False
+                    self.power1st = 0
                     print('first pump close')
             elif data[2:3] == b'\x0B':
                 if data[3:5] == b'\x00\x01':
@@ -20,9 +22,10 @@ def _onoff(func):
                     print('second pump open')
                 elif data[3:5] == b'\x00\x00':
                     self.isSecondPumpOpen = False
+                    self.power2st = 0
                     print('second pump close')
         reselt = func(self, data)
-        print('pump power', self.initPower)
+        print('pump power', self.SETSPP.POWER)
         return reselt
     return checker
 
@@ -46,13 +49,27 @@ class Pump(SlaveMode):
         self.isSecondPumpOpen = False
         # self.daemon = False
         self.setPort(self.port, self.baundrate)
-        threading.Thread(target=self._current2Send, daemon=True, ).start()
+        self.initPower = 0
+        threading.Thread(target=self.sendCurrent, daemon=True, ).start()
 
-    def __powerMethod(self):
-        self.power1st = self.initPower * self.pumpPower1Set
-        self.power2st = self.power1st * self.pumpPower2Set
-        self.resultPower = self.power2st + random.randint(0,10)
-        return self.resultPower
+    def _powerMethod(self):
+        if (self.isFirstPumpOpen == True) and (self.isSecondPumpOpen == True):
+            # print('pump power init ', self.SETSPP.POWER,\
+            #     self.pumpPower1Set, self.pumpPower2Set,\
+            #     self.resultPower)
+            self.power1st = self.SETSPP.POWER * self.pumpPower1Set
+            self.power2st = self.power1st * self.pumpPower2Set
+            self.resultPower = self.power2st + random.randint(0,10)
+            return self.resultPower
+        else:
+            self.power1st = 0
+            self.power2st = 0
+            # self.SETSPP.POWER = 0
+            self.resultPower = 0
+            return self.resultPower
+
+    # def inputSourcePower(self, sourcePower):
+    #     self.initPower = sourcePower
 
     @_onoff
     def _taskDistribution(self, data):
@@ -74,11 +91,18 @@ class Pump(SlaveMode):
     def sendCurrent(self):
         print('start sendCurrent')
         while True:
+            timer = 0
             if self.isSecondPumpOpen:
                 self._write(self._current2Send())
+            time.sleep(0.1)
+            timer = timer +1
+            if timer > 20:
+                print('while sendd curent', self.isSecondPumpOpen)
+                timer = 0
 
     def _current2Send(self):
-        power = self.__powerMethod()
+
+        power = self._powerMethod()
         temp = (random.randint(20, 30) * 100).to_bytes(2, 'little')
         power = int(power).to_bytes(2, 'little')
         currentmsg = b'\x9A' + temp + b'\x01\x02' + power + b'\x05\x06\xFF\xFF\xA9'

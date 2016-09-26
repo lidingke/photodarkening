@@ -451,7 +451,7 @@ class DataSaveTick(threading.Thread,QObject):
         '''
         while True:
             getlist = self.dataGet['dataGet']
-            if getlist:
+            if len(getlist) > 2:
                 self.factory(getlist)
                 self.dataGet['dataGet'] = []
             time.sleep(self.tick)

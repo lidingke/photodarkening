@@ -279,7 +279,7 @@ class ModelCore(threading.Thread, QObject):
                         if databit == b'\x90':
                             databit = self.readbit(self.ser)
                             data = b''.join(bitlist)
-                            self.printShow(data)
+                            # self.printShow(data)
                             return data
                         bitlist.append(databit)
             elif databit == b'\x9A':
