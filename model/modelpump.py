@@ -51,8 +51,6 @@ class ModelPump(ModelCore):
         self.datasaveTick.resultEmite.connect(self.powerDataProcess)
 
 
-
-
     def coreMsgProcess(self,data):
         '''input message analysis and manage
         '''
@@ -427,15 +425,6 @@ C50-MC   | 20℃        | 0.59775          | 0.000747
         tmPower = self.getPower(heat,getPower)
         return tmPower
 
-    # def fit(self,lit = 10):
-    #     x = [90,    80,     70,   60,     56, 50, 40, 30, 20, 11,   8, 5.5, 4, 3.5, 2]
-    #     y = [-18, -15.5, -14, -11.5, -10,  -8, -4,  1.5, 10, 20, 30, 40, 50, 60, 70]
-    #     z = np.polyfit(x, y, lit)
-    #     p = np.poly1d(z)
-    #     # print('p:',p )
-    #     # y2 = [p(i) for i in x]
-    #     # pyplot.plot(x,y2, hold = True)
-    #     return p
 from    PyQt5.QtCore        import QObject
 
 class DataSaveTick(threading.Thread,QObject):
@@ -461,12 +450,8 @@ class DataSaveTick(threading.Thread,QObject):
         pass datalist to proccess per steptime
         '''
         while True:
-            # pass
             getlist = self.dataGet['dataGet']
-            # print('listget?',getlist)
-            if getlist:
-                # powerdata = []
-                # print('单位时间',len(getlist),getlist.pop())
+            if len(getlist) > 2:
                 self.factory(getlist)
                 self.dataGet['dataGet'] = []
             time.sleep(self.tick)

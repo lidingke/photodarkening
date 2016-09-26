@@ -13,6 +13,7 @@ from    PyQt5.QtCore        import QObject
 # from    PyQt5.QtCore        import QTime
 # PySerial imports
 import  serial
+from serialmodel import SerialModel
 
 # from toolkit import HexSplit
 # from    serial.serialutil   import SerialException
@@ -25,23 +26,22 @@ import  serial
 #         return cls._instances[cls]
 
 
-class ModelCore(threading.Thread, QObject):
-    """docstring for ModelCore"""
+class ModelCore(SerialModel, QObject):
+    """an adapter model"""
     error = pyqtSignal(object)
 
     def __init__(self,port = 'com12'):
-        threading.Thread.__init__(self)
+        # threading.Thread.__init__(self)
         QObject.__init__(self)
         super(ModelCore, self).__init__()
-        # print('is ModelCore __init__?')
-        self.setDaemon(True)
+        # self.setDaemon(True)
         self.printText = queue.Queue()
         self.port = port
-        self.br         = 9600
+        self.br         = self.baundrate
         self.timeout    = 0.001
         self.username = 'nobody'
         # PySerial object
-        self.ser        = None
+        self.ser        = False
         # Flag for main cycle
         self.running    = True
         self.srcPortOpen = False
@@ -79,12 +79,7 @@ class ModelCore(threading.Thread, QObject):
 
     def run(self):
         '''
-        Run thread.
-            Method representing the thread's activity.
-            You may override this method in a subclass. The standard run() method
-            invokes the callable object passed to the object's constructor as the
-            target argument, if any, with sequential and keyword arguments taken
-            from the args and kwargs arguments, respectively.
+        thread start function
         '''
         #
         while self.running:
@@ -172,9 +167,8 @@ class ModelCore(threading.Thread, QObject):
 
     def reSetPort(self):
         try:
-
-            self.ser = serial.Serial(self.port, self.br, timeout=120)
             print('reSetPort:',self.ser)
+            self.ser = serial.Serial(self.port, self.br, timeout=120)
             # self.printShow(self.ser,text=False)
             self.printShow('port is open port name is ',self.port)
         except serial.serialutil.SerialException:
@@ -216,32 +210,15 @@ class ModelCore(threading.Thread, QObject):
         if dataSend:
             self.printShow('上位机发送:',dataSend,text =False)
             try:
-                if self.ser.isOpen():
-                    self.ser.write(dataSend)
+                # if self.ser.isOpen():
+                self._write_(bitDatas = dataSend)
             except serial.serialutil.SerialException as e:
-                # pdb.set_trace()
                 print(e)
-                    # if e == portNotOpenError:
-                    #     raise e
-
         time.sleep(0.1)
 
 
-    def readbit(self,ser):
-        try:
-            if ser and ser.isOpen():
-                data = ser.read(1)
-            else:
-                data = b'-1'
-                time.sleep(0.1)
-        except serial.serialutil.SerialException as e:
-            # time.sleep(1)
-            print(e)
-            data = b'-1'
-        # except NoneType :
-        #     time.sleep(1)
-        #     data = b'-1'
-        return data
+    def readbit(self):
+        return self._readBit()
 
     def msgcoup(self,msg):
         '''package a message if msg length > 6
@@ -267,31 +244,31 @@ class ModelCore(threading.Thread, QObject):
         while self.running:
             # pdb.set_trace()
             #self.printShow('keepbit')
-            ser = self.ser
-            databit = self.readbit(self.ser)
+            # ser = self.ser
+            databit = self.readbit()
             if databit == b'\xeb':
                 # self.printShow(databit,'1')
-                databit = self.readbit(self.ser)
+                databit = self.readbit()
                 if databit == b'\x90':
                     while True:
                         # self.printShow(databit,'2')
-                        databit = self.readbit(self.ser)
+                        databit = self.readbit()
                         if databit == b'\x90':
-                            databit = self.readbit(self.ser)
+                            databit = self.readbit()
                             data = b''.join(bitlist)
-                            # self.printShow(data)
+                            self.printShow(data)
                             return data
                         bitlist.append(databit)
             elif databit == b'\x9A':
                 tick = 1
                 while True:
                     tick = tick + 1
-                    databit = self.readbit(self.ser)
+                    databit = self.readbit()
                     # print('tick ',tick)
                     if databit == b'\xA9':
                         if tick == 12:
                             # print('接收位数第',tick)
-                            # databit = self.readbit(self.ser)
+                            # databit = self.readbit()
                             data = b''.join(bitlist)
                             # self.printShow('received:',b'\x9A' + data +b'\xA9',text = False)
                             return b'\x9A' + data +b'\xA9'

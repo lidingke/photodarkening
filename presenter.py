@@ -12,7 +12,8 @@ from model.toolkit import portGard
 class Presenter:
 
     def __init__(self, view):
-
+        self.srcModel = False
+        self.pumpModel = False
         self.__view = view
         self.__view.show()
         self.guard = portGard()
@@ -76,9 +77,10 @@ class Presenter:
     def setSourceSignals(self):
         self.__view.portUI.openportSource.clicked.connect(partial(self.setSrcPort,self.srcModel))
         self.__view.portUI.closeportSource.clicked.connect(partial(self.closePort,self.srcModel))
-        self.srcModel.seedCurrentSignal.connect(self.__view.seedCurrentSet)
-        self.srcModel.seedPulseSignal.connect(self.__view.seedPulseSet)
-        self.srcModel.seedFrequeceSignal.connect(self.__view.seedFrequeceSet)
+        # self.srcModel.seedCurrentSignal.connect(self.__view.seedCurrentSet)
+        # self.srcModel.seedPulseSignal.connect(self.__view.seedPulseSet)
+        # self.srcModel.seedFrequeceSignal.connect(self.__view.seedFrequeceSet)
+        self.srcModel.seedSignal.connect(self.__view.seedSignalSet)
         self.__view.seedPulseFreChanged.connect(self.srcModel.setSeed)
         self.__view.openAll.clicked.connect(self.srcModel.openAllThread)
         self.__view.closeAll.clicked.connect(self.srcModel.closeAll)
