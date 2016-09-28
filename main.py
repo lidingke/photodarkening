@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # coding=utf-8
 
+#todo call to ClearCommError failed
+
 import sys
 sys.path.append("..")
 # Library imports

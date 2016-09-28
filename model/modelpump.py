@@ -312,7 +312,7 @@ C50-MC   | 20℃        | 0.59775          | 0.000747
         voltage = (voltage*1000-8.977)/346.34
         if voltage < 0:
             print("voltage < 0")
-            voltage = 0.001
+            voltage = 0.000001
         #Φ = U/Z
         power = voltage/sensitivity
         #voltage 为探测器输出电压，单位是V，sensitivity 为探测器的灵敏度，单位是mV/W

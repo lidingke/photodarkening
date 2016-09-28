@@ -57,8 +57,8 @@ class Pump(SlaveMode):
             # print('pump power init ', self.SETSPP.POWER,\
             #     self.pumpPower1Set, self.pumpPower2Set,\
             #     self.resultPower)
-            self.power1st = self.SETSPP.POWER * self.pumpPower1Set
-            self.power2st = self.power1st * self.pumpPower2Set
+            self.power1st = self.SETSPP.POWER * self.pumpPower1Set * 0.5
+            self.power2st = self.power1st * self.pumpPower2Set * 0.1
             self.resultPower = self.power2st + random.randint(0,10)
             return self.resultPower
         else:

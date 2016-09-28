@@ -122,7 +122,7 @@ class Source(SlaveMode):
             if self.powerMethodList != powerMethodList:
                 self.powerMethodList = powerMethodList
                 self.SETSPP.POWER = self.initPower + \
-                    self.pulseWidth * self.frequance * self.current * 0.000000001
+                    self.pulseWidth * self.frequance * self.current * 0.0000001
                 print('SLAVE_POWERS:', self.initPower, \
                     self.pulseWidth, self.frequance, self.current, self.SETSPP.POWER)
                 # print(self.SETSPP.POWER)
