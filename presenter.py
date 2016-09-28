@@ -44,11 +44,7 @@ class Presenter:
         self.srcModel.begin()
         self.srcModel.start()
         self.setSourceSignals()
-        # self.__view.set_queue(self.srcModel.get_queue())
-        # self.__view.enablePortSet()
-        # self.__view.setCurrentValue(self.srcModel.getcurrentValueList(),self.srcModel.getcurrentTimeList())
-        # self.srcModel.initPort(self.__view.getPort(),self.__view.getBaudrate())
-        # self.__view.set_port(self.srcModel.get_port())
+
 
     def startPumpModel(self,started):
         if started == True:
@@ -60,26 +56,10 @@ class Presenter:
         self.pumpModel.start()
         self.setPumpSignals()
 
-        # self.__view.set_queue(self.pumpModel.get_queue())
-        # self.__view.set_end_cmd(self.end_cmd)
-        # self.__view.enablePortSet()
-    # def startTempModel(self,started):
-    #     if started == True:
-    #         return
-    #     self.tempModel = ModelTemp()
-    #     self.tempModel.start()
-    #     self.setTempSignals()
-    #     self.tempModel.begin()
-    #     # self.__view.set_queue(self.tempModel.get_queue())
-    #     # self.__view.set_end_cmd(self.end_cmd)
-    #     # self.__view.enablePortSet()
 
     def setSourceSignals(self):
-        self.__view.portUI.openportSource.clicked.connect(partial(self.setSrcPort,self.srcModel))
-        self.__view.portUI.closeportSource.clicked.connect(partial(self.closePort,self.srcModel))
-        # self.srcModel.seedCurrentSignal.connect(self.__view.seedCurrentSet)
-        # self.srcModel.seedPulseSignal.connect(self.__view.seedPulseSet)
-        # self.srcModel.seedFrequeceSignal.connect(self.__view.seedFrequeceSet)
+        self.__view.portUI.openportSource.clicked.connect(partial(self.setSrcPort, self.srcModel))
+        self.__view.portUI.closeportSource.clicked.connect(partial(self.closePort, self.srcModel))
         self.srcModel.seedSignal.connect(self.__view.seedSignalSet)
         self.__view.seedPulseFreChanged.connect(self.srcModel.setSeed)
         self.__view.openAll.clicked.connect(self.srcModel.openAllThread)
@@ -102,32 +82,10 @@ class Presenter:
         self.__view.powerRecord.sqlTableName.connect(self.pumpModel.creatPlot)
         self.__view.powerRecord.stopSavePower.connect(self.pumpModel.setSaveStop)
         self.pumpModel.beginPlot.connect(self.__view.painter.clearPlotList)
-        # self.__view.powerRecord.timeStateSignal.connect(self.)
-        # print('model signals set?')
+
         self.__view.emitUsername.connect(self.pumpModel.setUsername)
         self.pumpModel.updatePowerShow.connect(self.__view.setPowerShowList)
-    # def setSignals(self):
-    #     # self.__view.send_data.connect(self.srcModel.write)
-    #     self.__view.powerRecord.beginTimeSignal.connect(self.srcModel.setStartTime)
-    #     self.__view.powerRecord.seButton.clicked.connect(self.srcModel.setBeginPlotTime)
-    #     self.__view.powerRecord.sqlTableName.connect(self.srcModel.creatPlot)
-    #     # self.srcModel.error.connect(self.__view.show_error)
-        # self.srcModel.seedCurrentSignal.connect(self.__view.seedCurrentSet)
-        # self.srcModel.seedPulseSignal.connect(self.__view.seedPulseSet)
-        # self.srcModel.seedFrequeceSignal.connect(self.__view.seedFrequeceSet)
-        # self.srcModel.firstCurrentSignal.connect(self.__view.firstCurrentSet)
-        # self.srcModel.secondCurrentSignal.connect(self.__view.secondCurrentSet)
-        # self.__view.seedPulseFreChanged.connect(self.srcModel.writeSeedPulseAndFre)
-        #signals between view and model
-        # startButton\setPortButton\closePortButton\openSeedButton
-        #self.__view.setPortButton.
-        # Signal connection
-        # self.__view.baudrate_changed.connect(self.srcModel.set_br)
-        # self.__view.port_changed.connect(self.srcModel.set_port)
-        # self.__view.seedPulseChanged.connect(self.srcModel.writeSeedPulse)
-        # self.__view.seedFreValueChanged.connect(self.srcModel.writeSeedFre)
-    # def closeModel(self):
-    #     self.end_cmd()
+
 
     def setSrcPort(self,model):
         newPort = self.__view.getSrcPort()
@@ -141,16 +99,16 @@ class Presenter:
         # if newBaud is not oldBaud:
             model.set_br(newBaud)
             model.reSetPort()
-        if model.isPortOpen():
-            self.__view.afterOpenPort()
+        # if model.isPortOpen():
+        #     self.__view.afterOpenPort()
         else:
             print('reopenport')
             model.set_port(newPort)
         # if newBaud is not oldBaud:
             model.set_br(newBaud)
             model.reSetPort()
-            if model.isPortOpen():
-                self.__view.afterOpenPort()
+            # if model.isPortOpen():
+            #     self.__view.afterOpenPort()
 
     def setPumpPort(self,model):
         newPort = self.__view.getPumpPort()
@@ -164,23 +122,22 @@ class Presenter:
         # if newBaud is not oldBaud:
             model.set_br(newBaud)
             model.reSetPort()
-        if model.isPortOpen():
-            self.__view.afterOpenPort()
+        # if model.isPortOpen():
+        #     self.__view.afterOpenPort()
         else:
             print('reopenport')
             model.set_port(newPort)
         # if newBaud is not oldBaud:
             model.set_br(newBaud)
             model.reSetPort()
-            if model.isPortOpen():
-                self.__view.afterOpenPort()
+            # if model.isPortOpen():
+            #     self.__view.afterOpenPort()
 
     def closePort(self,model):
         # canState = self.__view.enableClosePort()
         canState = True
         if canState:
             model.closePort()
-            self.__view.afterClosePort()
         else:
             print('未成功关闭')
 

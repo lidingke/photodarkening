@@ -117,7 +117,7 @@ class ModelSource(ModelCore):
     def writeSeedPulseAndFre(self,seedPulseAndFre):
         self.printShow('seedPulseAndFre:',seedPulseAndFre)
         if seedPulseAndFre:
-            value = seedPulseAndFre[0]
+            value = seedPulseAndFre[1]
             # self.printShow('frevalue:',value            # self.printShow('frevalue:',value,type(value),int(value))
             value = int(value).to_bytes(2,'big')
             valuemsg = self.msgDictHex['seedfreset']
@@ -125,7 +125,7 @@ class ModelSource(ModelCore):
             self.printShow('frevaluemsg',valuemsg)
             self.write(valuemsg)
             time.sleep(0.3)
-            value = seedPulseAndFre[1]
+            value = seedPulseAndFre[0]
             # self.printShow('pulevalue:',value,type(value),int(value))
             value = int(value).to_bytes(2,'big')
             valuemsg = self.msgDictHex['seedpulseset']
@@ -181,17 +181,7 @@ class ModelSource(ModelCore):
 #==============================================================================
 # Signals for view
 #==============================================================================
-    # def emitSeedCurrent(self):
-    #     self.seedCurrentSignal.emit(self.seedcurrent)
-
-    # def emitSeedPulse(self):
-    #     self.seedPulseSignal.emit(self.seedpulse)
-
-    # def emitSeedFrequece(self):
-    #     self.seedFrequeceSignal.emit(self.seedfrequece)
 
     def emitStatus(self):
         self.seedSignal.emit(self.seedcurrent, self.seedpulse, self.seedfrequece)
-        # self.emitSeedCurrent()
-        # self.emitSeedPulse()
-        # self.emitSeedFrequece()
+

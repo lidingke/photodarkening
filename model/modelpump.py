@@ -78,89 +78,15 @@ class ModelPump(ModelCore):
                     secondcurrent = int().from_bytes(data[3:5],'big')
                     self.printShow('getsecondcurrent:',secondcurrent)
         elif data[0:1] == b'\x9A':
+            print('POWER GET: ',data)
             self.dataGetDict['dataGet'].append([time.time(),data])
-            # print('dataGet',len(self.dataGetDict['dataGet']),type(self.dataGetDict['dataGet']))
-            # try:
-            #     tnew = self.startPackageTime
-            # except NameError:
-            #     self.startPackageTime = time.time()
-
-            # # tnew = self.startPackageTime
-            # if tnew > time.time():
-
-            # else:
-            #     tnew = tnew +60
-            #     self.stepDataPackage = list()
-            # # dlst = self.powerDataList
-            '''
-            powerDataAndOriginal = [self.getPowerData(data),HexSplit.fun(data)]
-            #
-            '''
-            '''
-            deque = self.powerDataList
-            deque.append(powerDataAndOriginal)
-            if len(deque) == 5:
-                lst = [x[0] for x in deque]
-                lst.sort()
-                self.currentValue = sum(lst[1:4])/3
-                ti1 = time.time() -self.ti0
-                self.currentTime = ti1
-                self.emitPlot()
-                if (self.startRecord == True) and (self.saveStop == False):
-                    self.save2sql(self.currentValue,powerDataAndOriginal[1])
-            '''
-            '''
-            self.currentValue = powerDataAndOriginal[0]
-            ti1 = time.time() -self.ti0
-            self.currentTime = ti1
-            self.emitPlot()
-            if (self.startRecord == True) and (self.saveStop == False):
-                self.save2sql(powerDataAndOriginal[0],powerDataAndOriginal[1])
-
-
-            self.powerStatus(self.currentValue)
-            # dlst.append(powerDataAndOriginal)
-                '''
-#old agrithm
-            #if self.powerDataNum != self.MFilterLen:
-            #     self.powerDataNum = self.powerDataNum +1
-            # else:
-            #     self.powerDataNum = 1
-            #     # pdb.set_trace()
-            #     dlst.sort()
-            #     midValue = dlst[int(self.MFilterLen/2)+1]
-            #     try:
-            #         self.currentValue = midValue[0]
-            #         originData = midValue[1]
-            #     except IndexError:
-            #         return
-            #     except Exception as e :
-            #         raise e
-            #     dlst.clear()
-
-
-    # def getPowerData(self,data):
-    #     # print('十六进制温度：',data[1:3],'电压：',data[5:7],'length',len(data))
-    #     self.heat = int().from_bytes(data[1:3],'little')/100
-    #     # self.firstPower = int().from_bytes(data[3:5],'little')
-    #     # self.firstCurrent = int().from_bytes(data[5:7],'little')
-    #     self.getPower = int().from_bytes(data[5:7],'little')
-    #     # if self.getPower > 65200:#some times error number from slave ,most of them higher them 65200
-    #     #     self.printShow('收到功率乱码')
-    #     #     self.getPower = int().from_bytes(data[-7:-5],'little')
-    #     # print('十进制温度：',self.heat,'电压：',self.getPower)
-    #     if self.heat <100:
-    #         self.lastTemp = self.heat
-    #     if self.getPower <65200:
-    #         self.lastPower = self.getPower
-    #     self.getPower = (self.getPower/4096)*3#！！！！！这里也改了注意！！！！！！！！！
-    #     self.tmPower = self.tempdetector.getPower(self.heat,self.getPower)
-    #     self.printShow('温度:',self.heat,'℃','  功率:',round(self.tmPower,4),'W')
-    #     return self.tmPower
 
     def creatPlot(self,tableName):
         data = self.datahand.getTableData(tableName)
         self.datahand.createPlot(data)
+
+
+
 
 #pump
 
@@ -174,17 +100,7 @@ class ModelPump(ModelCore):
         time.sleep(0.3)
         # '''
         self.write(self.msgDictHex['opensecondpump'])
-        '''
-        time.sleep(0.3)
 
-        # isopen = self.isSeedOpened()
-        # if isopen:
-        self.printShow('init device set all zero')
-        # self.writeSeedPulseAndFre([self.seedcurrent,self.seedpulse,self.seedfrequece])
-        self.writeFirstPumpCurrent(self.firstcurrent)
-        self.writesecondPumpCurrent(self.secondcurrent)
-        self.emitStatus()
-        '''
 
     def closeAll(self):
         # self.writeSeedPulseAndFre([self.seedcurrent,self.seedpulse,self.seedfrequece])
@@ -200,24 +116,7 @@ class ModelPump(ModelCore):
         time.sleep(0.3)
         # '''
 
-
-        # self.printShow('seed:',self.isSeedOpen,
-        #     'isFirstPumpOpen:',self.isFirstPumpOpen,
-        #     'isSecondPumpOpen:',self.isSecondPumpOpen)
-    # def isSeedOpened(self):
-    #     if self.isSeedOpen\
-    #         and self.isFirstPumpOpen\
-    #         and self.isSecondPumpOpen:
-    #         self.printShow('openpaltform,seed,1st,2st')
-    #         return True
-    #     return False
-
-
     def writeFirstPumpCurrent(self,value):
-        # lastvalue = self.lastvalue
-        # nowvalue = value
-        # self.printShow('frevalue:',value)
-        # self.printShow('setfirstcurrent:',value,type(value),int(value))
         print('firstvalue',value)
         value = int(value)*4#*4 is about slave
         value = int(value).to_bytes(2,'big')
@@ -229,9 +128,6 @@ class ModelPump(ModelCore):
 
     def writesecondPumpCurrent(self,value):
         threading.Thread(target = self.threeTimesSpump, args = (value,)).start()
-        # self.printShow('frevalue:',value)
-        # self.printShow('setsecondcurrent:',value,type(value),int(value))
-        # self.sendthread123(int(value))
 
     def threeTimesSpump(self,value):
         value = int(value)
@@ -314,9 +210,9 @@ class ModelPump(ModelCore):
         self.datasaveTick.tick = steptime
 
 #临时性改动
-    def sendthread123(self,value):
-        print('valueget',value)
-        threading.Thread(target = self.sendMsgDown, daemon = True,args = (value,)).start()
+    # def sendthread123(self,value):
+    #     print('valueget',value)
+    #     threading.Thread(target = self.sendMsgDown, daemon = True,args = (value,)).start()
 
     def sendMsgDown(self,value):
         print('ser',self.ser)
@@ -412,8 +308,12 @@ C50-MC   | 20℃        | 0.59775          | 0.000747
         # temp = self.poly(temp)
         #Z=Z0+（T-T0）*Zc
         sensitivity = init_sen +(temp-stand_temp)*correct_sen
-        #Φ = U/Z
+
         voltage = (voltage*1000-8.977)/346.34
+        if voltage < 0:
+            print("voltage < 0")
+            voltage = 0.001
+        #Φ = U/Z
         power = voltage/sensitivity
         #voltage 为探测器输出电压，单位是V，sensitivity 为探测器的灵敏度，单位是mV/W
         return power
@@ -512,20 +412,4 @@ class DataBaseSaveTick(threading.Thread,QObject):
                 self.dataGet['dataGet'] = []
             time.sleep(self.tick)
 
-    # def factory(self,getlist):
-    #     datalist = []
-    #     for x in getlist:
-    #         # pass
-    #         power = self.detector.hex2power(x[1])
-    #         # datalist.append([power,x[0],x[1]])
-    #         datalist.append(power)
-    #     datalist.sort()
-    #     dataLen = len(datalist)
-    #     powerresult = sum(datalist[1:dataLen-1])/(dataLen - 2)
-    #     print(powerresult)
-    #     self.emitPower(powerresult)
 
-
-    # def emitPower(self,powerresult):
-    #     # pass
-    #     self.resultEmite.emit(powerresult)
