@@ -8,8 +8,7 @@ import pickle
 # import sqlite3
 import pdb
 # PyQt5 imports
-from    PyQt5.QtCore        import pyqtSignal
-from    PyQt5.QtCore        import QObject
+from    PyQt5.QtCore        import pyqtSignal, QObject
 # from    PyQt5.QtCore        import QTime
 # PySerial imports
 import  serial
@@ -51,6 +50,7 @@ class ModelCore(threading.Thread, QObject):
         with open('data\\msg.pickle', 'rb') as f:
             entry = pickle.load(f)
         self.msgDictHex = entry['msgDictHex']
+        print ('msg get ',self.msgDictHex)
         self.msgDictStr = entry['msgDictStr']
         self.sendmsgrec = entry['sendmsgrec']
         self.entry = entry
@@ -301,16 +301,16 @@ class ModelCore(threading.Thread, QObject):
         # return None
 
 
+#interface
+    def coreMsgProcess(self, *args, **kwargs):
+        raise NotImplementedError
+
 #==============================================================================
 # Signals for view
 #==============================================================================
 
     def emit_error(self, value):
         self.error.emit(value)
-
-    # def emitPlot(self):
-    #     self.plotPower.emit([self.currentTimeList,self.currentValueList])
-
 
     def get_msgDict(self):
         return self.msgDictHex

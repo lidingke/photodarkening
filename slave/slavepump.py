@@ -52,10 +52,10 @@ class Slave(object):
 
     def randomSend(self,ser):
         while self.currentSendLive is True:
-            self.sendmsglist = [v for k,v in self.sendmsg.items()]
-            rd = int(random.uniform(2,len(self.sendmsglist)))
+            self.sendmsglist = [v for k, v in self.sendmsg.items()]
+            rd = int(random.uniform(2, len(self.sendmsglist)))
 
-            print('发送：',self.sendmsglist[rd])
+            print('发送：', self.sendmsglist[rd])
             ser.write(self.sendmsglist[rd])
             sleep(60)
             #return currentmsg
@@ -111,14 +111,11 @@ class Slave(object):
             '2stValue':'0'
             }
 
-
         # self.seedcurrent = 1
         # self.seedpulse = 1
         # self.seedfrequece = 1
         # self.firstcurrent = 1
         # self.seedsecondcurrent = 1
-
-
         # port_list = list(list_ports.comports())
 
         model = Model()
@@ -240,7 +237,6 @@ class Slave(object):
                         print(serstr,value)
                     elif serstr == 'setfirstcurrent':
                         print(serstr,value)
-                        print('晓光说不要发送一级的电流，还不快关掉！！！')
                         self.firstcurrent = value
                     elif serstr == 'setsecondcurrent':
                         print(serstr,value)

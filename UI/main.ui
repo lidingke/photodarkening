@@ -321,6 +321,7 @@
           <height>100</height>
          </size>
         </property>
+        <zorder>tabWidget</zorder>
        </widget>
       </item>
      </layout>

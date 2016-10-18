@@ -8,17 +8,17 @@ import sys
 sys.path.append("..")
 import pdb
 
-from UI.portGBUI import Ui_GroupBox as PortGBUI
-from UI.pumpUI import Ui_GroupBox as PumpUI
-from UI.tabboxUI import Ui_Form as TabBoxUI
+# from UI.portGBUI import Ui_GroupBox as PortGBUI
+# from UI.pumpUI import Ui_GroupBox as PumpUI
+from UI.mainUI import Ui_Form as TabBoxUI
 # from UI.powerUI import Ui_Form as PowerUI
 # from portGBUI import Ui_GroupBox as PortGBUI
 
 from view.matplotlibPyQt5 import MyDynamicMplCanvas
 from view.powershow import PowerShow
-from view.powerrecord import PowerRecord
+# from view.powerrecord import PowerRecord
 from view.user import UserView
-from view.user import User
+# from view.user import User
 # from model.lastlog import LastLog
 from frame.lastlog import LastLog
 
@@ -57,15 +57,15 @@ class View(QWidget):
             '2400 baud','4800 baud','9600 baud',
             '19200 baud','38400 baud','57600 baud',
             '115200 baud','230400 baud','250000 baud']
-        self.tabBoxUI.baundratePump.addItems(menuItem)
+        self.tabBoxUI.baundrate.addItems(menuItem)
         portItem = ['com1','com2','com3','com4',
             'com5','com6','com7','com8','com9',
             'com10','com11','com12','com13',
             'com14','com15','com16','com17',
             'com18','com19','com20']
-        self.tabBoxUI.portPump.addItems(portItem)
-        self.tabBoxUI.baundratePump.currentIndexChanged.connect(self.emitBaundratePort)
-        self.tabBoxUI.portPump.currentIndexChanged.connect(self.emitBaundratePort)
+        self.tabBoxUI.port.addItems(portItem)
+        self.tabBoxUI.baundrate.currentIndexChanged.connect(self.emitBaundratePort)
+        self.tabBoxUI.port.currentIndexChanged.connect(self.emitBaundratePort)
 
     def __initMatplotUI(self):
         matplot = self.tabBoxUI.matplot
@@ -76,17 +76,9 @@ class View(QWidget):
         self.powerShow1 = PowerShow()
         self.powerShow2 = PowerShow()
         self.powerShow3 = PowerShow()
-        # self.tabBoxUI.canvas.hide()
-        # self.tabBoxUI.canvas = self.powerShow3
-        # self.tabBoxUI.canvas2.hide()
-        # self.tabBoxUI.canvas2 = self.powerShow1
-        # pdb.set_trace()
         self.tabBoxUI.cmdLayout.addWidget(self.powerShow1)
-        # self.tabBoxUI.cmdLayout.replaceWidget(self.tabBoxUI.canvas, self.powerShow2)
-        # self.tabBoxUI.cmdLayout.update()
         self.tabBoxUI.cmdLayout.addWidget(self.powerShow2)
         self.tabBoxUI.cmdLayout.addWidget(QPlainTextEdit())
-        # self.tabBoxUI.mainLayout.setLayout(self.tabBoxUI.cmdLayout)
 
     def __initLog(self):
         self.powerLog = PowerLog(self.tabBoxUI)
@@ -101,14 +93,14 @@ class View(QWidget):
 
         self.tabBoxUI.userName.setText(userName)
         self.tabBoxUI.passwordIput.setText(password)
-        self.tabBoxUI.baundratePump.setCurrentIndex(baudIndex)
-        self.tabBoxUI.portPump.setCurrentIndex(portIndex)
+        self.tabBoxUI.baundrate.setCurrentIndex(baudIndex)
+        self.tabBoxUI.port.setCurrentIndex(portIndex)
 
     def lastLogSave(self):
         self.lastLog['username'] = self.tabBoxUI.userName.text()
         self.lastLog['password'] = self.tabBoxUI.passwordIput.text()
-        self.lastLog['baud'] = self.tabBoxUI.baundratePump.currentIndex()
-        self.lastLog['port'] = self.tabBoxUI.portPump.currentIndex()
+        self.lastLog['baud'] = self.tabBoxUI.baundrate.currentIndex()
+        self.lastLog['port'] = self.tabBoxUI.port.currentIndex()
         self.lastLog.saveLast()
 
     # def __setUser(self,value):
@@ -123,10 +115,12 @@ class View(QWidget):
     def emitBaundratePort(self):
         bp = self.getBaundratePort()
         self.setBaundratePortSignal.emit(bp[0],bp[1])
+        print('bd', bp)
 
     def getBaundratePort(self):
-        port = self.tabBoxUI.portPump.currentText()
-        baundrate = self.tabBoxUI.baundratePump.currentText()[:-5]
+        port = self.tabBoxUI.port.currentText()
+        baundrate = self.tabBoxUI.baundrate.currentText()[:-5]
+        baundrate = int(baundrate)
         return (port,baundrate)
 
     # def setPort(self):

@@ -5,7 +5,7 @@ class SerialModel(threading.Thread):
     """abstract basic serial model"""
     def __init__(self, ):
         super(SerialModel, self).__init__()
-        self.daemon = True
+        # self.daemon = True
         self.port = False
         self.baundrate = 9600
         self.ser = False
@@ -16,10 +16,11 @@ class SerialModel(threading.Thread):
         self._setPort(self.port, self.baundrate)
 
     def _setPort(self, port, baundrate):
+
         if port:
-            self.ser = serial.Serial(baudrate=baundrate, timeout=120)
-        else:
             self.ser = serial.Serial(port = port, baudrate=baundrate, timeout=120)
+        else:
+            self.ser = serial.Serial(baudrate=baundrate, timeout=120)
 
     def setPort(self, port, baundrate):
         try:
@@ -29,7 +30,7 @@ class SerialModel(threading.Thread):
 
 
     def _write(self, bitDatas):
-        if self.ser and bitDatas:
+        if self.ser and self.ser.isOpen() and bitDatas:
             self.ser.write(bitDatas)
 
     def _readBit(self):

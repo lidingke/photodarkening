@@ -30,7 +30,7 @@ if __name__ == '__main__':
     # pt.setColor(QPalette.Button, QColor(239,246,250))
     pt.setColor(QPalette.ButtonText, QColor(34,39,42))
     # pt.setColor(QPalette.WindowText, QColor(34,39,42))
-    pt.setColor(QPalette.Highlight, QColor(74,149,184))
+    # pt.setColor(QPalette.Hghlight, QColor(74,149,184))
 
     app.setPalette(pt)
     font = app.font()
