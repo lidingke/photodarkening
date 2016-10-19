@@ -42,7 +42,15 @@ class Presenter(QObject):
         self.__view.tabBoxUI.openPlatform.clicked.connect(self.pumpModel.openPlatform)
         self.__view.tabBoxUI.closePlatform.clicked.connect(self.pumpModel.closePlatform)
         self.__view.tabBoxUI.setCurrent.clicked.connect(self.setCurrent)
-
+        #plot signal
+        self.pumpModel.updatePowerShow.connect(self.__view.setPowerShowDict)
+        self.pumpModel.emitPlot.connect(self.__view.updataFigure)
+        self.pumpModel.beginPlot.connect(self.__view.painter.clearPlotList)
+        self.__view.powerLog.beginTimeSignal.connect(self.pumpModel.setStartTime)
+        self.__view.tabBoxUI.logButton.clicked.connect(self.pumpModel.setBeginPlotTime)
+        self.__view.powerLog.sqlTableName.connect(self.pumpModel.creatPlot)
+        self.__view.powerLog.stopSavePower.connect(self.pumpModel.setSaveStop)
+        # self.__view.emitUsername.connect(self.pumpModel.setUsername)
         # self.__view.setbaundratePump.connect(self.pumpModel.baundrateIndexChange)
         # self.__view.setportPump.connect(self.pumpModel.portPump)
 

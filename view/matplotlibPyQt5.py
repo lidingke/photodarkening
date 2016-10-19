@@ -37,61 +37,53 @@ class MyDynamicMplCanvas(MyMplCanvas):
     """A canvas that updates itself every second with a new plot."""
     def __init__(self, *args, **kwargs):
         MyMplCanvas.__init__(self, *args, **kwargs)
-        # timer = QtCore.QTimer(self)
-        # timer.timeout.connect(self.update_figure)
-        # timer.start(1000)
         self.axes.set_xlabel('Time(s)')
         self.axes.set_ylabel('Power(W)')
         self.axes.grid(True)
         self.isStartLog = False
         self.lasty = 1
         self.xlist = [0]
-        self.ylist = [0]
+        self.y1list = [0]
+        self.y2list = [0]
         self.yMax = 1
         self.xpoint = 0
-        self.ypoint = 0
-        # self.timeState = datetime.time()
+        self.y1point = 0
+        self.y1point = 0
+
         self.timeStatesec = 0
         self.xunit = 'sec'
         self.isPloting = True
 
     def compute_initial_figure(self):
         self.axes.plot([0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5], 'r')
-        # self.axes.xticks([0.0,0.5,1.0])
+
 
     def update_figure(self):
-        # Build a list of 4 random integers between 0 and 10 (both inclusive)
-        # l = [random.randint(0, 10) for i in range(4)]
-        # print('is updatefigure ?')
-        if self.ylist:
+        if self.y1list:
             try:
-                hugeNumAvoid = abs(self.ylist[-1]/self.lasty)
+                hugeNumAvoid = abs(self.y1list[-1]/self.lasty)
                 if hugeNumAvoid >100 or hugeNumAvoid < 0.001:
                     return
             except ZeroDivisionError:
                 pass
-            # print('isStartLog',self.isStartLog)
             if self.isStartLog == False:
                 self.beforeLog()
             else:
-                # self.getLogPlotPara()
                 self.afterLog()
-            self.lasty = self.ypoint
+            self.lasty = self.y1point
 
     def beforeLog(self):
-            self.axes.plot(self.xlist, self.ylist, 'r')
-            if self.ylist[-1] < 1:
+            self.axes.plot(self.xlist, self.y1list, 'r',\
+                           self.xlist, self.y2list, 'b')
+
+            if self.y1list[-1] < 1:
                 self.axes.set_ylim(0,1)
             self.draw()
 
     def getStartLog(self,bool_ ):
-        # print('lg set ',bool_)
         self.isStartLog = bool_
 
     def getLogTimeState(self,tp ):
-        # self.timeState = pydatetime
-        # tp = pydatetime
-        # self.timeStatesec = (tp.hour*60+tp.minute)*60+tp.second
         self.timeStatesec = tp
         print(self.timeStatesec,'timeStatesec')
         if self.timeStatesec>3600:
@@ -106,16 +98,13 @@ class MyDynamicMplCanvas(MyMplCanvas):
         print('timsec',self.timeStatesec)
 
     def afterLog(self):
-            self.axes.plot(self.xlist, self.ylist, 'r')
-            # if self.timeState.hour > 0:
+            self.axes.plot(self.xlist, self.y1list, 'r')
             xlimit = self.timended
             self.axes.set_xlim(0,xlimit)
-            # print('setsec ',self.timeStatesec,'timended:',self.timended)
-            # print('xunit',self.xunit)
-            if self.ylist[-1] < 1:
+            if self.y1list[-1] < 1:
                 self.axes.set_ylim(0,1)
             else:
-                self.axes.set_ylim(0,self.ypoint*1.5)
+                self.axes.set_ylim(0,self.y1point*1.5)
             self.axes.set_xlabel('Time')
             self.axes.set_ylabel('Power')
             self.axes.grid(True)
@@ -124,16 +113,16 @@ class MyDynamicMplCanvas(MyMplCanvas):
     def savePlotFig(self):
         def savefigThread(self):
             self.fig.savefig("data\\plot.svg", format = 'svg')#data\
-        threading.Thread(target = savefigThread,daemon = True).start()
+        threading.Thread(target = savefigThread, daemon = True).start()
 
 
 
-        # self.axes.plot(self.xlist, self.ylist, 'r')
+        # self.axes.plot(self.xlist, self.y1list, 'r')
         # import matplotlib.pyplot as plt
         # plt.plot(range(10))
         # plt.savefig('testplot.png')
 
-    def XYaxit(self,x,y):
+    def XYaxit(self,x,y1,y2):
         if self.isPloting:
         # print('x_sec:',x,'xunit:',self.xunit)
         # pdb.set_trace()
@@ -141,18 +130,20 @@ class MyDynamicMplCanvas(MyMplCanvas):
             # print('x_min:',x)
             if x:
                 self.xpoint = x
-                self.ypoint = y
+                self.y1point = y1
+                self.y2point = y2
                 self.xlist.append(x)
-                self.ylist.append(y)
+                self.y1list.append(y1)
+                self.y2list.append(y2)
         self.update_figure()
 
     def XYaxitList(self,is_,x,y):
         self.isPloting = is_
         print('getplot ',is_)
         self.xlist = x
-        self.ylist = y
-        self.axes.plot(self.xlist, self.ylist, 'r')
-        # if self.ylist[-1] < 1:
+        self.y1list = y
+        self.axes.plot(self.xlist, self.y1list, 'r')
+        # if self.y1list[-1] < 1:
         #     self.axes.set_ylim(0,1)
         self.draw()
 
@@ -170,19 +161,10 @@ class MyDynamicMplCanvas(MyMplCanvas):
     def setisPloting(self,is_):
         self.isPloting = is_
 
-    # def pydatetime2xlim(self,pdt ):
-    #     if self.xunit == 'sec':
-    #         return pdt
-    #     elif self.xunit == 'min':
-    #         return pdt / 60 + 1
-    #     elif self.xunit == 'hour':
-    #         return pdt/3600 + 1
-    #     else:
-    #         return pdt
 
     def clearPlotList(self,is_):
         self.xlist.clear()
-        self.ylist.clear()
+        self.y1list.clear()
         self.isPloting = is_
 
 class ApplicationWindow(QMainWindow):

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'record.ui'
 #
-# Created by: PyQt5 UI code generator 5.6
+# Created by: PyQt5 UI code generator 5.5.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -18,7 +18,6 @@ class Ui_Form(object):
         self.widget.setGeometry(QtCore.QRect(12, 12, 192, 106))
         self.widget.setObjectName("widget")
         self.gridLayout = QtWidgets.QGridLayout(self.widget)
-        self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setObjectName("gridLayout")
         self.label = QtWidgets.QLabel(self.widget)
         self.label.setObjectName("label")
@@ -46,7 +45,6 @@ class Ui_Form(object):
         self.widget1.setGeometry(QtCore.QRect(222, 10, 258, 111))
         self.widget1.setObjectName("widget1")
         self.gridLayout_2 = QtWidgets.QGridLayout(self.widget1)
-        self.gridLayout_2.setContentsMargins(0, 0, 0, 0)
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.label_3 = QtWidgets.QLabel(self.widget1)
         self.label_3.setObjectName("label_3")

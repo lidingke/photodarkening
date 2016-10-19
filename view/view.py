@@ -33,8 +33,6 @@ class View(QWidget):
     def __init__(self,):
         super(View, self).__init__()
         QWidget.__init__(self)
-        # self.arg = arg
-
         self.__initUI()
         self.queue      = Queue()
         self._setLastLog()
@@ -45,9 +43,11 @@ class View(QWidget):
         self.tabBoxUI.setupUi(self)
         self.__initUserUI()
         self.__initPort()
-        self.__initLog()
         self.__initMatplotUI()
+        self.__initLog()
         self.__initPowerShow()
+        # temp disable tabbox
+        # self.tabBoxUI.tabBox.setTabEnabled(3, False)
 
     def __initUserUI(self):
         self.myUserUI = MyUserUI(self.tabBoxUI)
@@ -75,13 +75,16 @@ class View(QWidget):
     def __initPowerShow(self):
         self.powerShow1 = PowerShow()
         self.powerShow2 = PowerShow()
-        self.powerShow3 = PowerShow()
         self.tabBoxUI.cmdLayout.addWidget(self.powerShow1)
         self.tabBoxUI.cmdLayout.addWidget(self.powerShow2)
         self.tabBoxUI.cmdLayout.addWidget(QPlainTextEdit())
 
     def __initLog(self):
         self.powerLog = PowerLog(self.tabBoxUI)
+        self.powerLog.getNowFig(self.painter)
+        self.powerLog.timeStateSignal.connect(self.painter.getLogTimeState)
+        self.powerLog.logStateSignal.connect(self.painter.getStartLog)
+        self.powerLog.plotlist.connect(self.painter.XYaxitList)
 
     def _setLastLog(self):
         self.lastLog = LastLog()
@@ -111,6 +114,20 @@ class View(QWidget):
 
     def set_end_cmd(self, end_cmd):
         self.end_cmd = end_cmd
+
+    def setPowerShowDict(self,dct1, dct2):
+        """
+        singnal from model.updatePowerShow
+        """
+        self.powerShow1.powerList = dct1
+        self.powerShow1.updateFigure()
+        self.powerShow2.powerList = dct2
+        self.powerShow2.updateFigure()
+
+    def updataFigure(self,newtime,power1, power2):
+        # self.setCurrentValue(currentValue, timeValue)
+        self.painter.XYaxit(newtime, power1, power2)
+        self.painter.update_figure()
 
     def emitBaundratePort(self):
         bp = self.getBaundratePort()

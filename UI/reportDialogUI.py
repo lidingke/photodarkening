@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'reportDialog.ui'
 #
-# Created by: PyQt5 UI code generator 5.6
+# Created by: PyQt5 UI code generator 5.5.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -16,7 +16,6 @@ class Ui_Dialog(object):
         self.layoutWidget.setGeometry(QtCore.QRect(10, 10, 406, 118))
         self.layoutWidget.setObjectName("layoutWidget")
         self.gridLayout = QtWidgets.QGridLayout(self.layoutWidget)
-        self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setObjectName("gridLayout")
         self.lineEditProducer = QtWidgets.QLineEdit(self.layoutWidget)
         self.lineEditProducer.setObjectName("lineEditProducer")
